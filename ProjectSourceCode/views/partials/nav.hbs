@@ -1,0 +1,38 @@
+<div class="flex flex-col min-h-screen">
+    <h1 class="text-5xl font-bold text-center mt-14">GoPal</h1>
+        
+    <!-- Nav Buttons -->
+    <nav class="flex flex-col space-y-3 my-auto">
+        <a href="/home" class="sidebar-nav-button p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 h-20 text-[21px] font-medium">Home</a>
+        <a href="/activity" class="sidebar-nav-button p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 h-20 text-[21px] font-medium">Activity</a>
+        <a href="/social" class="sidebar-nav-button p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 h-20 text-[21px] font-medium">Social</a>
+        <a href="/pal" class="sidebar-nav-button p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 h-20 text-[21px] font-medium">Pal</a>
+        <a href="/settings" class="sidebar-nav-button p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 h-20 text-[21px] font-medium">Settings</a>
+    </nav>
+        
+    <!-- User Profile Section -->
+    <div class="mt-auto mb-3 mx-auto bg-white p-4 rounded-xl shadow flex flex-col w-[12rem]">
+        <div class = "flex flex-row">
+            <div class="w-10 h-10 bg-green-300 rounded-full mr-4"></div>
+                <div class="flex flex-col mb-1">
+                    <p class="font-semibold">John Doe</p>
+                    <p class="text-sm text-gray-500">Level 5</p>
+            </div>
+        </div>
+        <a href="#" class="mt-2 bg-blue-200 hover:bg-blue-300 text-black px-10 py-2 rounded-xl text-sm text-center justify-center">View Profile</a>
+    </div>
+</div>
+
+
+<script>
+    //Turns Active Button Blue
+    document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const activeLink = document.querySelector(`.sidebar-nav-button[href="${currentPath}"]`);
+    
+    if (activeLink) {
+        activeLink.classList.remove('bg-white', 'hover:bg-gray-300');
+        activeLink.classList.add('bg-blue-300', 'hover:bg-blue-400');
+    }
+});
+</script>
