@@ -76,8 +76,7 @@ app.post('/login', async (req, res) => {
         if (user_data) {
             user.user_id = user_data.user_id;
         } else {
-            //User does not exist
-            res.redirect('/register');
+            res.render('pages/login', { message: `Account with username does not exist` })
             return;
         }
         match = await bcrypt.compare(req.body.password, user_data.password);
@@ -87,8 +86,7 @@ app.post('/login', async (req, res) => {
             res.redirect('/home')
             return;
         } else {
-            //Incorrect Password
-            res.render('pages/login')
+            res.render('pages/login', { message: `Incorrect Password` })
         }
     } catch (err) {
         console.error(err);
@@ -108,8 +106,7 @@ app.post('/register', async (req, res) => {
         existing_username = await db.oneOrNone('select * from users where users.username = $1 LIMIT 1;', [username]);
         existing_email = await db.oneOrNone('select * from users where users.email = $1 LIMIT 1;', [email]);
         if (existing_username || existing_email) {
-            console.log("Username or email already registered");
-            res.render('pages/register');
+            res.render('pages/register',{message: "Username or email already registered"});
             return;
         }
         await db.none('INSERT INTO users(email, username, password) VALUES($1, $2, $3);', [email, username, hashed_password]);
@@ -119,8 +116,6 @@ app.post('/register', async (req, res) => {
         res.render('pages/register');
     }
 });
-
-//TODO: Put middleware on all of these once the login / register pages and backend exist
 
 app.get('/',auth, (req, res) => {
     res.redirect('/home');
