@@ -53,6 +53,7 @@ app.use(
 );
 
 app.use(express.static(path.join(__dirname)));
+app.use('/images', express.static(path.join(__dirname, 'extra_resources/images')));
 
 //Authentication Middleware
 const auth = (req, res, next) => {
@@ -68,6 +69,31 @@ app.get('/login', (req, res) => {
 
 app.get('/register', (req, res) => {
     res.render('pages/register');
+});
+
+app.post('/register', async (req, res) => {
+    try {
+        const email = req.body.email
+        const username = req.body.username;
+        const hashed_password = await bcrypt.hash(req.body.password, 10);
+        if (!(email && username && req.body.password)) {
+            //If there's an empty input field
+            res.render('pages/register');
+            return;
+        }
+        existing_username = await db.oneOrNone('select * from users where users.username = $1 LIMIT 1;', [username]);
+        existing_email = await db.oneOrNone('select * from users where users.email = $1 LIMIT 1;', [email]);
+        if (existing_username || existing_email) {
+            console.log("Username or email already registered");
+            res.render('pages/register');
+            return;
+        }
+        await db.none('INSERT INTO users(email, username, password) VALUES($1, $2, $3);', [email, username, hashed_password]);
+        res.redirect('/login');
+    } catch (err) {
+        console.error(err);
+        res.render('pages/register');
+    }
 });
 
 //TODO: Put middleware on all of these once the login / register pages and backend exist
