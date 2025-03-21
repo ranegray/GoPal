@@ -122,27 +122,27 @@ app.post('/register', async (req, res) => {
 
 //TODO: Put middleware on all of these once the login / register pages and backend exist
 
-app.get('/', (req, res) => {
+app.get('/',auth, (req, res) => {
     res.redirect('/home');
 });
 
-app.get('/home', (req, res) => {
+app.get('/home',auth, (req, res) => {
     res.render('pages/home');
 });
 
-app.get('/activity', (req, res) => {
+app.get('/activity',auth, (req, res) => {
     res.render('pages/activity');
 });
 
-app.get('/social', (req, res) => {
+app.get('/social',auth, (req, res) => {
     res.render('pages/social');
 });
 
-app.get('/pal', (req, res) => {
+app.get('/pal',auth, (req, res) => {
     res.render('pages/pal');
 });
 
-app.get('/settings', (req, res) => {
+app.get('/settings',auth, (req, res) => {
     res.render('pages/settings');
 });
 
