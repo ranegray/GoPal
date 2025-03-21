@@ -52,7 +52,7 @@ app.use(
     })
 );
 
-app.use(express.static(path.join(__dirname, "extra_resources")));
+app.use(express.static(path.join(__dirname)));
 
 //Authentication Middleware
 const auth = (req, res, next) => {
