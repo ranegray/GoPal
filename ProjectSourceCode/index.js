@@ -67,6 +67,35 @@ app.get('/login', (req, res) => {
     res.render('pages/login');
 });
 
+app.post('/login', async (req, res) => {
+    try {
+        var user = {user_id: null};
+        const email = req.body.email
+        const username = req.body.username;
+        user_data = await db.oneOrNone('select * from users where users.username = $1 LIMIT 1;', [username]);
+        if (user_data) {
+            user.user_id = user_data.user_id;
+        } else {
+            //User does not exist
+            res.redirect('/register');
+            return;
+        }
+        match = await bcrypt.compare(req.body.password, user_data.password);
+        if (match) {
+            req.session.user = user;
+            req.session.save();
+            res.redirect('/home')
+            return;
+        } else {
+            //Incorrect Password
+            res.render('pages/login')
+        }
+    } catch (err) {
+        console.error(err);
+        res.render('pages/login')
+    }
+});
+
 app.get('/register', (req, res) => {
     res.render('pages/register');
 });
@@ -76,11 +105,6 @@ app.post('/register', async (req, res) => {
         const email = req.body.email
         const username = req.body.username;
         const hashed_password = await bcrypt.hash(req.body.password, 10);
-        if (!(email && username && req.body.password)) {
-            //If there's an empty input field
-            res.render('pages/register');
-            return;
-        }
         existing_username = await db.oneOrNone('select * from users where users.username = $1 LIMIT 1;', [username]);
         existing_email = await db.oneOrNone('select * from users where users.email = $1 LIMIT 1;', [email]);
         if (existing_username || existing_email) {
