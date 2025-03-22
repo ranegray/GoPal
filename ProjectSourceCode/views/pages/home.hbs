@@ -7,4 +7,31 @@
     <!-- All the shit to the right of the nav bar -->
     <h1>Home Content</h1>
   </main>
+
+ <!-- Weather -->
+ <!-- Will retouch front-end later; just getting in basic functionality -->
+  <aside class="fixed bottom-4 right-4 w-64">
+    <script src="/js/geolocation.js"></script>
+
+    <input type="hidden" id="latitude">
+    <input type="hidden" id="longitude">
+
+    <section class="bg-gray-100 p-4 rounded-lg shadow-md">
+      <h2 class="text-2xl font-bold mb-2" style="text-align: center;">Weather</h2>
+      <div id="weather-container" class="mt-2">
+        <p class="text-sm"><span id="city">--</span></p>
+        <p class="text-4xl font-bold" id="temperature">--°</p>
+        
+        <div class="flex items-center space-x-2">
+        <img id="weatherIcon" alt="Weather icon" class="w-8 h-8">
+        <p class="text-lg" id="weather">Loading...</p>
+        </div>
+
+        <p class="text-sm">Wind: <span id="wind">--</span> mph</p>
+        <p class="text-sm">Humidity: <span id="humidity">--</span></p>
+        <p class="text-sm">AQI: <span id="air-quality">--</span></p>
+        <p id="weather-alert" class="text-red-500 font-bold hidden"></p>
+      </div>
+    </section>
+  </aside>
 </div>
