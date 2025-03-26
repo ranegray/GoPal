@@ -12,6 +12,11 @@ const hbs = handlebars.create({
     extname: 'hbs',
     layoutsDir: __dirname + '/views/layouts',
     partialsDir: __dirname + '/views/partials',
+    helpers: {
+        eq: function (a, b) {
+            return a === b;
+        }
+    }
 });
 
 const dbConfig = {
@@ -137,8 +142,17 @@ app.get('/pal',auth, (req, res) => {
     res.render('pages/pal');
 });
 
-app.get('/settings',auth, (req, res) => {
-    res.render('pages/settings');
+app.get("/settings/:tab?",auth, (req, res) => {
+    const tab = req.params.tab;
+    const allowedTabs = ["account", "profile", "pal-settings"];
+    if (!tab){
+        res.redirect('/settings/account');
+    }
+    if (!allowedTabs.includes(tab)) {
+        return res.status(404).send("Tab not found");
+    }
+
+    res.render("pages/settings", { activeTab: tab });
 });
 
 

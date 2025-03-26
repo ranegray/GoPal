@@ -1,16 +1,23 @@
 import { passwordErrorText } from './password_error.js';
 import { getLocation } from './geolocation.js';
 
-//Turns active nav bar button blue
+//Turns active nav bar buttons blue
 const navBar = document.getElementById('nav-bar');
 if(navBar){
+    // mainActiveLink is for the main nav bar, subActiveLink is for any tabs within each main page (like different settings tabs)
     document.addEventListener('DOMContentLoaded', function() {
         const currentPath = window.location.pathname;
-        const activeLink = document.querySelector(`.sidebar-nav-button[href="${currentPath}"]`);
-        
-        if (activeLink) {
-            activeLink.classList.remove('bg-white', 'hover:bg-gray-300');
-            activeLink.classList.add('bg-blue-300', 'hover:bg-blue-400');
+        const mainPage = '/' + currentPath.split('/')[1];
+        const mainActiveLink = document.querySelector(`.sidebar-nav-button[href="${mainPage}"]`);
+        const subActiveLink = document.querySelector(`.sub-nav-button[href="${currentPath}"]`);
+        console.log(subActiveLink);
+        if (mainActiveLink) {
+            mainActiveLink.classList.remove('bg-white', 'hover:bg-gray-300');
+            mainActiveLink.classList.add('bg-blue-300', 'hover:bg-blue-400');
+        }
+        if (subActiveLink) {
+            subActiveLink.classList.remove('bg-white', 'hover:bg-gray-300');
+            subActiveLink.classList.add('bg-blue-300', 'hover:bg-blue-400');
         }
     });
 }
