@@ -10,7 +10,7 @@ let lastUpdateTime = 0;
 const updateInterval = 5 * 60 * 1000; // 5 minutes
 
 // Requesting user location:
-function getLocation() {
+export function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(success, error);
     } else {
@@ -90,6 +90,3 @@ function retrieveAirQuality(lat, lon, weatherApiKey) {
         console.error("Error fetching pollution data:", error);
     });
 }
-
-// Start tracking user location
-getLocation();
