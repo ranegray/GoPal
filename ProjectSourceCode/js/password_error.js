@@ -1,15 +1,13 @@
-document.getElementById('register_form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    
-    const password = document.getElementById('password').value;
-    const errorMessage = document.getElementById('password-error');
-    
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
-    
-    if (!passwordRegex.test(password)) {
-        errorMessage.classList.remove('hidden');
-    } else {
-        errorMessage.classList.add('hidden');
-        document.getElementById('register_form').submit();
+const registerForm = document.getElementById('register_form');
+const passwordField = document.getElementById('password');
+const errorMessage = document.getElementById('password-error');
+const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
+
+registerForm.addEventListener('submit', function(event) {
+    const password = passwordField.value;
+    const isPasswordValid = passwordRegex.test(password);
+    errorMessage.classList.toggle('hidden', isPasswordValid);
+    if (!isPasswordValid) {
+        event.preventDefault();
     }
 });
