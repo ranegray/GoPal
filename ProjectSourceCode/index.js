@@ -146,7 +146,7 @@ app.get("/settings/:tab?",auth, (req, res) => {
     const tab = req.params.tab;
     const allowedTabs = ["account", "profile", "pal-settings"];
     if (!tab){
-        res.redirect('/settings/account');
+        return res.redirect('/settings/account');
     }
     if (!allowedTabs.includes(tab)) {
         return res.status(404).send("Tab not found");

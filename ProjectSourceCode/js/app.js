@@ -10,7 +10,6 @@ if(navBar){
         const mainPage = '/' + currentPath.split('/')[1];
         const mainActiveLink = document.querySelector(`.sidebar-nav-button[href="${mainPage}"]`);
         const subActiveLink = document.querySelector(`.sub-nav-button[href="${currentPath}"]`);
-        console.log(subActiveLink);
         if (mainActiveLink) {
             mainActiveLink.classList.remove('bg-white', 'hover:bg-gray-300');
             mainActiveLink.classList.add('bg-blue-300', 'hover:bg-blue-400');
