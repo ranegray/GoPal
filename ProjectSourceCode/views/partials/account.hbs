@@ -1,20 +1,31 @@
 <h2 class="text-xl font-semibold mb-4 mt-4 ml-10">Personal Information</h2>
-<form>
-    <div class="grid grid-cols-2 gap-10 p-10">
+<form method="post" action="/settings/account">
+    <div class="grid grid-cols-2 gap-5 p-5">
         <div>
-            <input type="text" id='name' name='name' placeholder="Name" class="w-full border rounded-xl p-4"/>
+            <p class="p-1">Name</p>
+            <input type="text" id='name' name='name' placeholder='{{#if user.name}}{{user.name}}{{else}}Name{{/if}}' class="w-full border rounded-xl p-4"/>
         </div>
         <div>
-            <input type="email" id='email' name='email' placeholder="Email" class="w-full border rounded-xl p-4"/>
+            <p class="p-1">Email</p>
+            <input type="email" id='email' name='email' placeholder='{{#if user.email}}{{user.email}}{{else}}Email{{/if}}' class="w-full border rounded-xl p-4"/>
         </div>
         <div>
-            <input type="text" id="birthday" name="birthday" class="w-full border rounded-xl p-4" placeholder="Birthday" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <p class="p-1">Birthday</p>
+            <input type="text" id="birthday" name="birthday" class="w-full border rounded-xl p-4" placeholder='{{#if user.birthday}}{{user.birthday}}{{else}}Birthday{{/if}}' onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
         </div>
         <div>
-            <select id='countrySelect' name='countrySelect' placeholder="Country" class="w-full border rounded-xl p-4">
-                <option value="" disabled selected>Select Country</option>
+            <p class="p-1">Country</p>
+            <select id='countrySelect' name='country' placeholder="Country" class="w-full border rounded-xl p-4">
+                <option value="" disabled selected>{{#if user.country}}{{user.country}}{{else}}Country{{/if}}</option>
             </select>
-
+        </div>
+        <div>
+            <p class="p-1">Username</p>
+            <input type="text" id='username' name='username' placeholder="{{user.username}}" class="w-full border rounded-xl p-4"/>
+        </div>
+        <div>
+            <p class="p-1">Password</p>
+            <input type="text" id='password' name='password' placeholder="New Password" class="w-full border rounded-xl p-4"/>
         </div>
     </div>
 
@@ -23,4 +34,11 @@
             Save Changes
         </button>
     </div>
+    {{#if message}}
+        {{#each message}}
+            <div class="p-2 mb-2 text-sm font-medium rounded-lg bg-red-100 text-red-800" role="alert">
+                {{this}}
+            </div>
+        {{/each}}
+    {{/if}}
 </form>

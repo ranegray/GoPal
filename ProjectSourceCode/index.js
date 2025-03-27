@@ -74,12 +74,12 @@ app.get('/login', (req, res) => {
 
 app.post('/login', async (req, res) => {
     try {
-        var user = {user_id: null};
+        var user = {};
         const email = req.body.email
         const username = req.body.username;
         user_data = await db.oneOrNone('select * from users where users.username = $1 LIMIT 1;', [username]);
         if (user_data) {
-            user.user_id = user_data.user_id;
+            user = user_data;
         } else {
             res.render('pages/login', { message: `Account with username does not exist` })
             return;
@@ -127,22 +127,23 @@ app.get('/',auth, (req, res) => {
 });
 
 app.get('/home',auth, (req, res) => {
-    res.render('pages/home');
+    res.render('pages/home',{user: req.session.user});
 });
 
 app.get('/activity',auth, (req, res) => {
-    res.render('pages/activity');
+    res.render('pages/activity',{user: req.session.user});
 });
 
 app.get('/social',auth, (req, res) => {
-    res.render('pages/social');
+    res.render('pages/social',{user: req.session.user});
 });
 
 app.get('/pal',auth, (req, res) => {
-    res.render('pages/pal');
+    res.render('pages/pal',{user: req.session.user});
 });
 
-app.get("/settings/:tab?",auth, (req, res) => {
+app.get("/settings/:tab?",auth, async (req, res) => {
+    var additionalInfo = {}
     const tab = req.params.tab;
     const allowedTabs = ["account", "profile", "pal-settings"];
     if (!tab){
@@ -151,9 +152,78 @@ app.get("/settings/:tab?",auth, (req, res) => {
     if (!allowedTabs.includes(tab)) {
         return res.status(404).send("Tab not found");
     }
+    if (tab == 'account'){
+        additionalInfo = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
+    }
 
-    res.render("pages/settings", { activeTab: tab });
+    if (additionalInfo.birthday)
+    {
+        additionalInfo.birthday = additionalInfo.birthday.toISOString().split("T")[0];
+    }
+    res.render("pages/settings", { activeTab: tab, user: req.session.user });
 });
+
+app.post('/settings/account', async (req, res) => {
+    let messages = [];
+    const name = req.body.name;
+    let email = req.body.email;
+    const birthday = req.body.birthday;
+    const country = req.body.country;
+    let username = req.body.username;
+    let password = req.body.password;
+    let hashed_password = await bcrypt.hash(password, 10);
+
+    if (email){
+        duplicateEmail = await db.oneOrNone('SELECT * FROM users WHERE email = $1;', [email]);
+        if (duplicateEmail)
+        {
+            messages.push(`Email already in use`);
+            email = null;
+        }
+    }
+
+    if (username)
+    {
+        duplicateUsername = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
+        if (duplicateUsername)
+        {
+            messages.push(`Username already in use`);
+            username = null;
+        }
+    }
+
+    if (password)
+    {
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
+        const isPasswordValid = passwordRegex.test(password);
+        if (isPasswordValid)
+        {
+            await db.none('UPDATE users SET password = $1 WHERE user_id = $2', [hashed_password, req.session.user.user_id])
+        }
+        else{
+            messages.push(`Invalid Password (8+ Characters, 1 Special, 1 Lowercase, 1 Uppercase, 1 Digit)`);
+        }
+    }
+
+    let queryParams = '';
+    queryParams += (name ? (' name' + ' = \'' + name + '\'') : null) ?? "";
+    queryParams += (email ? (' email' + ' = \'' + email + '\'') : null) ?? "";
+    queryParams += (birthday ? (' birthday' + ' = \'' + birthday + '\'') : null) ?? "";
+    queryParams += (country ? (' country' + ' = \'' + country + '\'') : null) ?? "";
+    queryParams += (username ? (' username' + ' = \'' + username + '\'') : null) ?? "";
+    if (queryParams){
+        query = 'UPDATE users SET' + queryParams + ' WHERE user_id = $1'
+        await db.none(query, [req.session.user.user_id])
+    }
+
+    const user = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
+    if (user.birthday)
+    {
+        user.birthday = user.birthday.toISOString().split("T")[0];
+    }
+    req.session.user = user;
+    res.render('pages/settings', {activeTab: 'account', message: messages, user: req.session.user});
+})
 
 
 //Ensure App is Listening For Requests
