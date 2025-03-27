@@ -32,3 +32,22 @@ if (window.location.pathname === '/register'){
 if (window.location.pathname === '/home'){
     getLocation()
 }
+
+// Account tab of settings page
+if (window.location.pathname === '/settings/account'){
+    // fetches a list of countries from the rest countries API and uses it to create the dropdown select menu
+    //TODO: maybe store this data somewhere as a backup so that if the API goes down or something, the country dropdown won't break, it will just use the last available data
+    fetch('https://restcountries.com/v3.1/all')
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById('countrySelect');
+      const countries = data.map(country => country.name.common).sort();
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country;
+        option.textContent = country;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error fetching countries:', error));
+}

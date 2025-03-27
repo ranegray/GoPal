@@ -2,16 +2,19 @@
 <form>
     <div class="grid grid-cols-2 gap-10 p-10">
         <div>
-            <input type="text" placeholder="Name" class="w-full border rounded-xl p-4"/>
+            <input type="text" id='name' name='name' placeholder="Name" class="w-full border rounded-xl p-4"/>
         </div>
         <div>
-            <input type="email" placeholder="Email" class="w-full border rounded-xl p-4"/>
+            <input type="email" id='email' name='email' placeholder="Email" class="w-full border rounded-xl p-4"/>
         </div>
         <div>
-            <input type="number" placeholder="Age" class="w-full border rounded-xl p-4"/>
+            <input type="text" id="birthday" name="birthday" class="w-full border rounded-xl p-4" placeholder="Birthday" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
         </div>
         <div>
-            <input type="text" placeholder="Country" class="w-full border rounded-xl p-4"/>
+            <select id='countrySelect' name='countrySelect' placeholder="Country" class="w-full border rounded-xl p-4">
+                <option value="" disabled selected>Select Country</option>
+            </select>
+
         </div>
     </div>
 
