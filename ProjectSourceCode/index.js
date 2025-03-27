@@ -143,7 +143,7 @@ app.get('/pal',auth, (req, res) => {
 });
 
 app.get("/settings/:tab?",auth, async (req, res) => {
-    var additionalInfo = {}
+    var user = {}
     const tab = req.params.tab;
     const allowedTabs = ["account", "profile", "pal-settings"];
     if (!tab){
@@ -153,14 +153,14 @@ app.get("/settings/:tab?",auth, async (req, res) => {
         return res.status(404).send("Tab not found");
     }
     if (tab == 'account'){
-        additionalInfo = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
+        user = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
+        if (user.birthday)
+        {
+            user.birthday = user.birthday.toISOString().split("T")[0];
+        }
     }
 
-    if (additionalInfo.birthday)
-    {
-        additionalInfo.birthday = additionalInfo.birthday.toISOString().split("T")[0];
-    }
-    res.render("pages/settings", { activeTab: tab, user: req.session.user });
+    res.render("pages/settings", { activeTab: tab, user: user });
 });
 
 app.post('/settings/account', async (req, res) => {
