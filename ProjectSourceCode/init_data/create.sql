@@ -6,5 +6,8 @@ CREATE TABLE users (
   email VARCHAR(255) UNIQUE,
   birthday DATE,
   country VARCHAR(255),
-  name VARCHAR(255)
+  phone VARCHAR(255),
+  display_name VARCHAR(255),
+  fitness_level VARCHAR(255),
+  visibility VARCHAR(255) DEFAULT 'anyone'
 );
