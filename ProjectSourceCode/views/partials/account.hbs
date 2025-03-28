@@ -2,30 +2,30 @@
 <form method="post" action="/settings/account">
     <div class="grid grid-cols-2 gap-5 p-5">
         <div>
-            <p class="p-1">Phone Number</p>
-            <input type="tel" id='phone' name='phone' placeholder='{{#if user.phone}}{{user.phone}}{{else}}Phone{{/if}}' class="w-full border rounded-xl p-4"/>
+            <label class="block text-gray-700 font-semibold mb-2" for="phone">Phone Number</label>
+            <input type="tel" id='phone' name='phone' placeholder='{{#if user.phone}}{{user.phone}}{{else}}Phone{{/if}}' class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
-            <p class="p-1">Email</p>
-            <input type="email" id='email' name='email' placeholder='{{#if user.email}}{{user.email}}{{else}}Email{{/if}}' class="w-full border rounded-xl p-4"/>
+            <label class="block text-gray-700 font-semibold mb-2" for="email">Email</label>
+            <input type="email" id='email' name='email' placeholder='{{#if user.email}}{{user.email}}{{else}}Email{{/if}}' class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
-            <p class="p-1">Birthday</p>
-            <input type="text" id="birthday" name="birthday" class="w-full border rounded-xl p-4" placeholder='{{#if user.birthday}}{{user.birthday}}{{else}}Birthday{{/if}}' onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <label class="block text-gray-700 font-semibold mb-2" for="birthday">Birthday</label>
+            <input type="text" id="birthday" name="birthday" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder='{{#if user.birthday}}{{user.birthday}}{{else}}Birthday{{/if}}' onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
         </div>
         <div>
-            <p class="p-1">Country</p>
-            <select id='countrySelect' name='country' placeholder="Country" class="w-full border rounded-xl p-4">
+            <label class="block text-gray-700 font-semibold mb-2" for="country">Country</label>
+            <select id='countrySelect' name='country' placeholder="Country" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="" disabled selected>{{#if user.country}}{{user.country}}{{else}}Country{{/if}}</option>
             </select>
         </div>
         <div>
-            <p class="p-1">Username</p>
-            <input type="text" id='username' name='username' placeholder="{{user.username}}" class="w-full border rounded-xl p-4"/>
+            <label class="block text-gray-700 font-semibold mb-2" for="username">Username</label>
+            <input type="text" id='username' name='username' placeholder="{{user.username}}" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
-            <p class="p-1">Password</p>
-            <input type="text" id='password' name='password' placeholder="New Password" class="w-full border rounded-xl p-4"/>
+            <label class="block text-gray-700 font-semibold mb-2" for="password">Password</label>
+            <input type="text" id='password' name='password' placeholder="New Password" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
     </div>
 
