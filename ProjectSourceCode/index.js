@@ -152,14 +152,12 @@ app.get("/settings/:tab?",auth, async (req, res) => {
     if (!allowedTabs.includes(tab)) {
         return res.status(404).send("Tab not found");
     }
-    if (tab == 'account'){
-        user = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
-        if (user.birthday)
-        {
-            user.birthday = user.birthday.toISOString().split("T")[0];
-        }
+    
+    user = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
+    if (user.birthday)
+    {
+        user.birthday = user.birthday.toISOString().split("T")[0];
     }
-
     res.render("pages/settings", { activeTab: tab, user: user });
 });
 
