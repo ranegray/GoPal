@@ -3,8 +3,21 @@
     <!-- Nav bar -->
     {{>nav}}
   </aside>
-  <main class="bg-white px-4">
-    <!-- All the shit to the right of the nav bar -->
-    <h1>Activity Content</h1>
+  <main class="flex-grow p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">My Activities</h1>
+    </div>
+
+    {{!-- TODO: Add styling/logic to account for large numbers of activities --}}
+    <!-- Activity List -->
+    <div id="activities-list">
+      {{#if activities.length}}
+      {{#each activities}}
+      {{> activity-card this}}
+      {{/each}}
+      {{else}}
+      <p class="text-center py-4 text-gray-500">No activities found. Add your first workout!</p>
+      {{/if}}
+    </div>
   </main>
 </div>
