@@ -12,6 +12,22 @@ const hbs = handlebars.create({
     extname: 'hbs',
     layoutsDir: __dirname + '/views/layouts',
     partialsDir: __dirname + '/views/partials',
+    helpers: {
+        formatDate: function(date) {
+            return new Date(date).toLocaleDateString();
+        },
+        formatTime: function(time) {
+            if (!time) return '';
+            
+            const timeParts = time.split(':');
+            const hours = parseInt(timeParts[0]);
+            const minutes = timeParts[1];
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12; // Convert to 12-hour format
+            
+            return `${displayHours}:${minutes} ${ampm}`;
+        }
+    }
 });
 
 const dbConfig = {
@@ -125,9 +141,30 @@ app.get('/home',auth, (req, res) => {
     res.render('pages/home');
 });
 
-app.get('/activity',auth, (req, res) => {
-    res.render('pages/activity');
-});
+app.get('/activity', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      
+      const activities = await db.any(
+        `SELECT wl.*, at.activity_name 
+        FROM workout_logs wl
+        JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
+        WHERE wl.user_id = $1
+        ORDER BY wl.workout_date DESC, wl.workout_time DESC, wl.created_at DESC`,
+        [userId]
+      );
+      
+      res.render('pages/activity', { 
+        activities: activities 
+      });
+    } catch (err) {
+      console.error('Error fetching activities:', err);
+      res.render('pages/activity', { 
+        activities: [],
+        error: 'Error loading activities. Please try again.' 
+      });
+    }
+  });
 
 app.get('/social',auth, (req, res) => {
     res.render('pages/social');
@@ -141,6 +178,74 @@ app.get('/settings',auth, (req, res) => {
     res.render('pages/settings');
 });
 
+// Submit a new activity
+app.post('/api/activities', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        const { 
+            'activity-type': activityTypeName, 
+            'activity-duration': durationMinutes, 
+            'activity-distance': distanceMi, 
+            'activity-date': workoutDate,
+            'activity-time': workoutTime,
+            'activity-notes': notes 
+        } = req.body;
+        
+        // Get activity type ID from name
+        const activityType = await db.oneOrNone('SELECT activity_type_id FROM activity_types WHERE activity_name ILIKE $1', [activityTypeName]);
+        
+        if (!activityType) {
+            return res.status(400).redirect('/activity?error=Invalid activity type');
+        }
+        
+        const activityTypeId = activityType.activity_type_id;
+        
+        // Use current date if no date provided
+        const date = workoutDate || new Date().toISOString().split('T')[0];
+        
+        // Use current time if no time provided
+        const time = workoutTime || new Date().toTimeString().split(' ')[0];
+
+        // Insert the workout log
+        await db.none(
+            `INSERT INTO workout_logs 
+            (user_id, activity_type_id, workout_date, workout_time, duration_minutes, distance_mi, notes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [userId, activityTypeId, date, time, durationMinutes, distanceMi, notes]
+        );
+
+        return res.redirect('/activity');
+    } catch (err) {
+        console.error('Error adding activity:', err);
+        return res.redirect('/activity?error=Failed to add activity');
+    }
+});
+
+// Delete an activity
+app.post('/api/activities/:id', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      const workoutId = req.params.id;
+      
+      // Ensure the workout belongs to the user
+      const workout = await db.oneOrNone(
+        'SELECT * FROM workout_logs WHERE workout_id = $1 AND user_id = $2',
+        [workoutId, userId]
+      );
+      
+      if (!workout) {
+        return res.status(404).redirect('/activity?error=Activity not found');
+      }
+      
+      await db.none('DELETE FROM workout_logs WHERE workout_id = $1', [workoutId]);
+      
+      // Redirect back to activities page
+      res.redirect('/activity?success=Activity deleted');
+    } catch (err) {
+      console.error('Error deleting activity:', err);
+      res.redirect('/activity?error=Error deleting activity');
+    }
+  });
 
 //Ensure App is Listening For Requests
 app.listen(3000);
