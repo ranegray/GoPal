@@ -3,11 +3,11 @@
     <div class="grid grid-cols-2 gap-5 p-5">
         <div>
             <label class="block text-gray-700 font-semibold mb-2" for="phone">Phone Number</label>
-            <input type="tel" id='phone' name='phone' placeholder='{{#if user.phone}}{{user.phone}}{{else}}Phone{{/if}}' class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            <input type="tel" maxlength="15" id='phone' name='phone' pattern="^\d+$" placeholder='{{#if user.phone}}{{user.phone}}{{else}}Phone{{/if}}' class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
             <label class="block text-gray-700 font-semibold mb-2" for="email">Email</label>
-            <input type="email" id='email' name='email' placeholder='{{#if user.email}}{{user.email}}{{else}}Email{{/if}}' class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            <input type="email" maxlength="254" id='email' name='email' placeholder='{{#if user.email}}{{user.email}}{{else}}Email{{/if}}' class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
             <label class="block text-gray-700 font-semibold mb-2" for="birthday">Birthday</label>
@@ -21,11 +21,11 @@
         </div>
         <div>
             <label class="block text-gray-700 font-semibold mb-2" for="username">Username</label>
-            <input type="text" id='username' name='username' placeholder="{{user.username}}" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            <input type="text" maxlength="254" id='username' name='username' placeholder="{{user.username}}" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
             <label class="block text-gray-700 font-semibold mb-2" for="password">Password</label>
-            <input type="text" id='password' name='password' placeholder="New Password" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            <input type="text" maxlength="254" id='password' name='password' placeholder="New Password" class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
     </div>
 

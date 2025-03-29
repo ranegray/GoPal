@@ -1,15 +1,15 @@
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   user_id SERIAL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE,
+  username VARCHAR(255) UNIQUE,
   password VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE,
   birthday DATE,
-  country VARCHAR(255),
-  phone VARCHAR(255),
-  display_name VARCHAR(255),
-  fitness_level VARCHAR(255),
-  visibility VARCHAR(255) DEFAULT 'anyone'
+  country VARCHAR(60),
+  phone VARCHAR(15),
+  display_name VARCHAR(15),
+  fitness_level VARCHAR(20),
+  visibility VARCHAR(10) DEFAULT 'anyone'
 );
 
 CREATE TABLE activity_types (

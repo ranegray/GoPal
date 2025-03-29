@@ -54,6 +54,10 @@ if (window.location.pathname === "/settings/account") {
       });
     })
     .catch((error) => console.error("Error fetching countries:", error));
+    
+    // Set the max attribute of birthday to today's date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("birthday").setAttribute("max", today);
 }
 // Activity Modal
 // This code handles the modal for adding activities
