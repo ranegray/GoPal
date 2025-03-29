@@ -137,3 +137,6 @@ dist
 
 # Compiled CSS
 /extra_resources/css/style.css
+
+# Sessions
+sessions/
