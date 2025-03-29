@@ -1,0 +1,8 @@
+{
+    "ignore": [
+        "sessions/*",
+        "node_modules/*",
+        ".git/*"
+    ],
+    "delay": "1500"
+}
