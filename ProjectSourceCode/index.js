@@ -9,25 +9,34 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
-    helpers: {
-        formatDate: function(date) {
-            return new Date(date).toLocaleDateString();
-        },
-        formatTime: function(time) {
-            if (!time) return '';
-            
-            const timeParts = time.split(':');
-            const hours = parseInt(timeParts[0]);
-            const minutes = timeParts[1];
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12; // Convert to 12-hour format
-            
-            return `${displayHours}:${minutes} ${ampm}`;
-        }
-    }
+  extname: "hbs",
+  layoutsDir: __dirname + "/views/layouts",
+  partialsDir: __dirname + "/views/partials",
+  helpers: {
+    formatDate: function (date) {
+      return new Date(date).toLocaleDateString();
+    },
+    formatTime: function (time) {
+      if (!time) return "";
+
+      const timeParts = time.split(":");
+      const hours = parseInt(timeParts[0]);
+      const minutes = timeParts[1];
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const displayHours = hours % 12 || 12; // Convert to 12-hour format
+
+      return `${displayHours}:${minutes} ${ampm}`;
+    },
+    formatDuration: function (duration) {
+      if (!duration) return "";
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+      return `${hours}h ${minutes}m`;
+    },
+    pluralize: function (count, singular, plural) {
+      return count === 1 ? singular : plural;
+    },
+  },
 });
 
 const dbConfig = {
@@ -141,6 +150,61 @@ app.get('/home',auth, (req, res) => {
     res.render('pages/home');
 });
 
+function getCurrentWeekRange() {
+    // Get current date
+    const now = new Date();
+    
+    // Get the day of the week (0 = Sunday, 1 = Monday, etc.)
+    const currentDay = now.getDay();
+    
+    // Calculate days to subtract to get to Sunday (start of week)
+    const daysToSubtract = currentDay;
+    
+    // Create a new date object for the start of the week (Sunday)
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - daysToSubtract);
+    startOfWeek.setHours(0, 0, 0, 0); // Set to beginning of the day
+    
+    // Create a new date object for the end of the week (Saturday)
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999); // Set to end of the day
+    
+    return {
+      startDate: startOfWeek,
+      endDate: endOfWeek
+    };
+  }
+
+  // Function to get weekly statistics
+  function getWeeklyStats(workoutData) {
+    const weekRange = getCurrentWeekRange();
+    
+    // Filter workouts that fall within the current week
+    const weeklyWorkouts = workoutData.filter(workout => {
+      const workoutDate = new Date(workout.workout_date);
+      return workoutDate >= weekRange.startDate && workoutDate <= weekRange.endDate;
+    });
+    
+    // Calculate statistics based on filtered data
+    const totalDistance = weeklyWorkouts.reduce((sum, workout) => {
+        if (workout.distance_mi) {
+            return sum + parseFloat(workout.distance_mi);
+        }
+        return sum;
+    }, 0);
+    const totalDuration = weeklyWorkouts.reduce((sum, workout) => sum + (workout.duration_minutes || 0), 0);
+    
+    return {
+      weekStart: weekRange.startDate.toLocaleDateString(),
+      weekEnd: weekRange.endDate.toLocaleDateString(),
+      workoutCount: weeklyWorkouts.length,
+      totalDistance: totalDistance,
+      totalDuration: totalDuration,
+      workouts: weeklyWorkouts
+    };
+  }
+
 app.get('/activity', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
@@ -153,9 +217,12 @@ app.get('/activity', auth, async (req, res) => {
         ORDER BY wl.workout_date DESC, wl.workout_time DESC, wl.created_at DESC`,
         [userId]
       );
+
+      const weeklyStats = getWeeklyStats(activities);
       
       res.render('pages/activity', { 
-        activities: activities 
+        activities: activities, 
+        weeklyStats: weeklyStats
       });
     } catch (err) {
       console.error('Error fetching activities:', err);
