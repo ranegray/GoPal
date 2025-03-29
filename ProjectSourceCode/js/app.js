@@ -29,10 +29,8 @@ if (window.location.pathname === "/home") {
   getLocation();
 }
 
-// Activity Modal
-// This code handles the modal for adding activities
 document.addEventListener("DOMContentLoaded", function () {
-  // Get DOM elements
+  // Activity Modal - Adding Activity
   const activityModal = document.getElementById("activity-modal");
   const activityForm = document.getElementById("activity-form");
   const closeModalButton = document.getElementById("close-modal-button");
@@ -82,4 +80,23 @@ document.addEventListener("DOMContentLoaded", function () {
   if (cancelButton) {
     cancelButton.addEventListener("click", closeModal);
   }
+
+  // Notification Dropdown
+  const notificationIcon = document.getElementById("notification-icon");
+  const notificationDropdown = document.getElementById("notification-dropdown");
+
+  notificationIcon.addEventListener("click", function (event) {
+    event.stopPropagation(); // Prevent the click from being detected by the document
+    notificationDropdown.classList.toggle("hidden");
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", function (event) {
+    // Check if dropdown is visible and the click is outside the dropdown and icon
+    if (!notificationDropdown.classList.contains("hidden") && 
+        !notificationDropdown.contains(event.target) && 
+        event.target !== notificationIcon) {
+      notificationDropdown.classList.add("hidden");
+    }
+  });
 });

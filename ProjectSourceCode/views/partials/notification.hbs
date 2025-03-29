@@ -1,0 +1,21 @@
+<!-- Notifications -->
+  <div class="relative mr-8 inline-block">
+    <div id="notification-icon" class="cursor-pointer">
+      <div class="absolute -top-1 -right-1 rounded-full h-3 w-3 bg-red-500 z-10"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" class="hover:text-gray-500" width="28" height="28" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-bell">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+        <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+      </svg>
+    </div>
+    <div class="absolute right-0 w-64 bg-white shadow-lg rounded-lg mt-2 p-4 hidden" id="notification-dropdown">
+      <h3 class="text-lg font-semibold mb-2">Notifications</h3>
+      <ul>
+        <li class="py-2 border-b">New activity added!</li>
+        <li class="py-2 border-b">Activity updated!</li>
+        <li class="py-2 border-b">Activity deleted!</li>
+      </ul>
+    </div>
+  </div>
