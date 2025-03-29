@@ -36,6 +36,7 @@
         </label>
         <input 
             type="text" 
+            maxlength="15"
             id="displayName" 
             name="displayName"
             placeholder='{{#if user.display_name}}{{user.display_name}}{{else}}Enter Display Name{{/if}}'
@@ -84,4 +85,12 @@
             Save Changes
         </button>
     </div>
+
+    {{#if message}}
+        {{#each message}}
+            <div class="p-2 mb-2 text-sm font-medium rounded-lg bg-red-100 text-red-800" role="alert">
+                {{this}}
+            </div>
+        {{/each}}
+    {{/if}}
 </form>

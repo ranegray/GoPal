@@ -223,7 +223,6 @@ app.post('/settings/account', async (req, res) => {
                 email = null;
             }
         }
-
         if (username)
         {
             duplicateUsername = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
@@ -233,7 +232,6 @@ app.post('/settings/account', async (req, res) => {
                 username = null;
             }
         }
-
         if (password)
         {
             const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
@@ -297,6 +295,7 @@ app.post('/settings/account', async (req, res) => {
 app.post('/settings/profile', upload.single('profilePicture'), async (req, res) => {
     try{
         let messages = [];
+        //for now, profile picture doesn't do anything, because we have to have a place to store the uploaded photos, likely some sort of cloud storage like firebase.
         const profilePicture = req.body.profilePicture;
         const fitnessLevel = req.body.fitnessLevel;
         const displayName = req.body.displayName;
