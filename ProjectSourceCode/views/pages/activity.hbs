@@ -9,31 +9,28 @@
       {{>notification}}
     </div>
 
-    {{!-- TODO: Achievements awarded --}}
+    {{!-- TODO: Achievements awarded component --}}
     {{> achievement-card}}
 
     <div class="flex flex-col items-center border border-gray-300 rounded-lg p-4 mb-6">
-      <p class="uppercase font-semibold text-lg">week of {{weeklyStats.weekStart}} to {{weeklyStats.weekEnd}}</p>
+      <p class="uppercase font-semibold text-lg">week of {{stats.startDate}} to {{stats.endDate}}</p>
       <div class="flex justify-between items-center w-full">
         <div class="flex flex-col items-center w-1/4 bg-amber-50 m-2 p-4 rounded-lg">
           <p class="uppercase font-semibold text-amber-500">This week</p>
-          {{!-- TODO: Add logic to calculate and display the number of activities this week --}}
-          <p>{{weeklyStats.workoutCount}} {{pluralize weeklyStats.workoutCount "activity" "activities"}}</p>
+          <p>{{stats.activityCount}} {{pluralize stats.activityCount "activity" "activities"}}</p>
         </div>
         <div class="flex flex-col items-center w-1/4 bg-green-50 m-2 p-4 rounded-lg">
           <p class="uppercase font-semibold text-green-500">Distance</p>
-          {{!-- TODO: Add logic to calculate and display the total distance of activities this week --}}
-          <p>{{weeklyStats.totalDistance}} mi</p>
+          <p>{{stats.totalDistance}} mi</p>
         </div>
         <div class="flex flex-col items-center w-1/4 bg-blue-50 m-2 p-4 rounded-lg">
           <p class="uppercase font-semibold text-blue-500">Duration</p>
-          {{!-- TODO: Add logic to calculate and display the total duration of activities this week --}}
-          <p>{{formatDuration weeklyStats.totalDuration}}</p>
+          <p>{{formatDuration stats.totalDuration}}</p>
         </div>
         <div class="flex flex-col items-center w-1/4 bg-purple-50 m-2 p-4 rounded-lg">
           <p class="uppercase font-semibold text-purple-500">Streak</p>
           {{!-- TODO: Add logic to calculate and display the activity streak --}}
-          <p>{{weeklyStats.workoutCount}} {{pluralize weeklyStats.workoutCount "day" "days 🔥"}}</p>
+          <p>{{stats.currentStreak}} {{pluralize stats.currentStreak "day" "days"}}</p>
         </div>
       </div>
     </div>
@@ -43,12 +40,12 @@
     {{!-- TODO: Add styling/logic to account for large numbers of activities --}}
     <!-- Activity List -->
     <div id="activities-list">
-      {{#if activities.length}}
-      {{#each activities}}
+      {{#if stats.activities.length}}
+      {{#each stats.activities}}
       {{> activity-card this}}
       {{/each}}
       {{else}}
-      <p class="text-center py-4 text-gray-500">No activities found. Add your first workout!</p>
+      <p class="text-center py-4 text-gray-500">No activities found. Add your first activity!</p>
       {{/if}}
     </div>
 

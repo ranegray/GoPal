@@ -9,10 +9,13 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const bcrypt = require('bcryptjs');
 
+const getStatsForRange = require('./utils/stat-utils').getStatsForRange;
+const getDateRange = require('./utils/date-utils').getDateRange;
+
 const hbs = handlebars.create({
   extname: "hbs",
-  layoutsDir: __dirname + "/views/layouts",
-  partialsDir: __dirname + "/views/partials",
+  layoutsDir: path.join(__dirname, "../views/layouts"),
+  partialsDir: path.join(__dirname, "../views/partials"),
   helpers: {
     formatDate: function (date) {
       return new Date(date).toLocaleDateString();
@@ -29,7 +32,7 @@ const hbs = handlebars.create({
       return `${displayHours}:${minutes} ${ampm}`;
     },
     formatDuration: function (duration) {
-      if (!duration) return "";
+      if (!duration) return "0h 0m";
       const hours = Math.floor(duration / 60);
       const minutes = duration % 60;
       return `${hours}h ${minutes}m`;
@@ -61,7 +64,7 @@ db.connect()
 
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '../views'));
 app.use(bodyParser.json());
 
 app.use(
@@ -83,8 +86,8 @@ app.use(
     })
 );
 
-app.use(express.static(path.join(__dirname)));
-app.use('/images', express.static(path.join(__dirname, 'extra_resources/images')));
+app.use(express.static(path.join(__dirname, '..')));
+app.use('/images', express.static(path.join(__dirname, '../extra_resources/images')));
 
 //Authentication Middleware
 const auth = (req, res, next) => {
@@ -156,79 +159,27 @@ app.get('/home',auth, (req, res) => {
     res.render('pages/home');
 });
 
-function getCurrentWeekRange() {
-    // Get current date
-    const now = new Date();
-    
-    // Get the day of the week (0 = Sunday, 1 = Monday, etc.)
-    const currentDay = now.getDay();
-    
-    // Calculate days to subtract to get to Sunday (start of week)
-    const daysToSubtract = currentDay;
-    
-    // Create a new date object for the start of the week (Sunday)
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - daysToSubtract);
-    startOfWeek.setHours(0, 0, 0, 0); // Set to beginning of the day
-    
-    // Create a new date object for the end of the week (Saturday)
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999); // Set to end of the day
-    
-    return {
-      startDate: startOfWeek,
-      endDate: endOfWeek
-    };
-  }
-
-  // Function to get weekly statistics
-  function getWeeklyStats(workoutData) {
-    const weekRange = getCurrentWeekRange();
-    
-    // Filter workouts that fall within the current week
-    const weeklyWorkouts = workoutData.filter(workout => {
-      const workoutDate = new Date(workout.workout_date);
-      return workoutDate >= weekRange.startDate && workoutDate <= weekRange.endDate;
-    });
-    
-    // Calculate statistics based on filtered data
-    const totalDistance = weeklyWorkouts.reduce((sum, workout) => {
-        if (workout.distance_mi) {
-            return sum + parseFloat(workout.distance_mi);
-        }
-        return sum;
-    }, 0);
-    const totalDuration = weeklyWorkouts.reduce((sum, workout) => sum + (workout.duration_minutes || 0), 0);
-    
-    return {
-      weekStart: weekRange.startDate.toLocaleDateString(),
-      weekEnd: weekRange.endDate.toLocaleDateString(),
-      workoutCount: weeklyWorkouts.length,
-      totalDistance: totalDistance,
-      totalDuration: totalDuration,
-      workouts: weeklyWorkouts
-    };
-  }
-
 app.get('/activity', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
       
       const activities = await db.any(
         `SELECT wl.*, at.activity_name 
-        FROM workout_logs wl
+        FROM activity_logs wl
         JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
         WHERE wl.user_id = $1
-        ORDER BY wl.workout_date DESC, wl.workout_time DESC, wl.created_at DESC`,
+        ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC`,
         [userId]
       );
 
-      const weeklyStats = getWeeklyStats(activities);
+      // Can pass a string to getDateRange to get different ranges
+      // For example: "week", "month", "year"
+      const { startDate, endDate } = getDateRange("week");
+      const stats = getStatsForRange(activities, startDate, endDate);
       
       res.render('pages/activity', { 
         activities: activities, 
-        weeklyStats: weeklyStats
+        stats: stats
       });
     } catch (err) {
       console.error('Error fetching activities:', err);
@@ -259,8 +210,8 @@ app.post('/api/activities', auth, async (req, res) => {
             'activity-type': activityTypeName, 
             'activity-duration': durationMinutes, 
             'activity-distance': distanceMi, 
-            'activity-date': workoutDate,
-            'activity-time': workoutTime,
+            'activity-date': activityDate,
+            'activity-time': activityTime,
             'activity-notes': notes 
         } = req.body;
         
@@ -274,15 +225,15 @@ app.post('/api/activities', auth, async (req, res) => {
         const activityTypeId = activityType.activity_type_id;
         
         // Use current date if no date provided
-        const date = workoutDate || new Date().toISOString().split('T')[0];
+        const date = activityDate || new Date().toISOString().split('T')[0];
         
         // Use current time if no time provided
-        const time = workoutTime || new Date().toTimeString().split(' ')[0];
+        const time = activityTime || new Date().toTimeString().split(' ')[0];
 
-        // Insert the workout log
+        // Insert the activity log
         await db.none(
-            `INSERT INTO workout_logs 
-            (user_id, activity_type_id, workout_date, workout_time, duration_minutes, distance_mi, notes)
+            `INSERT INTO activity_logs 
+            (user_id, activity_type_id, activity_date, activity_time, duration_minutes, distance_mi, notes)
             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [userId, activityTypeId, date, time, durationMinutes, distanceMi, notes]
         );
@@ -298,19 +249,19 @@ app.post('/api/activities', auth, async (req, res) => {
 app.post('/api/activities/:id', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
-      const workoutId = req.params.id;
+      const activityId = req.params.id;
       
-      // Ensure the workout belongs to the user
-      const workout = await db.oneOrNone(
-        'SELECT * FROM workout_logs WHERE workout_id = $1 AND user_id = $2',
-        [workoutId, userId]
+      // Ensure the activity belongs to the user
+      const activity = await db.oneOrNone(
+        'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+        [activityId, userId]
       );
       
-      if (!workout) {
+      if (!activity) {
         return res.status(404).redirect('/activity?error=Activity not found');
       }
       
-      await db.none('DELETE FROM workout_logs WHERE workout_id = $1', [workoutId]);
+      await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
       
       // Redirect back to activities page
       res.redirect('/activity?success=Activity deleted');
