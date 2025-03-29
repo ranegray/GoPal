@@ -9,6 +9,29 @@
       {{>notification}}
     </div>
 
+    <div class="flex justify-between border border-gray-300 rounded-lg p-4 mb-6">
+      <div class="flex flex-col items-center w-1/4 bg-amber-50 m-2 p-4 rounded-lg">
+        <p class="uppercase font-semibold text-amber-500">This week</p>
+        {{!-- TODO: Add logic to calculate and display the number of activities this week --}}
+        <p>0</p>
+      </div>
+      <div class="flex flex-col items-center w-1/4 bg-green-50 m-2 p-4 rounded-lg">
+        <p class="uppercase font-semibold text-green-500">Distance</p>
+        {{!-- TODO: Add logic to calculate and display the total distance of activities this week --}}
+        <p>0 mi</p>
+      </div>
+      <div class="flex flex-col items-center w-1/4 bg-blue-50 m-2 p-4 rounded-lg">
+        <p class="uppercase font-semibold text-blue-500">Duration</p>
+        {{!-- TODO: Add logic to calculate and display the total duration of activities this week --}}
+        <p>0 hr 0 min</p>
+      </div>
+      <div class="flex flex-col items-center w-1/4 bg-purple-50 m-2 p-4 rounded-lg">
+        <p class="uppercase font-semibold text-purple-500">Streak</p>
+        {{!-- TODO: Add logic to calculate and display the activity streak --}}
+        <p>0 days</p>
+      </div>
+    </div>
+
     {{!-- TODO: Add styling/logic to account for large numbers of activities --}}
     <!-- Activity List -->
     <div id="activities-list">
