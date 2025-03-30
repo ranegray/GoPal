@@ -2,9 +2,9 @@ import { passwordErrorText } from "./password_error.js";
 import { getLocation } from "./geolocation.js";
 
 //Turns active nav bar buttons blue
-const navBar = document.getElementById("nav-bar");
-if (navBar) {
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
+  const navBar = document.getElementById("nav-bar");
+  if (navBar) {
     const currentPath = window.location.pathname;
     const mainPage = "/" + currentPath.split("/")[1];
     const mainActiveLink = document.querySelector(
@@ -14,13 +14,13 @@ if (navBar) {
       mainActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
       mainActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
     }
-  });
-}
+  }
+});
 
 //Turns active sub nav bar buttons blue
-const subNavBar = document.getElementById("sub-nav-bar");
-if (subNavBar) {
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
+  const subNavBar = document.getElementById("sub-nav-bar");
+  if (subNavBar) {
     const currentPath = window.location.pathname;
     const subActiveLink = document.querySelector(
       `.sub-nav-button[href="${currentPath}"]`
@@ -29,9 +29,8 @@ if (subNavBar) {
       subActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
       subActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
     }
-  });
-}
-
+  }
+});
 
 
 // Register Page
