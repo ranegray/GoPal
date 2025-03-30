@@ -2,26 +2,56 @@ import { passwordErrorText } from "./password_error.js";
 import { getLocation } from "./geolocation.js";
 
 //Turns active nav bar buttons blue
-const navBar = document.getElementById("nav-bar");
-if (navBar) {
-  // mainActiveLink is for the main nav bar, subActiveLink is for any tabs within each main page (like different settings tabs)
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
+  const navBar = document.getElementById("nav-bar");
+  if (navBar) {
     const currentPath = window.location.pathname;
     const mainPage = "/" + currentPath.split("/")[1];
     const mainActiveLink = document.querySelector(
       `.sidebar-nav-button[href="${mainPage}"]`
     );
-    const subActiveLink = document.querySelector(
-      `.sub-nav-button[href="${currentPath}"]`
-    );
     if (mainActiveLink) {
       mainActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
       mainActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
     }
+  }
+});
+
+//Turns active sub nav bar buttons blue
+document.addEventListener("DOMContentLoaded", function () {
+  const subNavBar = document.getElementById("sub-nav-bar");
+  if (subNavBar) {
+    const currentPath = window.location.pathname;
+    const subActiveLink = document.querySelector(
+      `.sub-nav-button[href="${currentPath}"]`
+    );
     if (subActiveLink) {
       subActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
       subActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
     }
+  }
+});
+
+if (window.location.pathname === "/settings/profile") {
+  document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("profilePicture");
+    const errorMessage = document.getElementById("error-message");
+
+    if (!fileInput || !errorMessage) return; // Ensure elements exist
+
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+
+      if (file && file.size > maxSize) {
+        errorMessage.textContent = "File size exceeds 2MB limit.";
+        errorMessage.classList.toggle("hidden", false);
+        this.value = ""; // Clear the file input
+      } else {
+        errorMessage.textContent = "";
+        errorMessage.classList.toggle("hidden", true);
+      }
+    });
   });
 }
 
