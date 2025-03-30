@@ -32,6 +32,28 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+if (window.location.pathname === "/settings/profile") {
+  document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("profilePicture");
+    const errorMessage = document.getElementById("error-message");
+
+    if (!fileInput || !errorMessage) return; // Ensure elements exist
+
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+
+      if (file && file.size > maxSize) {
+        errorMessage.textContent = "File size exceeds 2MB limit.";
+        errorMessage.classList.toggle("hidden", false);
+        this.value = ""; // Clear the file input
+      } else {
+        errorMessage.textContent = "";
+        errorMessage.classList.toggle("hidden", true);
+      }
+    });
+  });
+}
 
 // Register Page
 if (window.location.pathname === "/register") {
