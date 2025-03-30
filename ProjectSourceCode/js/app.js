@@ -1,19 +1,57 @@
 import { passwordErrorText } from "./password_error.js";
 import { getLocation } from "./geolocation.js";
 
-//Turns active nav bar button blue
-const navBar = document.getElementById("nav-bar");
-if (navBar) {
-  document.addEventListener("DOMContentLoaded", function () {
+//Turns active nav bar buttons blue
+document.addEventListener("DOMContentLoaded", function () {
+  const navBar = document.getElementById("nav-bar");
+  if (navBar) {
     const currentPath = window.location.pathname;
-    const activeLink = document.querySelector(
-      `.sidebar-nav-button[href="${currentPath}"]`
+    const mainPage = "/" + currentPath.split("/")[1];
+    const mainActiveLink = document.querySelector(
+      `.sidebar-nav-button[href="${mainPage}"]`
     );
-
-    if (activeLink) {
-      activeLink.classList.remove("bg-white", "hover:bg-gray-300");
-      activeLink.classList.add("bg-blue-300", "hover:bg-blue-400");
+    if (mainActiveLink) {
+      mainActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
+      mainActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
     }
+  }
+});
+
+//Turns active sub nav bar buttons blue
+document.addEventListener("DOMContentLoaded", function () {
+  const subNavBar = document.getElementById("sub-nav-bar");
+  if (subNavBar) {
+    const currentPath = window.location.pathname;
+    const subActiveLink = document.querySelector(
+      `.sub-nav-button[href="${currentPath}"]`
+    );
+    if (subActiveLink) {
+      subActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
+      subActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
+    }
+  }
+});
+
+if (window.location.pathname === "/settings/profile") {
+  document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("profilePicture");
+    const errorMessage = document.getElementById("error-message");
+
+    if (!fileInput || !errorMessage) return; // Ensure elements exist
+
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+
+      if (file && file.size > maxSize) {
+        errorMessage.textContent = "File size exceeds 2MB limit.";
+        errorMessage.classList.toggle("hidden", false);
+        this.value = ""; // Clear the file input
+      } else {
+        errorMessage.textContent = "";
+        errorMessage.classList.toggle("hidden", true);
+      }
+    });
   });
 }
 
@@ -29,6 +67,30 @@ if (window.location.pathname === "/home") {
   getLocation();
 }
 
+// Account tab of settings page
+if (window.location.pathname === "/settings/account") {
+  // fetches a list of countries from the rest countries API and uses it to create the dropdown select menu
+  //TODO: maybe store this data somewhere as a backup so that if the API goes down or something, the country dropdown won't break, it will just use the last available data
+  fetch("https://restcountries.com/v3.1/all")
+    .then((response) => response.json())
+    .then((data) => {
+      const select = document.getElementById("countrySelect");
+      const countries = data.map((country) => country.name.common).sort();
+      countries.forEach((country) => {
+        const option = document.createElement("option");
+        option.value = country;
+        option.textContent = country;
+        select.appendChild(option);
+      });
+    })
+    .catch((error) => console.error("Error fetching countries:", error));
+    
+    // Set the max attribute of birthday to today's date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("birthday").setAttribute("max", today);
+}
+
+// Activity modal stuff
 document.addEventListener("DOMContentLoaded", function () {
   // Activity Modal - Adding Activity
   const activityModal = document.getElementById("activity-modal");
