@@ -161,13 +161,15 @@ app.get('/activity', auth, async (req, res) => {
       );
       
       res.render('pages/activity', { 
-        activities: activities 
+        activities: activities,
+        user: req.session.user
       });
     } catch (err) {
       console.error('Error fetching activities:', err);
       res.render('pages/activity', { 
         activities: [],
-        error: 'Error loading activities. Please try again.' 
+        error: 'Error loading activities. Please try again.',
+        user: req.session.user
       });
     }
   });
@@ -205,136 +207,101 @@ app.get("/settings/:tab?",auth, async (req, res) => {
 });
 
 app.post('/settings/account', async (req, res) => {
-    try{
-        let messages = [];
-        const phone = req.body.phone;
-        let email = req.body.email;
-        const birthday = req.body.birthday;
-        const country = req.body.country;
-        let username = req.body.username;
-        let password = req.body.password;
-        let hashed_password = await bcrypt.hash(password, 10);
-
-        if (email){
-            duplicateEmail = await db.oneOrNone('SELECT * FROM users WHERE email = $1;', [email]);
-            if (duplicateEmail)
-            {
-                messages.push(`Email already in use`);
-                email = null;
+    let messages = [];
+    try {
+        const { phone, email, birthday, country, username, password } = req.body;
+        const userId = req.session.user.user_id;
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+        const queryParams = [];
+        const queryValues = [];
+        const addQueryParam = (field, value) => {
+            if (value) {
+                queryParams.push(`${field} = $${queryParams.length + 1}`);
+                queryValues.push(value);
             }
-        }
-        if (username)
-        {
-            duplicateUsername = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
-            if (duplicateUsername)
-            {
-                messages.push(`Username already in use`);
-                username = null;
-            }
-        }
-        if (password)
-        {
-            const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
-            const isPasswordValid = passwordRegex.test(password);
-            if (!isPasswordValid)
-            {
-                password = null;
-                messages.push(`Invalid Password (8+ Characters, 1 Special, 1 Lowercase, 1 Uppercase, 1 Digit)`);
-            }
-        }
-
-        let queryParams = [];
-        let queryValues = [];
-
-        if (phone) {
-            queryParams.push("phone = $" + (queryParams.length + 1));
-            queryValues.push(phone);
-        }
+        };
+        // Check for duplicate email and username
+        let duplicateEmail, duplicateUsername;
         if (email) {
-            queryParams.push("email = $" + (queryParams.length + 1));
-            queryValues.push(email);
-        }
-        if (birthday) {
-            queryParams.push("birthday = $" + (queryParams.length + 1));
-            queryValues.push(birthday);
-        }
-        if (country) {
-            queryParams.push("country = $" + (queryParams.length + 1));
-            queryValues.push(country);
+            duplicateEmail = await db.oneOrNone('SELECT * FROM users WHERE email = $1;', [email]);
+            if (duplicateEmail) {
+                messages.push('Email already in use');
+            }
         }
         if (username) {
-            queryParams.push("username = $" + (queryParams.length + 1));
-            queryValues.push(username);
+            duplicateUsername = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
+            if (duplicateUsername) {
+                messages.push('Username already in use');
+            }
         }
+        // Validate password
         if (password) {
-            queryParams.push("password = $" + (queryParams.length + 1));
-            queryValues.push(hashed_password);
+            const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                messages.push('Invalid Password (8+ Characters, 1 Special, 1 Lowercase, 1 Uppercase, 1 Digit)');
+            }
         }
-
+        // Add valid fields to query params
+        addQueryParam('phone', phone);
+        addQueryParam('email', email && !duplicateEmail ? email : null);
+        addQueryParam('birthday', birthday);
+        addQueryParam('country', country);
+        addQueryParam('username', username && !duplicateUsername ? username : null);
+        addQueryParam('password', hashedPassword);
         if (queryParams.length > 0) {
-            let query = `UPDATE users SET ${queryParams.join(", ")} WHERE user_id = $${queryParams.length + 1}`;
-            queryValues.push(req.session.user.user_id);
-
+            const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
+            queryValues.push(userId);
             await db.none(query, queryValues);
+            messages.push('Account settings updated successfully');
         }
-
-        const user = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
-        if (user.birthday)
-        {
-            user.birthday = user.birthday.toISOString().split("T")[0];
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [userId]);
+        if (user.birthday) {
+            user.birthday = user.birthday.toISOString().split('T')[0];
         }
         req.session.user = user;
-        res.render('pages/settings', {activeTab: 'account', message: messages, user: req.session.user});
-    }
-    catch(err){
+        res.render('pages/settings', { activeTab: 'account', message: messages, user: req.session.user });
+    } catch (err) {
         console.error(err);
-        res.render('pages/settings', {activeTab: 'account', message: messages, user: req.session.user});
+        res.render('pages/settings', { activeTab: 'account', message: messages, user: req.session.user });
     }
-})
+});
 
 app.post('/settings/profile', upload.single('profilePicture'), async (req, res) => {
-    try{
-        let messages = [];
-        //for now, profile picture doesn't do anything, because we have to have a place to store the uploaded photos, likely some sort of cloud storage like firebase.
-        const profilePicture = req.body.profilePicture;
-        const fitnessLevel = req.body.fitnessLevel;
-        const displayName = req.body.displayName;
-        const visibility = req.body.profileVisibility;
+    let messages = [];
+    try {
+        const { profilePicture, fitnessLevel, displayName, profileVisibility } = req.body;
+        const userId = req.session.user.user_id;
         
-        let queryParams = [];
-        let queryValues = [];
+        const queryParams = [];
+        const queryValues = [];
+        const addQueryParam = (field, value) => {
+            if (value) {
+                queryParams.push(`${field} = $${queryParams.length + 1}`);
+                queryValues.push(value);
+            }
+        };
         
-        if (displayName) {
-            queryParams.push("display_name = $" + (queryParams.length + 1));
-            queryValues.push(displayName);
-        }
+        // Add fields to query params
+        addQueryParam('display_name', displayName);
+        addQueryParam('visibility', profileVisibility);
+        addQueryParam('fitness_level', fitnessLevel);
         
-        if (visibility) {
-            queryParams.push("\"visibility\" = $" + (queryParams.length + 1));
-            queryValues.push(visibility);
-        }
-
-        if (fitnessLevel) {
-            queryParams.push("\"fitness_level\" = $" + (queryParams.length + 1));
-            queryValues.push(fitnessLevel);
-        }
-
         if (queryParams.length > 0) {
-            let query = `UPDATE users SET ${queryParams.join(", ")} WHERE user_id = $${queryParams.length + 1}`;
-            queryValues.push(req.session.user.user_id);
-
+            const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
+            queryValues.push(userId);
             await db.none(query, queryValues);
+            messages.push('Profile settings updated successfully');
         }
-
-        const user = await db.one('SELECT * FROM users where user_id = $1;',[req.session.user.user_id]);
+        
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [userId]);
         req.session.user = user;
-
-        res.render('pages/settings', {activeTab: 'profile', message: messages, user: req.session.user});
-    } catch(err) {
+        
+        res.render('pages/settings', { activeTab: 'profile', message: messages, user: req.session.user });
+    } catch (err) {
         console.error(err);
-        res.render('pages/settings', {activeTab: 'profile', message: messages, user: req.session.user});
+        res.render('pages/settings', { activeTab: 'profile', message: messages, user: req.session.user });
     }
-})
+});
 
 // Submit a new activity
 app.post('/api/activities', auth, async (req, res) => {
