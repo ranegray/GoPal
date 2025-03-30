@@ -6,6 +6,7 @@ const path = require('path');
 const pgp = require('pg-promise')(); 
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
+const FileStore = require('session-file-store')(session);
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { errors } = require('pg-promise');
@@ -61,11 +62,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(bodyParser.json());
 
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
-    })
+  session({
+      store: new FileStore({
+          path: './sessions',
+          ttl: 86400 // 1 day in seconds
+      }),
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
+  })
 );
 
 app.use(

@@ -20,6 +20,7 @@
     },
     "devDependencies": {
         "@tailwindcss/cli": "^4.0.17",
+        "session-file-store": "^1.5.0",
         "tailwindcss": "^4.0.17"
     }
 }
