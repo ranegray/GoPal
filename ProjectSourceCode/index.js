@@ -206,7 +206,7 @@ app.get("/settings/:tab?",auth, async (req, res) => {
     }
 });
 
-app.post('/settings/account', async (req, res) => {
+app.post('/settings/account',auth, async (req, res) => {
     let messages = [];
     try {
         const { phone, email, birthday, country, username, password } = req.body;
@@ -266,7 +266,7 @@ app.post('/settings/account', async (req, res) => {
     }
 });
 
-app.post('/settings/profile', upload.single('profilePicture'), async (req, res) => {
+app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, res) => {
     let messages = [];
     try {
         const { profilePicture, fitnessLevel, displayName, profileVisibility } = req.body;
