@@ -225,20 +225,20 @@ app.post('/settings/account', async (req, res) => {
         if (email) {
             duplicateEmail = await db.oneOrNone('SELECT * FROM users WHERE email = $1;', [email]);
             if (duplicateEmail) {
-                messages.push('Email already in use');
+                messages.push({text: 'Email already in use', error: true});
             }
         }
         if (username) {
             duplicateUsername = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
             if (duplicateUsername) {
-                messages.push('Username already in use');
+                messages.push({text: 'Username already in use', error: true});
             }
         }
         // Validate password
         if (password) {
             const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
             if (!passwordRegex.test(password)) {
-                messages.push('Invalid Password (8+ Characters, 1 Special, 1 Lowercase, 1 Uppercase, 1 Digit)');
+                messages.push({text: 'Invalid Password (8+ Characters, 1 Special, 1 Lowercase, 1 Uppercase, 1 Digit)', error: true});
             }
         }
         // Add valid fields to query params
@@ -252,7 +252,7 @@ app.post('/settings/account', async (req, res) => {
             const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
             queryValues.push(userId);
             await db.none(query, queryValues);
-            messages.push('Account settings updated successfully');
+            messages.push({text: 'Account settings updated successfully', error: false});
         }
         const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [userId]);
         if (user.birthday) {
@@ -290,7 +290,7 @@ app.post('/settings/profile', upload.single('profilePicture'), async (req, res) 
             const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
             queryValues.push(userId);
             await db.none(query, queryValues);
-            messages.push('Profile settings updated successfully');
+            messages.push({text: 'Profile settings updated successfully', error: false});
         }
         
         const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [userId]);

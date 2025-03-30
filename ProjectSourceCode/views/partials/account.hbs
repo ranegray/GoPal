@@ -36,8 +36,8 @@
     </div>
     {{#if message}}
         {{#each message}}
-            <div class="p-2 mb-2 text-sm font-medium rounded-lg bg-red-100 text-red-800" role="alert">
-                {{this}}
+            <div class="p-2 mb-2 text-sm font-medium rounded-lg {{#if this.error}}bg-red-100 text-red-800{{else}}bg-green-100 text-green-800{{/if}}" role="alert">
+                {{ this.text }}
             </div>
         {{/each}}
     {{/if}}
