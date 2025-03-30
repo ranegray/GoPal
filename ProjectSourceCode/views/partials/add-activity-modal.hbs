@@ -26,7 +26,7 @@
         </div>
         <label for="activity-type">Sport</label>
         <select id="activity-type" name="activity-type" class="w-full p-2 border border-gray-300 rounded mb-4">
-            {{!-- TODO: Refactor to populate activity types from server --}}
+            {{!-- TODO: Refactor to populate activity types from server and add conditional support for more activities (ie meditation, yoga, etc) --}}
             <option value="Running">Running</option>
             <option value="Cycling">Cycling</option>
             <option value="Swimming">Swimming</option>
@@ -43,6 +43,7 @@
         <label for="activity-date">Date</label>
         <input type="date" id="activity-date" name="activity-date"
             class="w-full p-2 border border-gray-300 rounded mb-4">
+            {{!-- TODO: Add hours and minutes entry instead of just minutes --}}
         <label for="activity-time">Time</label>
         <input type="time" id="activity-time" name="activity-time"
             class="w-full p-2 border border-gray-300 rounded mb-4">
