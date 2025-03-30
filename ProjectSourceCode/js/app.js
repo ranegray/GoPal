@@ -20,15 +20,19 @@ if (navBar) {
 //Turns active sub nav bar buttons blue
 const subNavBar = document.getElementById("sub-nav-bar");
 if (subNavBar) {
-  const currentPath = window.location.pathname;
-  const subActiveLink = document.querySelector(
-    `.sub-nav-button[href="${currentPath}"]`
-  );
-if (subActiveLink) {
-  subActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
-  subActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
+  document.addEventListener("DOMContentLoaded", function () {
+    const currentPath = window.location.pathname;
+    const subActiveLink = document.querySelector(
+      `.sub-nav-button[href="${currentPath}"]`
+    );
+    if (subActiveLink) {
+      subActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
+      subActiveLink.classList.add("bg-blue-300", "hover:bg-blue-400");
+    }
+  });
 }
-}
+
+
 
 // Register Page
 if (window.location.pathname === "/register") {
