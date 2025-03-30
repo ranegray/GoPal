@@ -13,7 +13,7 @@
         "pg-promise": "^10.11.1"
     },
     "scripts": {
-        "prestart": "npm ci",
+        "prestart": "npm install",
         "start": "concurrently \"npx tailwindcss -i ./extra_resources/css/input.css -o ./extra_resources/css/style.css --watch\" \"nodemon ./server/index.js\"",
         "build:css": "npx tailwindcss -i ./extra_resources/css/input.css -o ./extra_resources/css/style.css",
         "start:prod": "npm run build:css && node index.js"
