@@ -1,16 +1,19 @@
 const express = require('express');
-const app = express();
 const handlebars = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
-const pgp = require('pg-promise')(); 
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
 const FileStore = require('session-file-store')(session);
 const bcrypt = require('bcryptjs');
+const db = require('./db.js');
 
-const getStatsForRange = require('./utils/stat-utils').getStatsForRange;
-const getDateRange = require('./utils/date-utils').getDateRange;
+const { getStatsForRange } = require("./utils/stat-utils.js");
+const { getDateRange } = require("./utils/date-utils.js");
+const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
+const { createAchievementNotifications } = require("./utils/notification-utils.js");
+
+const app = express();
 
 const hbs = handlebars.create({
   extname: "hbs",
@@ -42,25 +45,6 @@ const hbs = handlebars.create({
     },
   },
 });
-
-const dbConfig = {
-    host: 'db', // the database server
-    port: 5432, // the database port
-    database: process.env.POSTGRES_DB, // the database name
-    user: process.env.POSTGRES_USER, // the user account to connect with
-    password: process.env.POSTGRES_PASSWORD, // the password of the user account
-};
-
-const db = pgp(dbConfig);
-
-db.connect()
-    .then(obj => {
-        console.log('Database connection successful');
-        obj.done();
-    })
-    .catch(error => {
-        console.log('ERROR:', error.message || error);
-    });
 
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
@@ -172,6 +156,14 @@ app.get('/activity', auth, async (req, res) => {
         [userId]
       );
 
+      // Fetch user's unread notifications
+      const notifications = await db.any(
+        `SELECT * FROM notifications 
+         WHERE user_id = $1 AND is_read = FALSE 
+         ORDER BY created_at DESC LIMIT 10`,
+        [userId]
+      );
+
       // Can pass a string to getDateRange to get different ranges
       // For example: "week", "month", "year"
       const { startDate, endDate } = getDateRange("week");
@@ -179,7 +171,9 @@ app.get('/activity', auth, async (req, res) => {
       
       res.render('pages/activity', { 
         activities: activities, 
-        stats: stats
+        stats: stats,
+        notifications: notifications,
+        hasNotifications: notifications.length > 0
       });
     } catch (err) {
       console.error('Error fetching activities:', err);
@@ -238,6 +232,24 @@ app.post('/api/activities', auth, async (req, res) => {
             [userId, activityTypeId, date, time, durationMinutes, distanceMi, notes]
         );
 
+        // TODO: Add success message once an activity is added
+
+        const updateRes = await db.oneOrNone(
+          'UPDATE users SET activities_completed_count = activities_completed_count + 1 WHERE user_id = $1 RETURNING activities_completed_count',
+          [userId]
+      );
+
+      console.log(`User ${userId} activity count updated to: ${updateRes.activities_completed_count}`);
+
+      const newlyUnlocked = await checkAndAwardAchievements(userId);
+      
+      if (newlyUnlocked.length > 0) {
+        console.log(
+          `User ${userId} unlocked achievements: ${newlyUnlocked.join(", ")}`
+        );
+        await createAchievementNotifications(userId, newlyUnlocked);
+      }
+
         return res.redirect('/activity');
     } catch (err) {
         console.error('Error adding activity:', err);
@@ -270,6 +282,40 @@ app.post('/api/activities/:id', auth, async (req, res) => {
       res.redirect('/activity?error=Error deleting activity');
     }
   });
+
+// Add endpoints to fetch notifications
+app.get('/api/notifications', auth, async (req, res) => {
+  try {
+      const userId = req.session.user.user_id;
+      const notifications = await db.any(
+          'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10',
+          [userId]
+      );
+      res.json(notifications);
+  } catch (err) {
+      console.error('Error fetching notifications:', err);
+      res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+// Mark notifications as read
+app.post('/api/notifications/read', auth, async (req, res) => {
+  try {
+      const userId = req.session.user.user_id;
+      const { id } = req.body;
+      
+      if (id) {
+          await db.none('UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2', [id, userId]);
+      } else {
+          await db.none('UPDATE notifications SET is_read = TRUE WHERE user_id = $1', [userId]);
+      }
+      
+      res.json({ success: true });
+  } catch (err) {
+      console.error('Error marking notifications read:', err);
+      res.status(500).json({ error: 'Failed to update notifications' });
+  }
+});
 
 //Ensure App is Listening For Requests
 app.listen(3000);

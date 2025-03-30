@@ -60,7 +60,7 @@ function getCurrentYearRange() {
   };
 }
 
-export function getDateRange(dateRange) {
+function getDateRange(dateRange) {
   switch (dateRange) {
     case "week":
       return getCurrentWeekRange();
@@ -72,3 +72,10 @@ export function getDateRange(dateRange) {
       throw new Error("Invalid date range");
   }
 }
+
+module.exports = {
+  getCurrentWeekRange,
+  getCurrentMonthRange,
+  getCurrentYearRange,
+  getDateRange,
+};

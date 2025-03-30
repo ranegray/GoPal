@@ -1,4 +1,4 @@
-export function getStatsForRange(activityData, startDate, endDate) {
+function getStatsForRange(activityData, startDate, endDate) {
   // Filter activities that fall within the specified date range
   const filteredActivites = activityData.filter((activity) => {
     const activityDate = new Date(activity.activity_date);
@@ -42,3 +42,7 @@ export function getStatsForRange(activityData, startDate, endDate) {
     currentStreak: currentStreak,
   };
 }
+
+module.exports = {
+  getStatsForRange,
+};

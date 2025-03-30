@@ -93,10 +93,31 @@ document.addEventListener("DOMContentLoaded", function () {
   // Close dropdown when clicking outside
   document.addEventListener("click", function (event) {
     // Check if dropdown is visible and the click is outside the dropdown and icon
-    if (!notificationDropdown.classList.contains("hidden") && 
-        !notificationDropdown.contains(event.target) && 
-        event.target !== notificationIcon) {
+    if (!notificationDropdown.classList.contains("hidden") &&
+      !notificationDropdown.contains(event.target) &&
+      event.target !== notificationIcon) {
       notificationDropdown.classList.add("hidden");
     }
+  });
+
+  // Mark notifications as read when dropdown is opened
+  notificationIcon.addEventListener("click", function () {
+    // Remove the red dot indicator when notifications are viewed
+    const redDot = notificationIcon.querySelector(".rounded-full");
+    if (redDot) {
+      redDot.classList.add("hidden");
+    }
+
+    // Call API to mark notifications as read
+    fetch("/api/notifications/read", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .catch((error) =>
+        console.error("Error marking notifications as read:", error)
+      );
   });
 });

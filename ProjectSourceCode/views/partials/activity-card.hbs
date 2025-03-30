@@ -4,12 +4,12 @@
         <div>
             {{!-- TODO: Add subtle styling per activity --}}
             <h3 class="text-lg font-semibold">{{activity_name}}</h3>
-            <p class="text-sm text-gray-600">{{formatDate workout_date}}{{#if workout_time}} at
-                {{formatTime workout_time}}{{/if}}</p>
+            <p class="text-sm text-gray-600">{{formatDate activity_date}}{{#if activity_time}} at
+                {{formatTime activity_time}}{{/if}}</p>
             <p>{{#if distance_mi}}{{distance_mi}}{{else}}0{{/if}} miles • {{duration_minutes}} minutes</p>
             {{#if notes}}<p class="text-sm mt-2">{{notes}}</p>{{/if}}
         </div>
-        <form action="/api/activities/{{workout_id}}" method="POST" class="delete-activity-form">
+        <form action="/api/activities/{{activity_id}}" method="POST" class="delete-activity-form">
             <input type="hidden" name="_method" value="DELETE">
             <button type="submit" class="text-red-500 hover:text-red-700 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
