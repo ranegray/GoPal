@@ -149,15 +149,20 @@ app.get('/',auth, (req, res) => {
     res.redirect('/home');
 });
 
-app.get('/logout', auth, (req, res) => {
-    req.session.destroy((err) => {
+app.get('/logout', (req, res) => {
+    if (req.session) {
+      req.session.destroy((err) => {
         if (err) {
-            console.error("Error destroying session:", err);
-            return res.status(500).send("Error logging out");
+          console.error("Error destroying session:", err);
         }
+        res.clearCookie('connect.sid');
         res.redirect('/login');
-    });
-});
+      });
+    } else {
+      res.clearCookie('connect.sid');
+      res.redirect('/login');
+    }
+  });
 
 app.get('/home',auth, (req, res) => {
     res.render('pages/home',{user: req.session.user});
