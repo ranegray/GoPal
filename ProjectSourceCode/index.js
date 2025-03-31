@@ -151,18 +151,18 @@ app.get('/',auth, (req, res) => {
 
 app.get('/logout', (req, res) => {
     if (req.session) {
-      req.session.destroy((err) => {
-        if (err) {
-          console.error("Error destroying session:", err);
-        }
-        res.clearCookie('connect.sid');
-        res.redirect('/login');
-      });
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Error destroying session:", err);
+            }
+            res.clearCookie('connect.sid', { path: '/' });
+            res.redirect('/login');
+        });
     } else {
-      res.clearCookie('connect.sid');
-      res.redirect('/login');
+        res.clearCookie('connect.sid', { path: '/' });
+        res.redirect('/login');
     }
-  });
+});
 
 app.get('/home',auth, (req, res) => {
     res.render('pages/home',{user: req.session.user});
