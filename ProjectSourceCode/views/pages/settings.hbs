@@ -1,5 +1,5 @@
 <div class="flex min-h-screen">
-  <aside class="bg-blue-100 px-4">
+  <aside class="bg-blue-100 px-4 h-screen sticky top-0 flex flex-col">
     <!-- Nav bar -->
     {{>nav}}
   </aside>
@@ -23,7 +23,7 @@
         </div>
       </div>
 
-      <div class="rounded-xl border p-5 mt-40 bg-white">
+      <div class="rounded-xl border p-5 bg-white">
         {{#if (eq activeTab "account")}} {{> account}} {{/if}}
         {{#if (eq activeTab "profile")}} {{> profile}} {{/if}}
         {{#if (eq activeTab "pal-settings")}} {{> pal-settings}} {{/if}}

@@ -1,12 +1,42 @@
+
 <div class="flex">
   <aside class="bg-blue-100 px-4">
-    <!-- Nav bar -->
     {{>nav}}
   </aside>
-  <main class="flex-grow p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">Social</h1>
-      {{>notification}}
+  <main class="bg-gray-50 flex-1 p-8">
+  
+  <h1 class="text-2xl font-bold inline-block">Social</h1>
+    <!--This button dispalays a modal which will display any friend requests along with give the ability to send requests to users in database-->
+  <button class="ml-4 bg-blue-500 text-white px-2 py-1 rounded" data-bs-toggle="modal" data-bs-target="#friend_modal">Add Friends</button>
+    <div class="grid grid-cols-3 gap-8 mt-6">
+      <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
+      <!--This is where friend activities will be displayed once friend functionality is working, both of these fields will work the same-->
+        <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
+        <div class="space-y-4">
+        {{#each activity}}  
+          <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md">
+            <p><strong>{{name}}</strong> - {{actDesc}}</p>
+            <button class="bg-blue-200 p-2 rounded-full">💬</button>
+          </div>
+        {{/each}}
+        </div>
+      </div>
+
+    <!--This is where friend achievements will be displayed once friend functionality is working, both of these fields will essentially work the same-->
+      <div class="bg-white p-4 rounded-md shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Recent Achievements</h2>
+        <div class="space-y-3">
+          {{#each achievement}}
+          <p><strong>{{name}}</strong> - {{achDesc}}</p>
+          {{/each}}
+        </div>
+      </div>
     </div>
   </main>
 </div>
+
+<!--Add friends modal-->
+ <div class="modal fade" id="friend_modal" tabindex="-1" aria-labelledby="eventModalLabel"data-bs-backdrop="static" data-bs-keyboard="false">
+
+  </div>
+
