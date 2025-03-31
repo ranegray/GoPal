@@ -149,6 +149,21 @@ app.get('/',auth, (req, res) => {
     res.redirect('/home');
 });
 
+app.get('/logout', (req, res) => {
+    if (req.session) {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Error destroying session:", err);
+            }
+            res.clearCookie('connect.sid', { path: '/' });
+            res.redirect('/login');
+        });
+    } else {
+        res.clearCookie('connect.sid', { path: '/' });
+        res.redirect('/login');
+    }
+});
+
 app.get('/home',auth, (req, res) => {
     res.render('pages/home',{user: req.session.user});
 });
@@ -241,10 +256,12 @@ app.post('/settings/account',auth, async (req, res) => {
             }
         }
         // Validate password
+        let invalidPassword = false;
         if (password) {
             const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[#?!@$%^&*\-]).{8,}$/;
             if (!passwordRegex.test(password)) {
                 messages.push({text: 'Invalid Password (8+ Characters, 1 Special, 1 Lowercase, 1 Uppercase, 1 Digit)', error: true});
+                invalidPassword = true;
             }
         }
         // Add valid fields to query params
@@ -253,7 +270,7 @@ app.post('/settings/account',auth, async (req, res) => {
         addQueryParam('birthday', birthday);
         addQueryParam('country', country);
         addQueryParam('username', username && !duplicateUsername ? username : null);
-        addQueryParam('password', hashedPassword);
+        addQueryParam('password', password && !invalidPassword ? hashedPassword : null);
         if (queryParams.length > 0) {
             const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
             queryValues.push(userId);

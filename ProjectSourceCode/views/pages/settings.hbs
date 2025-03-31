@@ -1,11 +1,11 @@
 <div class="flex min-h-screen">
-  <aside class="bg-blue-100 px-4">
+  <aside class="bg-blue-100 px-4 h-screen sticky top-0 flex flex-col">
     <!-- Nav bar -->
     {{>nav}}
   </aside>
   <main class="flex-1 bg-gray-100 px-4 flex items-center justify-center">
-    <div class="w-full max-w-7xl">
-      <div class="fixed top-15">
+    <div class="w-full max-w-7xl p-4">
+      <div class="mt-10">
         <h1 class="text-4xl font-bold">
           Settings
         </h1>
@@ -18,7 +18,7 @@
         </div>
       </div>
 
-      <div class="rounded-xl border p-5 mt-40 bg-white">
+      <div class="rounded-xl border p-5 bg-white">
         {{#if (eq activeTab "account")}} {{> account}} {{/if}}
         {{#if (eq activeTab "profile")}} {{> profile}} {{/if}}
         {{#if (eq activeTab "pal-settings")}} {{> pal-settings}} {{/if}}
