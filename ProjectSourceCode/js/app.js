@@ -37,6 +37,7 @@ if (window.location.pathname === "/settings/profile") {
     const fileInput = document.getElementById("profilePicture");
     const errorMessage = document.getElementById("error-message");
     const profilePreview = document.getElementById("profilePreview");
+    const defaultIcon = document.getElementById("defaultIcon");
 
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
@@ -53,6 +54,9 @@ if (window.location.pathname === "/settings/profile") {
         errorMessage.classList.toggle("hidden", true);
         //displays profile picture on frontend before submit
         profilePreview.src = URL.createObjectURL(file);
+        //this toggles away the default icon placeholder in case there was no profile picture before
+        profilePreview.classList.toggle("hidden", false);
+        defaultIcon.classList.toggle("hidden", true);
       }
     });
   });
