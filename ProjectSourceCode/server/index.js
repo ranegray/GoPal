@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { errors } = require('pg-promise');
 const db = require('./db.js');
+const fs = require("fs");
 
 const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
@@ -314,6 +315,25 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         const {fitnessLevel, displayName, profileVisibility} = req.body;
         const userId = req.session.user.user_id;
         const filePath = req.file ? `/uploads/${req.file.filename}` : null;
+        if (req.session.user.profile_photo_path)
+        {
+            //delete the old profile photo
+            const query = "SELECT profile_photo_path FROM users WHERE user_id = $1";
+            db.oneOrNone(query, [req.session.user.user_id])
+                .then(result => {
+                    if (result) {
+                        old_image_path = path.join(__dirname, '../' + result.profile_photo_path);
+                        fs.unlink(old_image_path, (err) => {
+                            if (err) {
+                                console.error("Error deleting file:", err);
+                            }
+                        });
+                        }
+                    })
+                .catch(err => {
+                    console.error("Database error:", err);
+                    });
+                }
 
         const queryParams = [];
         const queryValues = [];
@@ -349,7 +369,6 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
 
 app.get("/profile-picture", auth, (req, res) => {
     const query = "SELECT profile_photo_path FROM users WHERE user_id = $1";
-    
     db.oneOrNone(query, [req.session.user.user_id])
         .then(result => {
             if (result) {

@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-
+//TODO: move this somewhere?
 async function loadProfilePicture() {
   try {
       const response = await fetch(`/profile-picture`);
