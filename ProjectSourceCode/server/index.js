@@ -346,7 +346,7 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         const queryParams = [];
         const queryValues = [];
         const addQueryParam = (field, value) => {
-            if (value) {
+            if (value && !(req.session.user[field] == value)) {
                 queryParams.push(`${field} = $${queryParams.length + 1}`);
                 queryValues.push(value);
             }
