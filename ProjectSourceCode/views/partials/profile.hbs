@@ -20,8 +20,8 @@
                     hover:opacity-75 transition-opacity relative group overflow-hidden"
             >
                 <!-- Default Icon or Image Preview -->
-                <img id="profilePreview" src="" class="absolute inset-0 w-full h-full object-cover rounded-full hidden" alt="Profile Picture">
-                <svg id="defaultIcon" class="w-12 h-12 text-gray-400 z-10" fill="currentColor" viewBox="0 0 24 24">
+                <img id="profilePreview" src={{#if user.profile_photo_path}}{{user.profile_photo_path}}{{else}}{{/if}} class="absolute inset-0 w-full h-full object-cover rounded-full {{#if user.profile_photo_path}}{{else}}hidden{{/if}}" alt="Profile Picture">
+                <svg id="defaultIcon" class="w-12 h-12 text-gray-400 z-10 {{#if user.profile_photo_path}}hidden{{else}}{{/if}}" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
                 <!-- Hover Effect -->

@@ -32,33 +32,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-//TODO: move this somewhere?
-async function loadProfilePicture() {
-  try {
-      const response = await fetch(`/profile-picture`);
-      const data = await response.json();
-      const previewImg = document.getElementById("profilePreview");
-      const defaultIcon = document.getElementById("defaultIcon");
-      previewImg.src = data.profile_picture_path ? data.profile_picture_path : "";
-      if (data.profile_picture_path) {
-        previewImg.src = data.profile_picture_path;
-        previewImg.classList.toggle("hidden", false);
-        defaultIcon.classList.toggle("hidden", true);
-      } else {
-        previewImg.src = "";
-        previewImg.classList.toggle("hidden", true);
-        defaultIcon.classList.toggle("hidden", false);
-      }
-  } catch (error) {
-      console.error("Error loading profile picture:", error);
-  }
-}
-
 if (window.location.pathname === "/settings/profile") {
   document.addEventListener("DOMContentLoaded", function () {
     const fileInput = document.getElementById("profilePicture");
     const errorMessage = document.getElementById("error-message");
-    loadProfilePicture();
 
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
