@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
         const userId = req.session.user ? req.session.user.user_id : "unknown"; // Get user_id or fallback to "unknown"
         const timestamp = Date.now();
         const extension = path.extname(file.originalname);
-        cb(null, `user_${userId}_${timestamp}${extension}`); // Format: userId_timestamp.extension
+        cb(null, `${userId}_${timestamp}${extension}`); // Format: userId_timestamp.extension
     },
 });
 const upload = multer({ storage });
