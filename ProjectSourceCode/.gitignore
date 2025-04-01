@@ -140,3 +140,6 @@ dist
 
 # Sessions
 sessions/
+
+# Uploads
+uploads/

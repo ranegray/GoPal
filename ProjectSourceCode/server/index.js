@@ -16,7 +16,14 @@ const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
 const { createAchievementNotifications } = require("./utils/notification-utils.js");
 
 const app = express();
-const upload = multer();
+
+const storage = multer.diskStorage({
+    destination: "./uploads/",
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Rename file with timestamp
+    },
+});
+const upload = multer({ storage });
 
 const hbs = handlebars.create({
   extname: "hbs",
@@ -304,9 +311,10 @@ app.post('/settings/account',auth, async (req, res) => {
 app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, res) => {
     let messages = [];
     try {
-        const { profilePicture, fitnessLevel, displayName, profileVisibility } = req.body;
+        const {fitnessLevel, displayName, profileVisibility} = req.body;
         const userId = req.session.user.user_id;
-        
+        const filePath = req.file ? `/uploads/${req.file.filename}` : null;
+
         const queryParams = [];
         const queryValues = [];
         const addQueryParam = (field, value) => {
@@ -315,8 +323,9 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
                 queryValues.push(value);
             }
         };
-        
+
         // Add fields to query params
+        addQueryParam('profile_photo_path', filePath);
         addQueryParam('display_name', displayName);
         addQueryParam('visibility', profileVisibility);
         addQueryParam('fitness_level', fitnessLevel);
@@ -336,6 +345,23 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         console.error(err);
         res.render('pages/settings', { activeTab: 'profile', message: messages, user: req.session.user });
     }
+});
+
+app.get("/profile-picture", auth, (req, res) => {
+    const query = "SELECT profile_photo_path FROM users WHERE user_id = $1";
+    
+    db.oneOrNone(query, [req.session.user.user_id])
+        .then(result => {
+            if (result) {
+                res.json({ profile_picture_path: result.profile_photo_path });
+            } else {
+                res.json({ profile_picture_path: null });
+            }
+        })
+        .catch(err => {
+            console.error("Database error:", err);
+            res.status(500).json({ error: err.message });
+        });
 });
 
 // Submit a new activity

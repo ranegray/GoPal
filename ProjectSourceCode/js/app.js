@@ -32,22 +32,45 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+
+async function loadProfilePicture() {
+  try {
+      const response = await fetch(`/profile-picture`);
+      const data = await response.json();
+      const previewImg = document.getElementById("profilePreview");
+      const defaultIcon = document.getElementById("defaultIcon");
+      previewImg.src = data.profile_picture_path ? data.profile_picture_path : "";
+      if (data.profile_picture_path) {
+        previewImg.src = data.profile_picture_path;
+        previewImg.classList.toggle("hidden", false);
+        defaultIcon.classList.toggle("hidden", true);
+      } else {
+        previewImg.src = "";
+        previewImg.classList.toggle("hidden", true);
+        defaultIcon.classList.toggle("hidden", false);
+      }
+  } catch (error) {
+      console.error("Error loading profile picture:", error);
+  }
+}
+
 if (window.location.pathname === "/settings/profile") {
   document.addEventListener("DOMContentLoaded", function () {
     const fileInput = document.getElementById("profilePicture");
     const errorMessage = document.getElementById("error-message");
-
-    if (!fileInput || !errorMessage) return; // Ensure elements exist
+    loadProfilePicture();
 
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
       const maxSize = 2 * 1024 * 1024; // 2MB in bytes
 
       if (file && file.size > maxSize) {
+        //file is too large
         errorMessage.textContent = "File size exceeds 2MB limit.";
         errorMessage.classList.toggle("hidden", false);
         this.value = ""; // Clear the file input
       } else {
+        //file is a valid size
         errorMessage.textContent = "";
         errorMessage.classList.toggle("hidden", true);
       }
