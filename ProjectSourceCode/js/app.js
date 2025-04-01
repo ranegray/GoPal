@@ -36,6 +36,7 @@ if (window.location.pathname === "/settings/profile") {
   document.addEventListener("DOMContentLoaded", function () {
     const fileInput = document.getElementById("profilePicture");
     const errorMessage = document.getElementById("error-message");
+    const profilePreview = document.getElementById("profilePreview");
 
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
@@ -50,6 +51,8 @@ if (window.location.pathname === "/settings/profile") {
         //file is a valid size
         errorMessage.textContent = "";
         errorMessage.classList.toggle("hidden", true);
+        //displays profile picture on frontend before submit
+        profilePreview.src = URL.createObjectURL(file);
       }
     });
   });
