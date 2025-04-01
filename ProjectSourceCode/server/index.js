@@ -315,26 +315,31 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         const {fitnessLevel, displayName, profileVisibility} = req.body;
         const userId = req.session.user.user_id;
         const filePath = req.file ? `/uploads/${req.file.filename}` : null;
-        if (req.session.user.profile_photo_path)
-        {
-            //delete the old profile photo
-            const query = "SELECT profile_photo_path FROM users WHERE user_id = $1";
-            db.oneOrNone(query, [req.session.user.user_id])
-                .then(result => {
-                    if (result) {
-                        old_image_path = path.join(__dirname, '../' + result.profile_photo_path);
-                        fs.unlink(old_image_path, (err) => {
-                            if (err) {
-                                console.error("Error deleting file:", err);
-                            }
-                        });
-                        }
-                    })
-                .catch(err => {
-                    console.error("Database error:", err);
-                    });
-                }
 
+        //Delete the old profile photo: if it exists and the user is uploading a new one
+        if (req.session.user.profile_photo_path && filePath) {
+          const query =
+            "SELECT profile_photo_path FROM users WHERE user_id = $1";
+          db.oneOrNone(query, [req.session.user.user_id])
+            .then((result) => {
+              if (result) {
+                old_image_path = path.join(
+                  __dirname,
+                  "../" + result.profile_photo_path
+                );
+                fs.unlink(old_image_path, (err) => {
+                  if (err) {
+                    console.error("Error deleting file:", err);
+                  }
+                });
+              }
+            })
+            .catch((err) => {
+              console.error("Database error:", err);
+            });
+        }
+
+        //Helper function for adding fields to the query
         const queryParams = [];
         const queryValues = [];
         const addQueryParam = (field, value) => {
