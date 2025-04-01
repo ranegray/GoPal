@@ -70,14 +70,15 @@ app.use(bodyParser.json());
 
 app.use(
   session({
-      store: new FileStore({
-          path: './sessions',
-          ttl: 86400 // 1 day in seconds
-      }),
-      secret: process.env.SESSION_SECRET,
-      resave: false,
-      saveUninitialized: false,
-      cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
+    store: new FileStore({
+      path: './sessions',
+      ttl: 86400, // 1 day in seconds
+      logFn: function () {}, // Suppress logging
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
   })
 );
 
