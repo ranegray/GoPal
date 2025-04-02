@@ -32,23 +32,25 @@ function success(position) {
     document.getElementById("latitude").value = latitude;
     document.getElementById("longitude").value = longitude;
 
-    const weatherApiKey = "dcbe75ab0b9efeaae04251ca4f1c3bf8";
-
-    retrieveWeather(latitude, longitude, weatherApiKey); 
-    retrieveAirQuality(latitude, longitude, weatherApiKey);
+    retrieveWeather(latitude, longitude); 
+    retrieveAirQuality(latitude, longitude);
 }
 
 function error() {
     alert("We were unable to retrieve your location. Please check browser settings and try again.");
 }
 
-const weatherApiKey = "dcbe75ab0b9efeaae04251ca4f1c3bf8";
+// Weather Endpoint - calls the backend endpoint for weather data.
+function retrieveWeather(lat, lon) {
+    const backendUrl = "/api/weather"; 
 
-// Weather Endpoint
-function retrieveWeather(lat, lon, weatherApiKey) {
-    const weatherApiUrl = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" + weatherApiKey + "&units=imperial";
-
-    fetch(weatherApiUrl)
+    fetch(backendUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ latitude: lat, longitude: lon })
+    })
     .then(response => response.json())
     .then(data => {
         console.log(data);
@@ -75,11 +77,17 @@ function retrieveWeather(lat, lon, weatherApiKey) {
     });
 }
 
-// Pollution Endpoint
-function retrieveAirQuality(lat, lon, weatherApiKey) {
-    const pollutionApiUrl = "https://api.openweathermap.org/data/2.5/air_pollution?lat=" + lat + "&lon=" + lon + "&appid=" + weatherApiKey;
+// Pollution Endpoint - calls the backend endpoint for air quality data.
+function retrieveAirQuality(lat, lon) {
+    const backendUrl = "/api/air-quality";
     
-    fetch(pollutionApiUrl)
+    fetch(backendUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ latitude: lat, longitude: lon })
+    })
     .then(response => response.json())
     .then(data => {
         console.log(data);
