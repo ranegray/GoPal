@@ -1,64 +1,60 @@
 const express = require('express');
-const app = express();
 const handlebars = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
-const pgp = require('pg-promise')(); 
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
 const FileStore = require('session-file-store')(session);
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { errors } = require('pg-promise');
+const db = require('./db.js');
+
+const { getStatsForRange } = require("./utils/stat-utils.js");
+const { getDateRange } = require("./utils/date-utils.js");
+const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
+const { createAchievementNotifications } = require("./utils/notification-utils.js");
+
+const app = express();
 const upload = multer();
 
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
-    helpers: {
+  extname: "hbs",
+  layoutsDir: path.join(__dirname, "../views/layouts"),
+  partialsDir: path.join(__dirname, "../views/partials"),
+  helpers: {
         eq: function (a, b) {
             return a === b;
         },
-        formatDate: function(date) {
-            return new Date(date).toLocaleDateString();
-        },
-        formatTime: function(time) {
-            if (!time) return '';
-            
-            const timeParts = time.split(':');
-            const hours = parseInt(timeParts[0]);
-            const minutes = timeParts[1];
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12; // Convert to 12-hour format
-            
-            return `${displayHours}:${minutes} ${ampm}`;
-        }
-    }
+    formatDate: function (date) {
+      return new Date(date).toLocaleDateString();
+    },
+    formatTime: function (time) {
+      if (!time) return "";
+
+      const timeParts = time.split(":");
+      const hours = parseInt(timeParts[0]);
+      const minutes = timeParts[1];
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const displayHours = hours % 12 || 12; // Convert to 12-hour format
+
+      return `${displayHours}:${minutes} ${ampm}`;
+    },
+    formatDuration: function (duration) {
+      if (!duration) return "0h 0m";
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+      return `${hours}h ${minutes}m`;
+    },
+    pluralize: function (count, singular, plural) {
+      return count === 1 ? singular : plural;
+    },
+  },
 });
-
-const dbConfig = {
-    host: 'db', // the database server
-    port: 5432, // the database port
-    database: process.env.POSTGRES_DB, // the database name
-    user: process.env.POSTGRES_USER, // the user account to connect with
-    password: process.env.POSTGRES_PASSWORD, // the password of the user account
-};
-
-const db = pgp(dbConfig);
-
-db.connect()
-    .then(obj => {
-        console.log('Database connection successful');
-        obj.done();
-    })
-    .catch(error => {
-        console.log('ERROR:', error.message || error);
-    });
 
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '../views'));
 app.use(bodyParser.json());
 
 app.use(
@@ -81,8 +77,8 @@ app.use(
     })
 );
 
-app.use(express.static(path.join(__dirname)));
-app.use('/images', express.static(path.join(__dirname, 'extra_resources/images')));
+app.use(express.static(path.join(__dirname, '..')));
+app.use('/images', express.static(path.join(__dirname, '../extra_resources/images')));
 
 //Authentication Middleware
 const auth = (req, res, next) => {
@@ -175,16 +171,32 @@ app.get('/activity', auth, async (req, res) => {
       
       const activities = await db.any(
         `SELECT wl.*, at.activity_name 
-        FROM workout_logs wl
+        FROM activity_logs wl
         JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
         WHERE wl.user_id = $1
-        ORDER BY wl.workout_date DESC, wl.workout_time DESC, wl.created_at DESC`,
+        ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC`,
         [userId]
       );
+
+      // Fetch user's unread notifications
+      const notifications = await db.any(
+        `SELECT * FROM notifications 
+         WHERE user_id = $1 AND is_read = FALSE 
+         ORDER BY created_at DESC LIMIT 10`,
+        [userId]
+      );
+
+      // Can pass a string to getDateRange to get different ranges
+      // For example: "week", "month", "year"
+      const { startDate, endDate } = getDateRange("week");
+      const stats = getStatsForRange(activities, startDate, endDate);
       
       res.render('pages/activity', { 
         activities: activities,
-        user: req.session.user
+        user: req.session.user, 
+        stats: stats,
+        notifications: notifications,
+        hasNotifications: notifications.length > 0
       });
     } catch (err) {
       console.error('Error fetching activities:', err);
@@ -335,8 +347,8 @@ app.post('/api/activities', auth, async (req, res) => {
             'activity-type': activityTypeName, 
             'activity-duration': durationMinutes, 
             'activity-distance': distanceMi, 
-            'activity-date': workoutDate,
-            'activity-time': workoutTime,
+            'activity-date': activityDate,
+            'activity-time': activityTime,
             'activity-notes': notes 
         } = req.body;
         
@@ -350,18 +362,36 @@ app.post('/api/activities', auth, async (req, res) => {
         const activityTypeId = activityType.activity_type_id;
         
         // Use current date if no date provided
-        const date = workoutDate || new Date().toISOString().split('T')[0];
+        const date = activityDate || new Date().toISOString().split('T')[0];
         
         // Use current time if no time provided
-        const time = workoutTime || new Date().toTimeString().split(' ')[0];
+        const time = activityTime || new Date().toTimeString().split(' ')[0];
 
-        // Insert the workout log
+        // Insert the activity log
         await db.none(
-            `INSERT INTO workout_logs 
-            (user_id, activity_type_id, workout_date, workout_time, duration_minutes, distance_mi, notes)
+            `INSERT INTO activity_logs 
+            (user_id, activity_type_id, activity_date, activity_time, duration_minutes, distance_mi, notes)
             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [userId, activityTypeId, date, time, durationMinutes, distanceMi, notes]
         );
+
+        // TODO: Add success message once an activity is added
+
+        const updateRes = await db.oneOrNone(
+          'UPDATE users SET activities_completed_count = activities_completed_count + 1 WHERE user_id = $1 RETURNING activities_completed_count',
+          [userId]
+      );
+
+      console.log(`User ${userId} activity count updated to: ${updateRes.activities_completed_count}`);
+
+      const newlyUnlocked = await checkAndAwardAchievements(userId);
+      
+      if (newlyUnlocked.length > 0) {
+        console.log(
+          `User ${userId} unlocked achievements: ${newlyUnlocked.join(", ")}`
+        );
+        await createAchievementNotifications(userId, newlyUnlocked);
+      }
 
         return res.redirect('/activity');
     } catch (err) {
@@ -374,19 +404,19 @@ app.post('/api/activities', auth, async (req, res) => {
 app.post('/api/activities/:id', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
-      const workoutId = req.params.id;
+      const activityId = req.params.id;
       
-      // Ensure the workout belongs to the user
-      const workout = await db.oneOrNone(
-        'SELECT * FROM workout_logs WHERE workout_id = $1 AND user_id = $2',
-        [workoutId, userId]
+      // Ensure the activity belongs to the user
+      const activity = await db.oneOrNone(
+        'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+        [activityId, userId]
       );
       
-      if (!workout) {
+      if (!activity) {
         return res.status(404).redirect('/activity?error=Activity not found');
       }
       
-      await db.none('DELETE FROM workout_logs WHERE workout_id = $1', [workoutId]);
+      await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
       
       // Redirect back to activities page
       res.redirect('/activity?success=Activity deleted');
@@ -396,7 +426,39 @@ app.post('/api/activities/:id', auth, async (req, res) => {
     }
   });
 
+// Add endpoints to fetch notifications
+app.get('/api/notifications', auth, async (req, res) => {
+  try {
+      const userId = req.session.user.user_id;
+      const notifications = await db.any(
+          'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10',
+          [userId]
+      );
+      res.json(notifications);
+  } catch (err) {
+      console.error('Error fetching notifications:', err);
+      res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
 
+// Mark notifications as read
+app.post('/api/notifications/read', auth, async (req, res) => {
+  try {
+      const userId = req.session.user.user_id;
+      const { id } = req.body;
+      
+      if (id) {
+          await db.none('UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2', [id, userId]);
+      } else {
+          await db.none('UPDATE notifications SET is_read = TRUE WHERE user_id = $1', [userId]);
+      }
+      
+      res.json({ success: true });
+  } catch (err) {
+      console.error('Error marking notifications read:', err);
+      res.status(500).json({ error: 'Failed to update notifications' });
+  }
+});
 
 //Ensure App is Listening For Requests
 app.listen(3000);
