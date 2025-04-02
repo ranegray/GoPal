@@ -318,29 +318,16 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
     try {
         const {fitnessLevel, displayName, profileVisibility} = req.body;
         const userId = req.session.user.user_id;
+        const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
         const profilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
 
         //Delete the old profile photo: if it exists and the user is uploading a new one
         if (req.session.user.profile_photo_path && profilePhotoFilePath) {
-          const query =
-            "SELECT profile_photo_path FROM users WHERE user_id = $1";
-          db.oneOrNone(query, [req.session.user.user_id])
-            .then((result) => {
-              if (result) {
-                oldImagePath = path.join(
-                  __dirname,
-                  "../" + result.profile_photo_path
-                );
-                fs.unlink(oldImagePath, (err) => {
-                  if (err) {
-                    console.error("Error deleting file:", err);
-                  }
-                });
-              }
-            })
-            .catch((err) => {
-              console.error("Database error:", err);
-            });
+            fs.unlink(oldProfilePhotoFilePath, (err) => {
+                if (err) {
+                  console.error("Error deleting file:", err);
+                }
+              });
         }
 
         //Helper function for adding fields to the query
