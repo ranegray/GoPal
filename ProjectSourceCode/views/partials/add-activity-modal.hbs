@@ -1,0 +1,58 @@
+<button
+    class="mb-10 p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 cursor-pointer"
+    id="add-activity-button">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-plus">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M12 5l0 14" />
+        <path d="M5 12l14 0" />
+    </svg>
+    <p>Add activity</p>
+</button>
+
+<div class="z-50 fixed inset-0 items-center justify-center bg-black/50 hidden" id="activity-modal">
+    <form action="/api/activities" method="POST" id="activity-form"
+        class="bg-white rounded-lg shadow-lg p-6 w-1/2 max-w-128 mx-auto mt-20">
+        <div class="flex justify-between mb-4">
+            <h2 class="text-2xl font-bold mb-4">Add Activity</h2>
+            <svg xmlns="http://www.w3.org/2000/svg" id="close-modal-button" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="cursor-pointer icon icon-tabler icons-tabler-outline icon-tabler-x">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M18 6l-12 12" />
+                <path d="M6 6l12 12" />
+            </svg>
+        </div>
+        <label for="activity-type">Sport</label>
+        <select id="activity-type" name="activity-type" class="w-full p-2 border border-gray-300 rounded mb-4">
+            {{!-- TODO: Refactor to populate activity types from server and add conditional support for more activities (ie meditation, yoga, etc) --}}
+            <option value="Running">Running</option>
+            <option value="Cycling">Cycling</option>
+            <option value="Swimming">Swimming</option>
+            <option value="Hiking">Hiking</option>
+            <option value="Walking">Walking</option>
+            <option value="Skiing/Snowboarding">Skiing/Snowboarding</option>
+        </select>
+        <label for="activity-duration">Duration (minutes)</label>
+        <input type="number" id="activity-duration" name="activity-duration"
+            class="w-full p-2 border border-gray-300 rounded mb-4" required>
+        <label for="activity-distance">Distance (miles)</label>
+        <input type="number" id="activity-distance" name="activity-distance" step="0.01"
+            class="w-full p-2 border border-gray-300 rounded mb-4" required>
+        <label for="activity-date">Date</label>
+        <input type="date" id="activity-date" name="activity-date"
+            class="w-full p-2 border border-gray-300 rounded mb-4">
+            {{!-- TODO: Add hours and minutes entry instead of just minutes --}}
+        <label for="activity-time">Time</label>
+        <input type="time" id="activity-time" name="activity-time"
+            class="w-full p-2 border border-gray-300 rounded mb-4">
+        <label for="activity-notes">Notes</label>
+        <textarea id="activity-notes" name="activity-notes"
+            class="w-full p-2 border border-gray-300 rounded mb-4"></textarea>
+        <button type="submit" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">Add
+            Activity</button>
+        <button type="button" id="cancel-button"
+            class="bg-gray-300 text-black px-4 py-2 rounded ml-2 cursor-pointer">Cancel</button>
+    </form>
+</div>

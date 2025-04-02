@@ -3,15 +3,16 @@
     <!-- Nav bar -->
     {{>nav}}
   </aside>
-  <main class="bg-white px-4">
-    <!-- All the shit to the right of the nav bar -->
-    <h1>Home Content</h1>
+  <main class="flex-grow p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Dashboard</h1>
+      {{>notification}}
+    </div>
   </main>
 
  <!-- Weather -->
  <!-- Will retouch front-end later; just getting in basic functionality -->
   <aside class="fixed bottom-4 right-4 w-64">
-    <script src="/js/geolocation.js"></script>
 
     <input type="hidden" id="latitude">
     <input type="hidden" id="longitude">

@@ -1,0 +1,28 @@
+<!-- Notifications -->
+  <div class="relative mr-8 inline-block">
+    <div id="notification-icon" class="cursor-pointer">
+      <div class="absolute -top-1 -right-1 rounded-full h-3 w-3 bg-red-500 z-10 {{#unless hasNotifications}}hidden{{/unless}}"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" class="hover:text-gray-500" width="28" height="28" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-bell">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+        <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+      </svg>
+    </div>
+    <div class="absolute right-0 w-64 bg-white shadow-lg rounded-lg mt-2 p-4 hidden" id="notification-dropdown">
+      <h3 class="text-lg font-semibold mb-2">Notifications</h3>
+      <ul>
+        {{#if notifications.length}}
+          {{#each notifications}}
+            <li class="py-2 {{#unless @last}}border-b{{/unless}}"></li>
+              <p class="font-semibold">{{this.title}}</p>
+              <p class="text-sm">{{this.message}}</p>
+            </li>
+          {{/each}}
+        {{else}}
+          <li class="py-2 text-gray-500">No new notifications</li>
+        {{/if}}
+      </ul>
+    </div>
+  </div>

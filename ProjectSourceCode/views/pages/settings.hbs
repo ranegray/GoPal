@@ -3,8 +3,30 @@
     <!-- Nav bar -->
     {{>nav}}
   </aside>
-  <main class="bg-white px-4">
-    <!-- All the shit to the right of the nav bar -->
-    <h1>Settings Content</h1>
+  <main class="bg-gray-100 p-6 flex flex-col flex-grow">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Settings</h1>
+      {{>notification}}
+    </div>
+
+    <div class="max-w-7xl">
+      <div id="sub-nav-bar" class="py-8 rounded-xl">
+        <nav class="flex gap-10">
+          <a href="/settings/account"
+            class="sub-nav-button px-10 py-4 bg-white hover:bg-gray-300 text-black rounded-xl text-lg font-semibold">Account</a>
+          <a href="/settings/profile"
+            class="sub-nav-button px-10 py-4 bg-white text-black hover:bg-gray-300 rounded-xl text-lg font-semibold">Profile</a>
+          <a href="/settings/pal-settings"
+            class="sub-nav-button px-10 py-4 bg-white text-black hover:bg-gray-300 rounded-xl text-lg font-semibold">Pal
+            Settings</a>
+        </nav>
+      </div>
+
+      <div class="rounded-xl border p-5 bg-white">
+        {{#if (eq activeTab "account")}} {{> account}} {{/if}}
+        {{#if (eq activeTab "profile")}} {{> profile}} {{/if}}
+        {{#if (eq activeTab "pal-settings")}} {{> pal-settings}} {{/if}}
+      </div>
+    </div>
   </main>
 </div>
