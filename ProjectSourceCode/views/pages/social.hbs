@@ -7,7 +7,8 @@
   
   <h1 class="text-2xl font-bold inline-block">Social</h1>
     <!--This button dispalays a modal which will display any friend requests along with give the ability to send requests to users in database-->
-  <button class="ml-4 bg-blue-500 text-white px-2 py-1 rounded" data-bs-toggle="modal" data-bs-target="#friend_modal">Add Friends</button>
+  {{>add-friend-modal}}
+
     <div class="grid grid-cols-3 gap-8 mt-6">
       <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
       <!--This is where friend activities will be displayed once friend functionality is working, both of these fields will work the same-->
@@ -35,8 +36,5 @@
   </main>
 </div>
 
-<!--Add friends modal-->
- <div class="modal fade" id="friend_modal" tabindex="-1" aria-labelledby="eventModalLabel"data-bs-backdrop="static" data-bs-keyboard="false">
 
-  </div>
 
