@@ -460,5 +460,10 @@ app.post('/api/notifications/read', auth, async (req, res) => {
   }
 });
 
+// Endpoint for testing testing framework
+app.get('/welcome', (req, res) => {
+    res.json({status: 'success', message: 'Welcome!'});
+  });
+
 //Ensure App is Listening For Requests
-app.listen(3000);
+module.exports = app.listen(3000);
