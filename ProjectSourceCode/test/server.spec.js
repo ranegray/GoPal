@@ -1,6 +1,6 @@
 // ********************** Initialize server **********************************
 
-const server = require('../index'); // Path to your index.js
+const server = require('../server/index'); // Path to your index.js
 
 // ********************** Import Libraries ***********************************
 
