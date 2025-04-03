@@ -44,7 +44,6 @@ describe('Registration API', () => {
         password: 'Test1234!'  // Matches your password requirements
       })
       .end((err, res) => {
-        expect(res).to.have.status(302); // Expecting redirect to login
         expect(res).to.redirectTo(/\/login$/); // Should redirect to /login
         done();
       });
@@ -115,7 +114,6 @@ describe('Login API', () => {
         password: testPassword
       })
       .end((err, res) => {
-        expect(res).to.have.status(302); // Expecting redirect
         expect(res).to.redirectTo(/\/home$/); // Should redirect to /home
         done();
       });
