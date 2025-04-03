@@ -349,7 +349,8 @@ app.post('/api/activities', auth, async (req, res) => {
             'activity-distance': distanceMi, 
             'activity-date': activityDate,
             'activity-time': activityTime,
-            'activity-notes': notes 
+            'activity-notes': notes,
+            'activity-journal': journal
         } = req.body;
         
         // Get activity type ID from name
@@ -370,9 +371,9 @@ app.post('/api/activities', auth, async (req, res) => {
         // Insert the activity log
         await db.none(
             `INSERT INTO activity_logs 
-            (user_id, activity_type_id, activity_date, activity_time, duration_minutes, distance_mi, notes)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [userId, activityTypeId, date, time, durationMinutes, distanceMi, notes]
+            (user_id, activity_type_id, activity_date, activity_time, duration_minutes, distance_mi, notes, journal)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [userId, activityTypeId, date, time, durationMinutes, distanceMi, notes, journal]
         );
 
         // TODO: Add success message once an activity is added
@@ -425,6 +426,42 @@ app.post('/api/activities/:id', auth, async (req, res) => {
       res.redirect('/activity?error=Error deleting activity');
     }
   });
+
+// Update activity journal
+app.post('/api/activities/:id/journal', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        const activityId = req.params.id;
+        const { journal } = req.body;
+
+        // Validate that a journal entry is provided
+        if (!journal) {
+            return res.status(400).json({ error: 'Journal entry is required' });
+        }
+
+        // Verify the activity exists and belongs to the user
+        const activity = await db.oneOrNone(
+            'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+            [activityId, userId]
+        );
+
+        if (!activity) {
+            return res.status(404).json({ error: 'Activity not found' });
+        }
+
+        // Update the journal field (this will replace any existing journal entry)
+        await db.none(
+            'UPDATE activity_logs SET journal = $1 WHERE activity_id = $2',
+            [journal, activityId]
+        );
+
+        res.status(200).json({ message: 'Journal entry updated successfully' });
+    } catch (err) {
+        console.error('Error updating journal:', err);
+        res.status(500).json({ error: 'Failed to update journal' });
+    }
+});
+
 
 // Add endpoints to fetch notifications
 app.get('/api/notifications', auth, async (req, res) => {

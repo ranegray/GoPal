@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const activityForm = document.getElementById("activity-form");
   const closeModalButton = document.getElementById("close-modal-button");
   const cancelButton = document.getElementById("cancel-button");
-  const addActivityButton = document.getElementById("add-activity-button");
+  const addActivityButton = document.getElementById("add-activity-button"); 
 
   // Set today as the default date
   const dateInput = document.getElementById("activity-date");
@@ -182,4 +182,41 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error marking notifications as read:", error)
       );
   });
+});
+
+// Journal modal stuff
+document.addEventListener("DOMContentLoaded", function () {
+  // Journal Modal Elements
+  const journalModal = document.getElementById("journal-modal");
+  const addJournalButton = document.getElementById("add-journal-button");
+  const journalForm = document.getElementById("journal-form");
+  const closeJournalModalButton = document.getElementById("close-journal-modal-button");
+  const cancelJournalButton = document.getElementById("cancel-journal-button");
+
+  // Check if elements exist to prevent errors
+  if (!journalModal || !journalForm) return;
+
+  // Function to close modal
+  function closeJournalModal() {
+    journalModal.classList.add("hidden");
+    journalModal.classList.remove("flex");
+    journalForm.reset();
+  }
+
+  // Open modal when "Add Journal" button is clicked
+  if (addJournalButton) {
+    addJournalButton.addEventListener("click", function () {
+      journalModal.classList.remove("hidden");
+      journalModal.classList.add("flex");
+    });
+  }
+
+  // Add close modal event listeners
+  if (closeJournalModalButton) {
+    closeJournalModalButton.addEventListener("click", closeJournalModal);
+  }
+
+  if (cancelJournalButton) {
+    cancelJournalButton.addEventListener("click", closeJournalModal);
+  }
 });
