@@ -46,17 +46,17 @@ if (window.location.pathname === "/settings/profile") {
       if (file && file.size > maxSize) {
         //file is too large
         errorMessage.textContent = "File size exceeds 2MB limit.";
-        errorMessage.classList.toggle("hidden", false);
+        errorMessage.classList.remove("hidden");
         this.value = ""; // Clear the file input
       } else {
         //file is a valid size
         errorMessage.textContent = "";
-        errorMessage.classList.toggle("hidden", true);
+        errorMessage.classList.add("hidden");
         //displays profile picture on frontend before submit
         profilePreview.src = URL.createObjectURL(file);
         //this toggles away the default icon placeholder in case there was no profile picture before
-        profilePreview.classList.toggle("hidden", false);
-        defaultIcon.classList.toggle("hidden", true);
+        profilePreview.classList.remove("hidden");
+        defaultIcon.classList.add("hidden");
       }
     });
   });
