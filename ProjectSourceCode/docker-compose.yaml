@@ -9,7 +9,7 @@ services:
       - ./init_data:/docker-entrypoint-initdb.d
   web:
     image: node:lts
-    user: 'node' #you can remove this if you are facing access issues when installing node packages
+    # user: 'node' #you can remove this if you are facing access issues when installing node packages
     working_dir: /home/node/app
     env_file: .env
     environment:
