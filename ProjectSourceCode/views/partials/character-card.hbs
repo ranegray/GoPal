@@ -1,24 +1,22 @@
-{{!-- circular-character-card.hbs --}}
-<div class="flex justify-center items-center p-2">
-  <div class="relative w-24 h-24 rounded-full bg-yellow-100 shadow-md hover:shadow-lg transition-transform duration-300 hover:scale-105 overflow-hidden flex flex-col items-center justify-center">
-    {{#if character.imageUrl}}
-      <img src="{{character.imageUrl}}" alt="{{character.name}}" class="w-full h-full object-cover">
+{{!-- custom-character-card.hbs --}}
+<div class="flex items-center justify-center w-40 h-40">
+  <div class="w-full h-full bg-white rounded-full shadow-lg border-2 border-gray-200 overflow-hidden flex items-center justify-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+    {{#if character.customContent}}
+      {{{character.customContent}}}
     {{else}}
-      {{!-- Fallback cute character using Tailwind --}}
-      <div class="w-4/5 h-4/5 bg-yellow-300 rounded-full flex items-center justify-center">
-        <div class="w-4/5 h-4/5 relative">
-          {{!-- Eyes --}}
-          <div class="absolute top-1/3 w-3/5 left-1/5 flex justify-between">
-            <div class="w-2 h-2 bg-gray-800 rounded-full"></div>
-            <div class="w-2 h-2 bg-gray-800 rounded-full"></div>
-          </div>
-          {{!-- Smile --}}
-          <div class="absolute top-1/2 left-1/4 w-1/2 h-2 border-b-2 border-gray-800 rounded-full"></div>
+      {{#if character.imageUrl}}
+        <img src="{{character.imageUrl}}" alt="{{character.name}}" class="w-full h-full object-cover">
+      {{else}}
+        <div class="text-gray-400 text-center p-4">
+          <span>Character goes here</span>
         </div>
-      </div>
+      {{/if}}
     {{/if}}
   </div>
+
   {{#if showName}}
-    <span class="mt-2 text-sm font-medium text-gray-700">{{character.name}}</span>
+    <div class="mt-2 text-center w-full">
+      <span class="font-medium text-gray-700">{{character.name}}</span>
+    </div>
   {{/if}}
 </div>
