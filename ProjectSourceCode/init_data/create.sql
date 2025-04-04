@@ -7,6 +7,7 @@ CREATE TABLE users (
   birthday DATE,
   country VARCHAR(60),
   phone VARCHAR(15),
+  profile_photo_path VARCHAR(255),
   display_name VARCHAR(15),
   fitness_level VARCHAR(20),
   visibility VARCHAR(10) DEFAULT 'anyone',

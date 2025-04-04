@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { errors } = require('pg-promise');
 const db = require('./db.js');
+const fs = require("fs");
 
 const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
@@ -16,7 +17,17 @@ const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
 const { createAchievementNotifications } = require("./utils/notification-utils.js");
 
 const app = express();
-const upload = multer();
+
+const storage = multer.diskStorage({
+    destination: "./uploads/",
+    filename: (req, file, cb) => {
+        const userId = req.session.user ? req.session.user.user_id : "unknown"; // Get user_id or fallback to "unknown"
+        const timestamp = Date.now();
+        const extension = path.extname(file.originalname);
+        cb(null, `${userId}_${timestamp}${extension}`); // Format: userId_timestamp.extension
+    },
+});
+const upload = multer({ storage });
 
 const hbs = handlebars.create({
   extname: "hbs",
@@ -305,19 +316,32 @@ app.post('/settings/account',auth, async (req, res) => {
 app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, res) => {
     let messages = [];
     try {
-        const { profilePicture, fitnessLevel, displayName, profileVisibility } = req.body;
+        const {fitnessLevel, displayName, profileVisibility} = req.body;
         const userId = req.session.user.user_id;
-        
+        const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
+        const newProfilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        //Delete the old profile photo: if it exists and the user is uploading a new one
+        if (oldProfilePhotoFilePath && newProfilePhotoFilePath) {
+            fs.unlink(oldProfilePhotoFilePath, (err) => {
+                if (err) {
+                  console.error("Error deleting file:", err);
+                }
+              });
+        }
+
+        //Helper function for adding fields to the query
         const queryParams = [];
         const queryValues = [];
         const addQueryParam = (field, value) => {
-            if (value) {
+            if (value && !(req.session.user[field] == value)) {
                 queryParams.push(`${field} = $${queryParams.length + 1}`);
                 queryValues.push(value);
             }
         };
-        
+
         // Add fields to query params
+        addQueryParam('profile_photo_path', newProfilePhotoFilePath);
         addQueryParam('display_name', displayName);
         addQueryParam('visibility', profileVisibility);
         addQueryParam('fitness_level', fitnessLevel);
