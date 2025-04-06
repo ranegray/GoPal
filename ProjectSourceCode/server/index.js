@@ -116,6 +116,7 @@ app.post('/login', async (req, res) => {
             return;
         }
         match = await bcrypt.compare(req.body.password, user_data.password);
+        console.log(user_data.password);
         if (match) {
             req.session.user = user;
             req.session.save();
@@ -570,35 +571,33 @@ app.get("/social/friends", auth, async (req, res) => {
 
         // Fetch the friends list
         const friends = await db.any(`
-            -- Incoming Friend Requests (requests sent TO the current user)
-            SELECT u.user_id, u.username, u.display_name, 'incoming' AS request_type
+            SELECT u.user_id, u.username, u.display_name, 'incoming' AS request_type, 1 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.user_id
             WHERE f.friend_id = $1 AND f.status = 'pending'
-            
+
             UNION
-        
-            -- Accepted Friends (mutual friendships)
-            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type
+
+            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
             WHERE f.user_id = $1 AND f.status = 'accepted'
-            
+
             UNION
-            
-            -- Accepted Friends (mutual friendships from the other direction)
-            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type
+
+            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.user_id
             WHERE f.friend_id = $1 AND f.status = 'accepted'
 
             UNION
 
-            -- Outgoing Friend Requests (requests sent BY the current user)
-            SELECT u.user_id, u.username, u.display_name, 'outgoing' AS request_type
+            SELECT u.user_id, u.username, u.display_name, 'outgoing' AS request_type, 3 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
-            WHERE f.user_id = $1 AND f.status = 'pending';
+            WHERE f.user_id = $1 AND f.status = 'pending'
+
+            ORDER BY sort_order, username;
         `, [user_id]);
 
         res.render("pages/social", { activeTab: tab, user, friends });

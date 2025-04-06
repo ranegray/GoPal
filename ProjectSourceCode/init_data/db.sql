@@ -1,10 +1,10 @@
 -- 
 INSERT INTO users (username, password, email)
 VALUES 
-('alice', 'Gr4ndP@!', 'alice@example.com'),
-('bob', 'Gr4ndP@!', 'bob@example.com'),
-('charlie', 'Gr4ndP@!', 'charlie@example.com'),
-('david', 'Gr4ndP@!', 'david@example.com');
+('alice', '$2a$10$WqFgxpgMB/DPZ2VHIpVrS.A4UOCxhcKnzFycusRoZ0IQzGW9X1jIy', 'alice@example.com'),
+('bob', '$2a$10$WqFgxpgMB/DPZ2VHIpVrS.A4UOCxhcKnzFycusRoZ0IQzGW9X1jIy', 'bob@example.com'),
+('charlie', '$2a$10$WqFgxpgMB/DPZ2VHIpVrS.A4UOCxhcKnzFycusRoZ0IQzGW9X1jIy', 'charlie@example.com'),
+('david', '$2a$10$WqFgxpgMB/DPZ2VHIpVrS.A4UOCxhcKnzFycusRoZ0IQzGW9X1jIy', 'david@example.com');
 
 INSERT INTO friends (user_id, friend_id, status)
 VALUES 
