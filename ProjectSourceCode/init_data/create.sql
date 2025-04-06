@@ -55,7 +55,7 @@ CREATE TABLE achievements (
     name VARCHAR(100) NOT NULL,     -- User-friendly name (e.g., 'Activity Starter')
     description TEXT NOT NULL,      -- Description (e.g., 'Complete 5 activities')
     criteria_type VARCHAR(50) NOT NULL, -- Type of criteria (e.g., 'ACTIVITY_COUNT', 'LOGIN_STREAK')
-    criteria_value INTEGER NOT NULL, -- Value needed to meet criteria (e.g., 5 for 5 activities)
+    criteria_value INTEGER NOT  NULL, -- Value needed to meet criteria (e.g., 5 for 5 activities)
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

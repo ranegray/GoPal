@@ -1,0 +1,33 @@
+  <h1 class="text-2xl font-bold inline-block">Friends</h1>
+    <div class="grid grid-cols-3 gap-8 mt-6">
+        <div class="flex justify-center mb-6">
+            <div class="relative w-full max-w-md">
+                <input 
+                type="text" 
+                placeholder="Add User..." 
+                class="w-full px-4 py-2 text-gray-700 bg-white border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button 
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+                >
+                🔍
+                </button>
+            </div>
+        </div>
+
+
+      <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
+        <div class="space-y-4">
+        {{#each friend}}  
+          <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md">
+            <p><strong>{{name}}</strong></p>
+            <button class="bg-blue-200 p-2 rounded-full">💬</button>
+          </div>
+        {{/each}}
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

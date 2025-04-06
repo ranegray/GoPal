@@ -560,5 +560,43 @@ app.get('/api/friends/activities', auth, async (req, res) => {
     }
 });
 
+app.get("/social/friends", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const tab = 'friends';
+
+        // Fetch the user from the database
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
+
+        // Fetch the friends list
+        const friends = await db.any(`
+            SELECT u.user_id, u.username, u.display_name FROM users
+            FROM friends f
+            JOIN users u ON u.user_id = f.friend_id
+            WHERE f.user_id = $1 AND f.status = 'accepted'
+        `, [user_id]);
+
+        res.render("pages/social", { activeTab: tab, user, friends });
+    } catch (err) {
+        console.error("Error fetching user or friends data:", err);
+        res.render("pages/social", { activeTab: 'account', user: req.session.user });
+    }
+});
+
+app.get("/social/recent", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const tab = 'recent';
+
+        // Fetch the user from the database
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
+
+        res.render("pages/social", { activeTab: tab, user });
+    } catch (err) {
+        console.error("Error fetching user data:", err);
+        res.render("pages/social", { activeTab: 'account', user: req.session.user });
+    }
+});
+
 //Ensure App is Listening For Requests
 app.listen(3000);

@@ -1,40 +1,44 @@
 
-<div class="flex">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
   <aside class="bg-blue-100 px-4">
-    {{>nav}}
+    {{> nav}}
   </aside>
-  <main class="bg-gray-50 flex-1 p-8">
-  
-  <h1 class="text-2xl font-bold inline-block">Social</h1>
-    <!--This button dispalays a modal which will display any friend requests along with give the ability to send requests to users in database-->
-  {{>add-friend-modal}}
 
-    <div class="grid grid-cols-3 gap-8 mt-6">
-      <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
-      <!--This is where friend activities will be displayed once friend functionality is working, both of these fields will work the same-->
-        <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
-        <div class="space-y-4">
-        {{#each activity}}  
-          <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md">
-            <p><strong>{{name}}</strong> - {{actDesc}}</p>
-            <button class="bg-blue-200 p-2 rounded-full">💬</button>
-          </div>
-        {{/each}}
-        </div>
+  <!-- Main Content -->
+
+    <!-- Header -->
+  <main class="flex-grow p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Social</h1>
+      {{>notification}}
+    </div>
+
+    <!-- Sub Navigation Bar -->
+    <div class="max-w-6xl mx-auto">
+      <div id="sub-nav-bar" class="mb-6 flex justify-center">
+        <nav class="flex gap-4">
+          <a href="/social/recent" 
+             class="sub-nav-button px-8 py-3 bg-white text-gray-700 hover:bg-gray-200 rounded-lg text-lg font-medium shadow">
+            Recent
+          </a>
+          <a href="/social/friends" 
+             class="sub-nav-button px-8 py-3 bg-white text-gray-700 hover:bg-gray-200 rounded-lg text-lg font-medium shadow">
+            Friends
+          </a>
+        </nav>
       </div>
 
-    <!--This is where friend achievements will be displayed once friend functionality is working, both of these fields will essentially work the same-->
-      <div class="bg-white p-4 rounded-md shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Recent Achievements</h2>
-        <div class="space-y-3">
-          {{#each achievement}}
-          <p><strong>{{name}}</strong> - {{achDesc}}</p>
-          {{/each}}
-        </div>
+      <!-- Content Section -->
+      <div class="rounded-lg border p-6 bg-white shadow-sm">
+        {{#if (eq activeTab "recent")}} 
+          {{> recent}} 
+        {{/if}}
+        {{#if (eq activeTab "friends")}} 
+          {{> friends}} 
+        {{/if}}
       </div>
     </div>
   </main>
 </div>
-
-
 
