@@ -16,8 +16,7 @@
         "prestart": "npm install",
         "start": "concurrently \"npx tailwindcss -i ./extra_resources/css/input.css -o ./extra_resources/css/style.css --watch\" \"nodemon ./server/index.js\"",
         "build:css": "npx tailwindcss -i ./extra_resources/css/input.css -o ./extra_resources/css/style.css",
-        "start:prod": "npm run build:css && node index.js",
-        "init-db": "node load-db.js"
+        "start:prod": "npm run build:css && node index.js"
     },
     "devDependencies": {
         "@tailwindcss/cli": "^4.0.17",
