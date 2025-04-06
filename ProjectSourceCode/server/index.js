@@ -573,7 +573,7 @@ app.get("/social/friends", auth, async (req, res) => {
             SELECT u.user_id, u.username, u.display_name
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
-            WHERE f.user_id = $1 AND f.status = 'accepted'
+            WHERE f.user_id = $1
         `, [user_id]);
 
         res.render("pages/social", { activeTab: tab, user, friends });
