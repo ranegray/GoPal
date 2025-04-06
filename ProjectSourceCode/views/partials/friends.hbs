@@ -1,18 +1,18 @@
   <h1 class="text-2xl font-bold inline-block">Friends</h1>
     <div class="grid grid-cols-3 gap-8 mt-6">
       <div class="flex justify-center mb-6">
-          <div class="relative w-full max-w-md">
+          <div class="relative w-full max-w-md h-12">
               <input 
                   id="search-input" 
                   type="text" 
                   placeholder="Add User..." 
-                  class="w-full px-4 py-2 text-gray-700 bg-white border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-4 py-4 pr-12 text-gray-700 bg-white border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button 
                   onclick="searchUser()" 
-                  class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+                  class="absolute right-3 top-7 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 pointer-events-auto"
               >
-                  🔍
+                  🔍 
               </button>
               <p id="search-result" class="mt-2 text-center text-gray-700"></p>
           </div>
@@ -63,6 +63,7 @@
           const result = await response.json();
           const message = result.message || "Something went wrong.";
           document.getElementById("search-result").textContent = message;
+          location.reload(); // Refresh the page to update the friend list
       } catch (err) {
           document.getElementById("search-result").textContent = "User not found";
       }
@@ -71,7 +72,6 @@
     try {
       const response = await fetch(`/accept-friend/${userId}`, { method: "POST" });
       const result = await response.json();
-      alert(result.message);
       location.reload(); // Refresh the page to update the friend list
     } catch (err) {
       alert("Error accepting friend request.");
@@ -82,7 +82,6 @@
     try {
       const response = await fetch(`/decline-friend/${userId}`, { method: "POST" });
       const result = await response.json();
-      alert(result.message);
       location.reload(); // Refresh the page to update the friend list
     } catch (err) {
       alert("Error declining friend request.");

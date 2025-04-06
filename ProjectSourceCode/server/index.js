@@ -116,7 +116,6 @@ app.post('/login', async (req, res) => {
             return;
         }
         match = await bcrypt.compare(req.body.password, user_data.password);
-        console.log(user_data.password);
         if (match) {
             req.session.user = user;
             req.session.save();
