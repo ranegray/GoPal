@@ -570,10 +570,35 @@ app.get("/social/friends", auth, async (req, res) => {
 
         // Fetch the friends list
         const friends = await db.any(`
-            SELECT u.user_id, u.username, u.display_name
+            -- Incoming Friend Requests (requests sent TO the current user)
+            SELECT u.user_id, u.username, u.display_name, 'incoming' AS request_type
+            FROM friends f
+            JOIN users u ON u.user_id = f.user_id
+            WHERE f.friend_id = $1 AND f.status = 'pending'
+            
+            UNION
+        
+            -- Accepted Friends (mutual friendships)
+            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
-            WHERE f.user_id = $1
+            WHERE f.user_id = $1 AND f.status = 'accepted'
+            
+            UNION
+            
+            -- Accepted Friends (mutual friendships from the other direction)
+            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type
+            FROM friends f
+            JOIN users u ON u.user_id = f.user_id
+            WHERE f.friend_id = $1 AND f.status = 'accepted'
+
+            UNION
+
+            -- Outgoing Friend Requests (requests sent BY the current user)
+            SELECT u.user_id, u.username, u.display_name, 'outgoing' AS request_type
+            FROM friends f
+            JOIN users u ON u.user_id = f.friend_id
+            WHERE f.user_id = $1 AND f.status = 'pending';
         `, [user_id]);
 
         res.render("pages/social", { activeTab: tab, user, friends });
@@ -630,6 +655,41 @@ app.post("/search/:username", auth, async (req, res) => {
     } catch (err) {
         console.error("Error searching or adding user:", err);
         res.status(500).json({ message: "Error processing the friend request." });
+    }
+});
+app.post("/accept-friend/:friendId", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const { friendId } = req.params;
+
+        // Update the friendship status to accepted
+        await db.none(`
+            UPDATE friends 
+            SET status = 'accepted', accepted_at = NOW()
+            WHERE user_id = $1 AND friend_id = $2
+        `, [friendId, user_id]);
+
+        res.json({ message: "Friend request accepted." });
+    } catch (err) {
+        console.error("Error accepting friend request:", err);
+        res.status(500).json({ message: "Failed to accept friend request." });
+    }
+});
+app.post("/decline-friend/:friendId", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const { friendId } = req.params;
+
+        // Delete the friendship record
+        await db.none(`
+            DELETE FROM friends 
+            WHERE user_id = $1 AND friend_id = $2
+        `, [friendId, user_id]);
+
+        res.json({ message: "Friend request declined." });
+    } catch (err) {
+        console.error("Error declining friend request:", err);
+        res.status(500).json({ message: "Failed to decline friend request." });
     }
 });
 
