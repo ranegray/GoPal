@@ -1,26 +1,43 @@
   <h1 class="text-2xl font-bold inline-block">Friends</h1>
     <div class="grid grid-cols-3 gap-8 mt-6">
-        <div class="flex justify-center mb-6">
-            <div class="relative w-full max-w-md">
-                <input 
-                type="text" 
-                placeholder="Add User..." 
-                class="w-full px-4 py-2 text-gray-700 bg-white border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button 
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
-                >
-                🔍
-                </button>
-            </div>
-        </div>
+      <div class="flex justify-center mb-6">
+          <div class="relative w-full max-w-md">
+              <input 
+                  id="search-input" 
+                  type="text" 
+                  placeholder="Add User..." 
+                  class="w-full px-4 py-2 text-gray-700 bg-white border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button 
+                  onclick="searchUser()" 
+                  class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+              >
+                  🔍
+              </button>
+              <p id="search-result" class="mt-2 text-center text-gray-700"></p>
+          </div>
+      </div>
+
+      <script>
+      async function searchUser() {
+          const username = document.getElementById("search-input").value;
+          try {
+              const response = await fetch(`/search/${username}`, { method: "POST" });
+              const result = await response.json();
+              const message = result.message || "Something went wrong.";
+              document.getElementById("search-result").textContent = message;
+          } catch (err) {
+              document.getElementById("search-result").textContent = "User not found";
+          }
+      }
+      </script>
 
 
       <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
         <div class="space-y-4">
-        {{#each friend}}  
+        {{#each friends}}  
           <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md">
-            <p><strong>{{name}}</strong></p>
+            <p><strong>{{username}}</strong></p>
             <button class="bg-blue-200 p-2 rounded-full">💬</button>
           </div>
         {{/each}}

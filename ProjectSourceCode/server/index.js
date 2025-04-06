@@ -570,7 +570,7 @@ app.get("/social/friends", auth, async (req, res) => {
 
         // Fetch the friends list
         const friends = await db.any(`
-            SELECT u.user_id, u.username, u.display_name FROM users
+            SELECT u.user_id, u.username, u.display_name
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
             WHERE f.user_id = $1 AND f.status = 'accepted'
@@ -595,6 +595,41 @@ app.get("/social/recent", auth, async (req, res) => {
     } catch (err) {
         console.error("Error fetching user data:", err);
         res.render("pages/social", { activeTab: 'account', user: req.session.user });
+    }
+});
+
+app.post("/search/:username", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const { username } = req.params;
+
+        // Check if the user exists in the database
+        const user = await db.oneOrNone("SELECT user_id FROM users WHERE username = $1;", [username]);
+
+        if (!user) {
+            return res.json({ message: `User "${username}" not found.` });
+        }
+
+        // Check if a friend request already exists
+        const existingRequest = await db.oneOrNone(`
+            SELECT * FROM friends 
+            WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1);
+        `, [user_id, user.user_id]);
+
+        if (existingRequest) {
+            return res.json({ message: `Friend request already sent or user is already your friend.` });
+        }
+
+        // Insert a new friend request (pending)
+        await db.none(`
+            INSERT INTO friends (user_id, friend_id, status) 
+            VALUES ($1, $2, 'pending');
+        `, [user_id, user.user_id]);
+
+        res.json({ message: `Friend request sent to ${username}.` });
+    } catch (err) {
+        console.error("Error searching or adding user:", err);
+        res.status(500).json({ message: "Error processing the friend request." });
     }
 });
 
