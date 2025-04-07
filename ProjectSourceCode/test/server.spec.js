@@ -114,6 +114,7 @@ describe('Login API', () => {
         password: testPassword
       })
       .end((err, res) => {
+        expect(res).to.have.status(200);
         expect(res).to.redirectTo(/\/home$/); // Should redirect to /home
         done();
       });
