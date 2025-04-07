@@ -173,7 +173,6 @@ app.get('/logout', auth, (req, res) => {
 });
 
 app.post('/delete-account', auth, async (req,res) => {
-    console.log('made it here');
     const userId = req.session.user.user_id;
     const query = `DELETE FROM users WHERE user_id = $1;`;
 
