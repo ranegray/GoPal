@@ -219,10 +219,6 @@ app.get('/activity', auth, async (req, res) => {
     }
   });
 
-app.get('/social',auth, (req, res) => {
-    res.render('pages/social',{user: req.session.user});
-});
-
 app.get('/pal',auth, (req, res) => {
     res.render('pages/pal',{user: req.session.user});
 });
