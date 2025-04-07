@@ -157,7 +157,7 @@ app.get('/',auth, (req, res) => {
     res.redirect('/home');
 });
 
-app.get('/logout', (req, res) => {
+app.get('/logout', auth, (req, res) => {
     if (req.session) {
         req.session.destroy((err) => {
             if (err) {
@@ -169,6 +169,21 @@ app.get('/logout', (req, res) => {
     } else {
         res.clearCookie('connect.sid', { path: '/' });
         res.redirect('/login');
+    }
+});
+
+app.post('/delete-account', auth, async (req,res) => {
+    console.log('made it here');
+    const userId = req.session.user.user_id;
+    const query = `DELETE FROM users WHERE user_id = $1;`;
+
+    try
+    {
+        await db.none(query, [userId]);
+        res.redirect('/register');
+    } catch (err){
+        console.error('Error deleting user account:', err);
+        res.render('/settings/account', {user: req.session.user});
     }
 });
 
