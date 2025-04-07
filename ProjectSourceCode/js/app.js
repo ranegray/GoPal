@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentPath = window.location.pathname;
     const mainPage = "/" + currentPath.split("/")[1];
     const mainActiveLink = document.querySelector(
-      `.sidebar-nav-button[href="${mainPage}"]`
+      `.sidebar-nav-button[href*="${mainPage}"]`
     );
     if (mainActiveLink) {
       mainActiveLink.classList.remove("bg-white", "hover:bg-gray-300");
