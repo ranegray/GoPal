@@ -36,20 +36,27 @@ if (window.location.pathname === "/settings/profile") {
   document.addEventListener("DOMContentLoaded", function () {
     const fileInput = document.getElementById("profilePicture");
     const errorMessage = document.getElementById("error-message");
-
-    if (!fileInput || !errorMessage) return; // Ensure elements exist
+    const profilePreview = document.getElementById("profilePreview");
+    const defaultIcon = document.getElementById("defaultIcon");
 
     fileInput.addEventListener("change", function () {
       const file = this.files[0];
       const maxSize = 2 * 1024 * 1024; // 2MB in bytes
 
       if (file && file.size > maxSize) {
+        //file is too large
         errorMessage.textContent = "File size exceeds 2MB limit.";
-        errorMessage.classList.toggle("hidden", false);
+        errorMessage.classList.remove("hidden");
         this.value = ""; // Clear the file input
       } else {
+        //file is a valid size
         errorMessage.textContent = "";
-        errorMessage.classList.toggle("hidden", true);
+        errorMessage.classList.add("hidden");
+        //displays profile picture on frontend before submit
+        profilePreview.src = URL.createObjectURL(file);
+        //this toggles away the default icon placeholder in case there was no profile picture before
+        profilePreview.classList.remove("hidden");
+        defaultIcon.classList.add("hidden");
       }
     });
   });
