@@ -43,6 +43,7 @@
       {{#if stats.activities.length}}
       {{#each stats.activities}}
       {{> activity-card this}}
+      {{> add-journal-modal this}}
       {{/each}}
       {{else}}
       <p class="text-center py-4 text-gray-500">No activities found. Add your first activity!</p>
