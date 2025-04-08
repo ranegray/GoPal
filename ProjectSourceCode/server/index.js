@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { errors } = require('pg-promise');
 const db = require('./db.js');
+const fs = require("fs");
 
 const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
@@ -16,7 +17,17 @@ const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
 const { createAchievementNotifications } = require("./utils/notification-utils.js");
 
 const app = express();
-const upload = multer();
+
+const storage = multer.diskStorage({
+    destination: "./uploads/",
+    filename: (req, file, cb) => {
+        const userId = req.session.user ? req.session.user.user_id : "unknown"; // Get user_id or fallback to "unknown"
+        const timestamp = Date.now();
+        const extension = path.extname(file.originalname);
+        cb(null, `${userId}_${timestamp}${extension}`); // Format: userId_timestamp.extension
+    },
+});
+const upload = multer({ storage });
 
 const hbs = handlebars.create({
   extname: "hbs",
@@ -208,10 +219,6 @@ app.get('/activity', auth, async (req, res) => {
     }
   });
 
-app.get('/social',auth, (req, res) => {
-    res.render('pages/social',{user: req.session.user});
-});
-
 app.get('/pal',auth, (req, res) => {
     res.render('pages/pal',{user: req.session.user});
 });
@@ -305,19 +312,32 @@ app.post('/settings/account',auth, async (req, res) => {
 app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, res) => {
     let messages = [];
     try {
-        const { profilePicture, fitnessLevel, displayName, profileVisibility } = req.body;
+        const {fitnessLevel, displayName, profileVisibility} = req.body;
         const userId = req.session.user.user_id;
-        
+        const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
+        const newProfilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        //Delete the old profile photo: if it exists and the user is uploading a new one
+        if (oldProfilePhotoFilePath && newProfilePhotoFilePath) {
+            fs.unlink(oldProfilePhotoFilePath, (err) => {
+                if (err) {
+                  console.error("Error deleting file:", err);
+                }
+              });
+        }
+
+        //Helper function for adding fields to the query
         const queryParams = [];
         const queryValues = [];
         const addQueryParam = (field, value) => {
-            if (value) {
+            if (value && !(req.session.user[field] == value)) {
                 queryParams.push(`${field} = $${queryParams.length + 1}`);
                 queryValues.push(value);
             }
         };
-        
+
         // Add fields to query params
+        addQueryParam('profile_photo_path', newProfilePhotoFilePath);
         addQueryParam('display_name', displayName);
         addQueryParam('visibility', profileVisibility);
         addQueryParam('fitness_level', fitnessLevel);
@@ -489,6 +509,213 @@ app.post('/api/notifications/read', auth, async (req, res) => {
       console.error('Error marking notifications read:', err);
       res.status(500).json({ error: 'Failed to update notifications' });
   }
+});
+
+app.post('/api/friends/request', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        const { friendUsername } = req.body;
+
+        // Find the friend ID from the username
+        const friend = await db.oneOrNone('SELECT user_id FROM users WHERE username = $1', [friendUsername]);
+
+        if (!friend) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const friendId = friend.user_id;
+
+        // Check if the request already exists or if they are already friends
+        const existingRequest = await db.oneOrNone(`
+            SELECT * FROM friends 
+            WHERE (user_id = $1 AND friend_id = $2) 
+               OR (user_id = $2 AND friend_id = $1)`,
+            [userId, friendId]);
+
+        if (existingRequest) {
+            return res.status(400).json({ error: 'Friend request already exists or users are already friends' });
+        }
+
+        // Insert the friend request
+        await db.none(`
+            INSERT INTO friends (user_id, friend_id, status) 
+            VALUES ($1, $2, 'pending')`,
+            [userId, friendId]);
+
+        return res.json({ success: true, message: 'Friend request sent' });
+    } catch (err) {
+        console.error('Error sending friend request:', err);
+        return res.status(500).json({ error: 'Failed to send friend request' });
+    }
+});
+
+app.get('/api/friends/activities', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        
+        // Get the list of friend IDs where the friendship is accepted
+        const friends = await db.any(`
+            SELECT friend_id AS id FROM friends 
+            WHERE user_id = $1 AND status = 'accepted'
+            UNION
+            SELECT user_id AS id FROM friends 
+            WHERE friend_id = $1 AND status = 'accepted'
+        `, [userId]);
+
+        if (friends.length === 0) {
+            return res.json({ activities: [] });
+        }
+
+        // Extract friend IDs from result
+        const friendIds = friends.map(friend => friend.id);
+
+        // Fetch recent activities from friends
+        const activities = await db.any(`
+            SELECT al.activity_id, al.user_id, u.username, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
+            FROM activity_logs al
+            JOIN users u ON al.user_id = u.user_id
+            JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+            WHERE al.user_id IN ($1:csv)
+            ORDER BY al.created_at DESC
+            LIMIT 20
+        `, [friendIds]);
+
+        return res.json({ activities });
+    } catch (err) {
+        console.error('Error fetching friend activities:', err);
+        return res.status(500).json({ error: 'Failed to fetch friend activities' });
+    }
+});
+
+app.get("/social/friends", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const tab = 'friends';
+
+        // Fetch the user from the database
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
+
+        // Fetch the friends list
+        const friends = await db.any(`
+            SELECT u.user_id, u.username, u.display_name, 'incoming' AS request_type, 1 AS sort_order
+            FROM friends f
+            JOIN users u ON u.user_id = f.user_id
+            WHERE f.friend_id = $1 AND f.status = 'pending'
+
+            UNION
+
+            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
+            FROM friends f
+            JOIN users u ON u.user_id = f.friend_id
+            WHERE f.user_id = $1 AND f.status = 'accepted'
+
+            UNION
+
+            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
+            FROM friends f
+            JOIN users u ON u.user_id = f.user_id
+            WHERE f.friend_id = $1 AND f.status = 'accepted'
+
+            UNION
+
+            SELECT u.user_id, u.username, u.display_name, 'outgoing' AS request_type, 3 AS sort_order
+            FROM friends f
+            JOIN users u ON u.user_id = f.friend_id
+            WHERE f.user_id = $1 AND f.status = 'pending'
+
+            ORDER BY sort_order, username;
+        `, [user_id]);
+
+        res.render("pages/social", { activeTab: tab, user, friends });
+    } catch (err) {
+        console.error("Error fetching user or friends data:", err);
+        res.render("pages/social", { activeTab: 'account', user: req.session.user });
+    }
+});
+
+app.get("/social/recent", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const tab = 'recent';
+
+        // Fetch the user from the database
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
+
+        res.render("pages/social", { activeTab: tab, user });
+    } catch (err) {
+        console.error("Error fetching user data:", err);
+        res.render("pages/social", { activeTab: 'account', user: req.session.user });
+    }
+});
+
+app.post("/search/:username", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const { username } = req.params;
+
+        // Check if the user exists in the database
+        const user = await db.oneOrNone("SELECT user_id FROM users WHERE username = $1;", [username]);
+
+        if (!user) {
+            return res.json({ message: `User "${username}" not found.` });
+        }
+
+        // Check if a friend request already exists
+        const existingRequest = await db.oneOrNone(`
+            SELECT * FROM friends 
+            WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1);
+        `, [user_id, user.user_id]);
+
+        if (existingRequest) {
+            return res.json({ message: `Friend request already sent or user is already your friend.` });
+        }
+
+        // Insert a new friend request (pending)
+        await db.none(`
+            INSERT INTO friends (user_id, friend_id, status) 
+            VALUES ($1, $2, 'pending');
+        `, [user_id, user.user_id]);
+
+        res.json({ message: `Friend request sent to ${username}.` });
+    } catch (err) {
+        console.error("Error searching or adding user:", err);
+        res.status(500).json({ message: "Error processing the friend request." });
+    }
+});
+app.post("/accept-friend/:friendId", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const { friendId } = req.params;
+
+        // Update the friendship status to accepted
+        await db.none(`
+            UPDATE friends 
+            SET status = 'accepted', accepted_at = NOW()
+            WHERE user_id = $1 AND friend_id = $2
+        `, [friendId, user_id]);
+
+        res.json({ message: "Friend request accepted." });
+    } catch (err) {
+        console.error("Error accepting friend request:", err);
+        res.status(500).json({ message: "Failed to accept friend request." });
+    }
+});
+app.post("/decline-friend/:friendId", auth, async (req, res) => {
+    try {
+        const { user_id } = req.session.user;
+        const { friendId } = req.params;
+
+        // Delete the friendship record
+        await db.none(`
+            DELETE FROM friends 
+            WHERE user_id = $1 AND friend_id = $2
+        `, [friendId, user_id]);
+
+        res.json({ message: "Friend request declined." });
+    } catch (err) {
+        console.error("Error declining friend request:", err);
+        res.status(500).json({ message: "Failed to decline friend request." });
+    }
 });
 
 //Ensure App is Listening For Requests

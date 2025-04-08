@@ -7,6 +7,7 @@ CREATE TABLE users (
   birthday DATE,
   country VARCHAR(60),
   phone VARCHAR(15),
+  profile_photo_path VARCHAR(255),
   display_name VARCHAR(15),
   fitness_level VARCHAR(20),
   visibility VARCHAR(10) DEFAULT 'anyone',
@@ -27,15 +28,6 @@ CREATE TABLE activity_logs (
   duration_minutes INTEGER NOT NULL,
   distance_mi DECIMAL(6,2),
   notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE journal_logs (
-  entry_id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-  entry_date DATE DEFAULT CURRENT_DATE,
-  entry_time TIME DEFAULT CURRENT_TIME,
-  journal_entry TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -79,4 +71,13 @@ CREATE TABLE notifications (
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE journal_logs (
+  entry_id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+  entry_date DATE DEFAULT CURRENT_DATE,
+  entry_time TIME DEFAULT CURRENT_TIME,
+  journal_entry TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
