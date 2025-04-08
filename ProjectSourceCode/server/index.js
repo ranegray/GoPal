@@ -173,9 +173,18 @@ app.get('/logout', auth, (req, res) => {
 });
 
 app.post('/delete-account', auth, async (req,res) => {
+    //delete the user's profile photo if it exists
+    const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
+    if (req.session.user.profile_photo_path) {
+        fs.unlink(oldProfilePhotoFilePath, (err) => {
+            if (err) {
+              console.error("Error deleting file:", err);
+            }
+          });
+    }
+    //delete the user from the database
     const userId = req.session.user.user_id;
     const query = `DELETE FROM users WHERE user_id = $1;`;
-
     try
     {
         await db.none(query, [userId]);
