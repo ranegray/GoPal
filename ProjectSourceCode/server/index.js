@@ -181,8 +181,8 @@ app.post('/delete-account', auth, async (req, res) => {
             const oldProfilePhotoFilePath = path.join(__dirname, "../", req.session.user.profile_photo_path);
             try {
                 await fs.promises.unlink(oldProfilePhotoFilePath);
-            } catch (photoErr) {
-                console.error("Error deleting profile photo:", photoErr);
+            } catch (err) {
+                console.error("Error deleting profile photo:", err);
             }
         }
         
@@ -199,7 +199,7 @@ app.post('/delete-account', auth, async (req, res) => {
         });
     } catch (err) {
         console.error('Error deleting user account:', err);
-        res.render('settings/account', { user: req.session.user, error: "Failed to delete account" });
+        res.render('pages/settings/account', { user: req.session.user });
     }
 });
 
