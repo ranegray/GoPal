@@ -319,11 +319,11 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
 
         //Delete the old profile photo: if it exists and the user is uploading a new one
         if (req.session.user.profile_photo_path && newProfilePhotoFilePath) {
-            fs.unlink(oldProfilePhotoFilePath, (err) => {
-                if (err) {
-                  console.error("Error deleting file:", err);
-                }
-              });
+            try {
+                await fs.promises.unlink(oldProfilePhotoFilePath);
+            } catch (err) {
+                console.error("Error deleting file:", err);
+            }
         }
 
         //Helper function for adding fields to the query
