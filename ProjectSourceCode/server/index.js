@@ -172,26 +172,34 @@ app.get('/logout', auth, (req, res) => {
     }
 });
 
-app.post('/delete-account', auth, async (req,res) => {
-    //delete the user's profile photo if it exists
-    const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
-    if (req.session.user.profile_photo_path) {
-        fs.unlink(oldProfilePhotoFilePath, (err) => {
-            if (err) {
-              console.error("Error deleting file:", err);
+app.post('/delete-account', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        
+        // Delete profile photo if it exists
+        if (req.session.user.profile_photo_path) {
+            const oldProfilePhotoFilePath = path.join(__dirname, "../", req.session.user.profile_photo_path);
+            try {
+                await fs.promises.unlink(oldProfilePhotoFilePath);
+            } catch (photoErr) {
+                console.error("Error deleting profile photo:", photoErr);
             }
-          });
-    }
-    //delete the user from the database
-    const userId = req.session.user.user_id;
-    const query = `DELETE FROM users WHERE user_id = $1;`;
-    try
-    {
+        }
+        
+        // Delete user from database
+        const query = `DELETE FROM users WHERE user_id = $1;`;
         await db.none(query, [userId]);
-        res.redirect('/register');
-    } catch (err){
+        
+        // Destroy the session
+        req.session.destroy(err => {
+            if (err) {
+                console.error("Error destroying session:", err);
+            }
+            res.redirect('/register');
+        });
+    } catch (err) {
         console.error('Error deleting user account:', err);
-        res.render('/settings/account', {user: req.session.user});
+        res.render('settings/account', { user: req.session.user, error: "Failed to delete account" });
     }
 });
 
