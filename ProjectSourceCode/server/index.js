@@ -400,6 +400,34 @@ app.post('/api/activities', auth, async (req, res) => {
     }
 });
 
+// Journal in Reference to an Activity 
+app.put('/api/activities/:id/journal', auth, async (req, res) => { 
+    try {
+        const userId = req.session.user.user_id;
+        const activityId = req.params.id;
+        const { notes } = req.body;
+        
+        // Ensure the activity belongs to the user
+        const activity = await db.oneOrNone(
+            'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+            [activityId, userId]
+        );
+        
+        if (!activity) {
+            return res.status(404).redirect('/activity?error=Activity not found');
+        }
+        
+        await db.none('UPDATE activity_logs SET notes = $1 WHERE activity_id = $2', [notes, activityId]);
+        
+        // Redirect back to activities page
+        res.redirect('/activity?success=Journal updated');
+
+    } catch (err){
+        console.error('Error updating journal:', err);
+        res.redirect('/activity?error=Error updating journal');
+    }
+});
+
 // Delete an activity
 app.post('/api/activities/:id', auth, async (req, res) => {
     try {
