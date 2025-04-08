@@ -31,6 +31,16 @@ CREATE TABLE activity_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE friends (
+  user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+  friend_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+  status VARCHAR(20) DEFAULT 'pending',
+  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  accepted_at TIMESTAMP,
+  PRIMARY KEY (user_id, friend_id),
+  CHECK (user_id <> friend_id)
+);
+
 INSERT INTO activity_types (activity_name) VALUES 
 ('Running'),
 ('Walking'),
