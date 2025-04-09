@@ -87,10 +87,6 @@ function getStatsForRange(activityData, startDate, endDate) {
   };
 }
 
-module.exports = {
-  getStatsForRange,
-};
-
 function getJournalStats(journalData) {
   if (!journalData || journalData.length === 0) {
     return {
@@ -119,3 +115,4 @@ module.exports = {
   getStatsForRange,
   getJournalStats,
 };
+
