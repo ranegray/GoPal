@@ -189,13 +189,22 @@ app.get('/activity', auth, async (req, res) => {
         [userId]
       );
 
+    const journals = await db.any(
+        `SELECT * FROM journal_logs
+         WHERE user_id = $1
+         ORDER BY entry_date DESC, entry_time DESC`,
+         [userId]
+    );
+
+    const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
+
       // Fetch user's unread notifications
       const notifications = await db.any(
         `SELECT * FROM notifications 
          WHERE user_id = $1 AND is_read = FALSE 
          ORDER BY created_at DESC LIMIT 10`,
         [userId]
-      );
+        );
 
       // Can pass a string to getDateRange to get different ranges
       // For example: "week", "month", "year"
@@ -205,7 +214,11 @@ app.get('/activity', auth, async (req, res) => {
       res.render('pages/activity', { 
         activities: activities,
         user: req.session.user, 
-        stats: stats,
+        stats:  {
+            ...stats,
+            journals: journals,
+            journalStats: journalStats
+        },
         notifications: notifications,
         hasNotifications: notifications.length > 0
       });
@@ -420,8 +433,8 @@ app.post('/api/activities', auth, async (req, res) => {
     }
 });
 
-// Journal new activity
-app.post('/journal', auth, async (req, res) => { 
+// Journal entry api
+app.post('/api/journal', auth, async (req, res) => { 
     try {
         const userId = req.session.user.user_id;
         const { 'journal-entry': journalEntry } = req.body;
@@ -431,9 +444,9 @@ app.post('/journal', auth, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Journal entry is required' });
         }
         
-        // Get the current date in YYYY-MM-DD format
+        // Get the current date
         const currentDate = new Date().toISOString().split('T')[0];
-        // Get the current time in HH:MM:SS format
+        // Get the current time
         const currentTime = new Date().toTimeString().split(' ')[0];
         
         // Insert the journal entry into the journal_logs table
@@ -444,12 +457,14 @@ app.post('/journal', auth, async (req, res) => {
         );
         
         // Respond with a success message
-        res.json({ success: true, message: 'Journal entry logged successfully' });
+        res.redirect('/activity?success=Journal entry logged');
     } catch (err) {
         console.error('Error logging journal entry:', err);
         res.status(500).json({ success: false, message: 'Error logging journal entry' });
     }
 });
+
+
 
 // Delete an activity
 app.post('/api/activities/:id', auth, async (req, res) => {

@@ -90,3 +90,32 @@ function getStatsForRange(activityData, startDate, endDate) {
 module.exports = {
   getStatsForRange,
 };
+
+function getJournalStats(journalData) {
+  if (!journalData || journalData.length === 0) {
+    return {
+      totalEntries: 0,
+      latestEntry: null,
+    };
+  }
+
+  // Placeholder logic for when journalData exists:
+  const totalEntries = journalData.length;
+  let latestEntry = journalData[0];
+  journalData.forEach(entry => {
+    const currentEntryDate = new Date(entry.entry_date);
+    if (currentEntryDate > new Date(latestEntry.entry_date)) {
+      latestEntry = entry;
+    }
+  });
+
+  return {
+    totalEntries,
+    latestEntry,
+  };
+}
+
+module.exports = {
+  getStatsForRange,
+  getJournalStats,
+};
