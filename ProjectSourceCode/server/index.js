@@ -511,6 +511,11 @@ app.post('/api/notifications/read', auth, async (req, res) => {
   }
 });
 
+// Endpoint for testing testing framework
+app.get('/welcome', (req, res) => {
+    res.json({status: 'success', message: 'Welcome!'});
+  });
+
 app.post('/api/friends/request', auth, async (req, res) => {
     try {
         const userId = req.session.user.user_id;
@@ -719,4 +724,4 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
 });
 
 //Ensure App is Listening For Requests
-app.listen(3000);
+module.exports = app.listen(3000);
