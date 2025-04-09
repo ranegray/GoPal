@@ -7,6 +7,7 @@ CREATE TABLE users (
   birthday DATE,
   country VARCHAR(60),
   phone VARCHAR(15),
+  profile_photo_path VARCHAR(255),
   display_name VARCHAR(15),
   fitness_level VARCHAR(20),
   visibility VARCHAR(10) DEFAULT 'anyone',
@@ -28,6 +29,16 @@ CREATE TABLE activity_logs (
   distance_mi DECIMAL(6,2),
   notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE friends (
+  user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+  friend_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+  status VARCHAR(20) DEFAULT 'pending',
+  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  accepted_at TIMESTAMP,
+  PRIMARY KEY (user_id, friend_id),
+  CHECK (user_id <> friend_id)
 );
 
 INSERT INTO activity_types (activity_name) VALUES 
