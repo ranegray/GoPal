@@ -191,12 +191,13 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// Add these routes to app.js
+// Character Work
 
-// Import the pool from wherever you've set up your database connection
-const pool = require('./path-to-your-db-connection');
+// In app.js
+const express = require('express');
+const pool = require('./path-to-your-db-connection'); // Make sure this path is correct
 
-// GET endpoint to retrieve character data
+// Set up your character API routes
 app.get('/api/character', async (req, res) => {
   try {
     // Get user ID from session
@@ -223,7 +224,6 @@ app.get('/api/character', async (req, res) => {
   }
 });
 
-// POST endpoint to save character data
 app.post('/api/character', async (req, res) => {
   try {
     // Get user ID from session

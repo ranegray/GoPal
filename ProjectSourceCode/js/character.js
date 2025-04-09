@@ -32,3 +32,6 @@ async function saveCharacterCustomization(characterData) {
       return null;
     }
   }
+  
+  // Export the functions
+  export { saveCharacterCustomization, getCharacterCustomization };
