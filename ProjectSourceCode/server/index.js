@@ -312,7 +312,7 @@ app.post('/settings/account',auth, async (req, res) => {
 app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, res) => {
     let messages = [];
     try {
-        const {fitnessLevel, displayName, profileVisibility} = req.body;
+        const {fitnessLevel, displayName, profileVisibility, userBio} = req.body;
         const userId = req.session.user.user_id;
         const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
         const newProfilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -341,6 +341,7 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         addQueryParam('display_name', displayName);
         addQueryParam('visibility', profileVisibility);
         addQueryParam('fitness_level', fitnessLevel);
+        addQueryParam('bio', userBio);
         
         if (queryParams.length > 0) {
             const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
