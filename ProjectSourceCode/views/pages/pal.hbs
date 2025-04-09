@@ -17,12 +17,12 @@
           {{> character-card 
             characterName=characterName 
             characterImage=characterImage
-            characterProperties=characterProperties
           }}
         </div>
         
         <!-- Edit Button -->
         <button id="edit-button" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg flex items-center">
+          <!-- svg creates the pencil icon-->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
           </svg>
@@ -34,11 +34,10 @@
       <div id="edit-mode" class="hidden">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-semibold">Customize Your Pal</h2>
-          <button id="cancel-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          <button id="cancel-button" class="text-gray-600 hover:text-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Cancel
           </button>
         </div>
         
@@ -46,11 +45,12 @@
           <!-- Character Card Preview -->
           <div class="flex flex-col items-center">
             <h2 class="text-xl font-semibold mb-4">Preview</h2>
-            {{> character-card 
-              characterName=characterName 
-              characterImage=characterImage
-              characterProperties=characterProperties
-            }}
+            <div id="character-preview">
+              {{> character-card 
+                characterName=characterName 
+                characterImage=characterImage
+              }}
+            </div>
           </div>
           
           <!-- Customization Controls -->
@@ -65,68 +65,47 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               
-              <!-- Character Type Selection -->
+              <!-- Hat Selection -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Character Type</label>
-                <div class="grid grid-cols-3 gap-3">
-                  <button type="button" class="character-type border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-type="warrior">
-                    Warrior
+                <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Hat</label>
+                <div class="grid grid-cols-5 gap-2">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="propeller">
+                    <img src="../../pictures/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Propeller</span>
                   </button>
-                  <button type="button" class="character-type border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-type="mage">
-                    Mage
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="party">
+                    <img src="/pictures/hat2.png" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Party</span>
                   </button>
-                  <button type="button" class="character-type border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-type="archer">
-                    Archer
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="crown">
+                    <img src="/pictures/hat3.png" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Crown</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="tophat">
+                    <img src="/pictures/hat4.png" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Top Hat</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="beanie">
+                    <img src="/pictures/hat5.png" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Beanie</span>
                   </button>
                 </div>
               </div>
               
               <!-- Color Options -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
-                <div class="flex space-x-3">
-                  <button type="button" class="color-option w-8 h-8 rounded-full bg-red-500 border-2 border-transparent hover:border-gray-800" data-color="red"></button>
-                  <button type="button" class="color-option w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent hover:border-gray-800" data-color="blue"></button>
-                  <button type="button" class="color-option w-8 h-8 rounded-full bg-green-500 border-2 border-transparent hover:border-gray-800" data-color="green"></button>
-                  <button type="button" class="color-option w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent hover:border-gray-800" data-color="purple"></button>
-                  <button type="button" class="color-option w-8 h-8 rounded-full bg-yellow-500 border-2 border-transparent hover:border-gray-800" data-color="yellow"></button>
-                </div>
-              </div>
-              
-              <!-- Character Attributes -->
-              <div class="space-y-4">
-                <label class="block text-sm font-medium text-gray-700">Attributes</label>
-                
-                <div>
-                  <label for="strength" class="flex justify-between text-xs">
-                    <span>Strength</span>
-                    <span class="attribute-value">5</span>
-                  </label>
-                  <input type="range" id="strength" name="strength" min="1" max="10" value="5" 
-                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                </div>
-                
-                <div>
-                  <label for="agility" class="flex justify-between text-xs">
-                    <span>Agility</span>
-                    <span class="attribute-value">5</span>
-                  </label>
-                  <input type="range" id="agility" name="agility" min="1" max="10" value="5" 
-                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                </div>
-                
-                <div>
-                  <label for="intelligence" class="flex justify-between text-xs">
-                    <span>Intelligence</span>
-                    <span class="attribute-value">5</span>
-                  </label>
-                  <input type="range" id="intelligence" name="intelligence" min="1" max="10" value="5" 
-                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Color</label>
+                <div class="flex justify-between">
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-red-500 border-2 border-transparent hover:border-gray-800" data-color="red"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-blue-500 border-2 border-transparent hover:border-gray-800" data-color="blue"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-green-500 border-2 border-transparent hover:border-gray-800" data-color="green"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-purple-500 border-2 border-transparent hover:border-gray-800" data-color="purple"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-yellow-500 border-2 border-transparent hover:border-gray-800" data-color="yellow"></button>
                 </div>
               </div>
               
               <!-- Submit Button -->
-              <div class="mt-6">
+              <div class="mt-8">
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                   Save Character
                 </button>
@@ -150,136 +129,130 @@
     // Form elements
     const form = document.getElementById('character-form');
     const nameInput = document.getElementById('characterName');
-    const characterNameDisplay = document.querySelector('.character-card h2');
-    const attributeSliders = document.querySelectorAll('input[type="range"]');
-    const characterTypes = document.querySelectorAll('.character-type');
+    const hatOptions = document.querySelectorAll('.hat-option');
     const colorOptions = document.querySelectorAll('.color-option');
     
-    // Store original values
-    let originalValues = {
-      name: characterNameDisplay.textContent,
-      type: '',
-      color: '',
-      attributes: {
-        strength: document.getElementById('strength').value,
-        agility: document.getElementById('agility').value,
-        intelligence: document.getElementById('intelligence').value
-      }
+    // Current selections
+    let currentSelections = {
+      name: nameInput.value || 'Unnamed Pal',
+      hat: '',
+      color: 'default'
     };
     
-    // Find initially selected character type and color (if any)
-    const selectedType = document.querySelector('.character-type.border-blue-500');
-    if (selectedType) {
-      originalValues.type = selectedType.getAttribute('data-type');
+    // Original values to restore on cancel
+    let originalValues = { ...currentSelections };
+    
+    // Initialize selected hat and color if any
+    const initialHat = document.querySelector('.hat-option.border-blue-500');
+    if (initialHat) {
+      currentSelections.hat = initialHat.getAttribute('data-hat');
     }
     
-    const selectedColor = document.querySelector('.color-option.border-gray-800');
-    if (selectedColor) {
-      originalValues.color = selectedColor.getAttribute('data-color');
+    const initialColor = document.querySelector('.color-option.border-gray-800');
+    if (initialColor) {
+      currentSelections.color = initialColor.getAttribute('data-color');
+    }
+    
+    // Update character image based on selections
+    function updateCharacterImage() {
+      const hat = currentSelections.hat || 'none';
+      const color = currentSelections.color || 'default';
+      
+      // Create base image path
+      let imagePath;
+      
+      if (hat === 'none' || hat === '') {
+        // No hat selected
+        if (color === 'default') {
+          // No color selected either, use base monster
+          imagePath = '../../pictures/basemonster.jpeg';
+        } else {
+          // Color selected but no hat
+          imagePath = `../../pictures/basemonster_${color}.jpeg`;
+        }
+      } else {
+        // Hat selected
+        if (color === 'default') {
+          // Hat selected but no color, use default color with hat
+          imagePath = `../../pictures/monster_default_${hat}.jpeg`;
+        } else {
+          // Both hat and color selected
+          imagePath = `../../pictures/monster_${color}_${hat}.jpeg`;
+        }
+      }
+      
+      // THIS LINE IS MISSING: Actually update the image src in the DOM
+      document.querySelectorAll('.character-card img').forEach(img => {
+        img.src = imagePath;
+        img.alt = `${currentSelections.name} with ${hat !== 'none' ? hat + ' hat' : 'no hat'}`;
+      });
+    }
+    
+    // Update character name
+    function updateCharacterName() {
+      const name = currentSelections.name;
+      document.querySelectorAll('.character-card h2').forEach(el => {
+        el.textContent = name;
+      });
     }
     
     // Toggle between view and edit modes
     editButton.addEventListener('click', function() {
       // Save current values before editing
-      saveOriginalValues();
+      originalValues = { ...currentSelections };
       
       // Show edit mode
       viewMode.classList.add('hidden');
       editMode.classList.remove('hidden');
     });
     
-    // Save the current values to restore them if canceled
-    function saveOriginalValues() {
-      originalValues = {
-        name: characterNameDisplay.textContent,
-        attributes: {
-          strength: document.getElementById('strength').value,
-          agility: document.getElementById('agility').value,
-          intelligence: document.getElementById('intelligence').value
-        }
-      };
-      
-      // Save character type
-      const selectedType = document.querySelector('.character-type.border-blue-500');
-      originalValues.type = selectedType ? selectedType.getAttribute('data-type') : '';
-      
-      // Save color theme
-      const selectedColor = document.querySelector('.color-option.border-gray-800');
-      originalValues.color = selectedColor ? selectedColor.getAttribute('data-color') : '';
-    }
-    
     // Handle cancel button click
     cancelButton.addEventListener('click', function() {
       // Restore original values
-      restoreOriginalValues();
+      currentSelections = { ...originalValues };
+      
+      // Update UI to reflect original values
+      nameInput.value = originalValues.name;
+      
+      // Reset hat selection
+      hatOptions.forEach(btn => {
+        btn.classList.remove('border-blue-500', 'bg-blue-50');
+        if (btn.getAttribute('data-hat') === originalValues.hat) {
+          btn.classList.add('border-blue-500', 'bg-blue-50');
+        }
+      });
+      
+      // Reset color selection
+      colorOptions.forEach(btn => {
+        btn.classList.remove('border-gray-800');
+        if (btn.getAttribute('data-color') === originalValues.color) {
+          btn.classList.add('border-gray-800');
+        }
+      });
+      
+      // Update the character image and name
+      updateCharacterName();
+      updateCharacterImage();
       
       // Switch back to view mode
       editMode.classList.add('hidden');
       viewMode.classList.remove('hidden');
     });
     
-    // Restore the original values when cancel is clicked
-    function restoreOriginalValues() {
-      // Restore name
-      nameInput.value = originalValues.name;
-      document.querySelectorAll('.character-card h2').forEach(el => {
-        el.textContent = originalValues.name;
-      });
-      
-      // Restore character type
-      if (originalValues.type) {
-        characterTypes.forEach(btn => {
-          btn.classList.remove('border-blue-500', 'bg-blue-50');
-          if (btn.getAttribute('data-type') === originalValues.type) {
-            btn.classList.add('border-blue-500', 'bg-blue-50');
-          }
-        });
-      }
-      
-      // Restore color
-      if (originalValues.color) {
-        colorOptions.forEach(btn => {
-          btn.classList.remove('border-gray-800');
-          if (btn.getAttribute('data-color') === originalValues.color) {
-            btn.classList.add('border-gray-800');
-          }
-        });
-      }
-      
-      // Restore attributes
-      document.getElementById('strength').value = originalValues.attributes.strength;
-      document.getElementById('agility').value = originalValues.attributes.agility;
-      document.getElementById('intelligence').value = originalValues.attributes.intelligence;
-      
-      // Update attribute displays
-      document.querySelector('label[for="strength"] .attribute-value').textContent = originalValues.attributes.strength;
-      document.querySelector('label[for="agility"] .attribute-value').textContent = originalValues.attributes.agility;
-      document.querySelector('label[for="intelligence"] .attribute-value').textContent = originalValues.attributes.intelligence;
-    }
-    
     // Update name in real-time
     nameInput.addEventListener('input', function() {
-      const newName = this.value || 'Unnamed Pal';
-      // Update name in all character cards (both in view mode and edit mode)
-      document.querySelectorAll('.character-card h2').forEach(el => {
-        el.textContent = newName;
-      });
+      currentSelections.name = this.value || 'Unnamed Pal';
+      updateCharacterName();
     });
     
-    // Update attribute values display
-    attributeSliders.forEach(slider => {
-      slider.addEventListener('input', function() {
-        this.previousElementSibling.querySelector('.attribute-value').textContent = this.value;
-        updateCharacterProperties();
-      });
-    });
-    
-    // Handle character type selection
-    characterTypes.forEach(button => {
+    // Handle hat selection
+    hatOptions.forEach(button => {
       button.addEventListener('click', function() {
-        characterTypes.forEach(btn => btn.classList.remove('border-blue-500', 'bg-blue-50'));
+        hatOptions.forEach(btn => btn.classList.remove('border-blue-500', 'bg-blue-50'));
         this.classList.add('border-blue-500', 'bg-blue-50');
-        // You would update the character image here based on type
+        
+        currentSelections.hat = this.getAttribute('data-hat');
+        updateCharacterImage();
       });
     });
     
@@ -288,29 +261,25 @@
       button.addEventListener('click', function() {
         colorOptions.forEach(btn => btn.classList.remove('border-gray-800'));
         this.classList.add('border-gray-800');
-        // You would update color theme here
+        
+        currentSelections.color = this.getAttribute('data-color');
+        updateCharacterImage();
       });
     });
-    
-    // Function to update character properties in the card
-    function updateCharacterProperties() {
-      // This would be expanded to update the properties in the character card
-      // For now, this is a placeholder for that functionality
-    }
     
     // Handle form submission
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Save the current values as the original values
-      // so that if the user edits again, these become the values to restore to
-      saveOriginalValues();
+      // Save the current values as the original values for next edit session
+      originalValues = { ...currentSelections };
       
       // Switch back to view mode after saving
       editMode.classList.add('hidden');
       viewMode.classList.remove('hidden');
       
-      // Show success message
+      // Here you would typically save the character data to a database
+      // For demonstration purposes, we'll just show a success message
       alert('Character saved!');
     });
   });
