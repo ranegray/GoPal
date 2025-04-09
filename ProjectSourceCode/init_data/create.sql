@@ -82,3 +82,35 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+DROP TABLE IF EXISTS character_customizations;
+CREATE TABLE character_customizations (
+  customization_id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  character_name VARCHAR(50) NOT NULL,
+  hat_choice VARCHAR(30),
+  color_choice VARCHAR(30),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create an index on user_id for faster lookups
+CREATE INDEX idx_character_customizations_user_id ON character_customizations(user_id);
+
+-- Ensure each user has only one character customization
+CREATE UNIQUE INDEX unique_user_character ON character_customizations(user_id);
+
+-- Create a function to update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create a trigger to automatically update the updated_at column
+CREATE TRIGGER update_character_customizations_modtime
+BEFORE UPDATE ON character_customizations
+FOR EACH ROW
+EXECUTE PROCEDURE update_modified_column();

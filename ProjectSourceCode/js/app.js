@@ -190,3 +190,80 @@ document.addEventListener("DOMContentLoaded", function () {
       );
   });
 });
+
+// Add these routes to app.js
+
+// Import the pool from wherever you've set up your database connection
+const pool = require('./path-to-your-db-connection');
+
+// GET endpoint to retrieve character data
+app.get('/api/character', async (req, res) => {
+  try {
+    // Get user ID from session
+    const userId = req.session.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
+    // Query the database for the character customization
+    const query = 'SELECT * FROM character_customizations WHERE user_id = $1';
+    const result = await pool.query(query, [userId]);
+    
+    if (result.rows.length === 0) {
+      // No character found for this user
+      return res.json(null);
+    }
+    
+    // Return the character data
+    return res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching character data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST endpoint to save character data
+app.post('/api/character', async (req, res) => {
+  try {
+    // Get user ID from session
+    const userId = req.session.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
+    const { character_name, hat_choice, color_choice } = req.body;
+    
+    // Check if user already has a character customization
+    const checkQuery = 'SELECT * FROM character_customizations WHERE user_id = $1';
+    const checkResult = await pool.query(checkQuery, [userId]);
+    
+    let result;
+    
+    if (checkResult.rows.length > 0) {
+      // Update existing character
+      const updateQuery = `
+        UPDATE character_customizations 
+        SET character_name = $1, hat_choice = $2, color_choice = $3, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $4
+        RETURNING *
+      `;
+      result = await pool.query(updateQuery, [character_name, hat_choice, color_choice, userId]);
+    } else {
+      // Create new character
+      const insertQuery = `
+        INSERT INTO character_customizations (user_id, character_name, hat_choice, color_choice)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `;
+      result = await pool.query(insertQuery, [userId, character_name, hat_choice, color_choice]);
+    }
+    
+    // Return the saved character data
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error saving character data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
