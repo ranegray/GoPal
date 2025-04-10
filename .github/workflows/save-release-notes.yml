@@ -1,0 +1,34 @@
+name: Save Release Notes
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  save-release-notes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Create MilestoneSubmissions directory if it doesn't exist
+        run: mkdir -p MilestoneSubmissions
+        
+      - name: Save Release Notes to file
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          echo "# Release $RELEASE_TAG - $(date +%Y-%m-%d)" > "MilestoneSubmissions/release-${RELEASE_TAG}.md"
+          echo "" >> "MilestoneSubmissions/release-${RELEASE_TAG}.md"
+          echo "$RELEASE_BODY" >> "MilestoneSubmissions/release-${RELEASE_TAG}.md"
+          
+      - name: Commit and push release notes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add MilestoneSubmissions/
+          git commit -m "Add release notes for ${{ github.event.release.tag_name }}"
+          git push

@@ -109,6 +109,16 @@ if (window.location.pathname === "/settings/account") {
     // Set the max attribute of birthday to today's date
     const today = new Date().toISOString().split('T')[0];
     document.getElementById("birthday").setAttribute("max", today);
+
+    //delete account button logic
+    document.addEventListener("DOMContentLoaded", function () {
+      const deleteAccountButton = document.getElementById("delete-account-button");
+      deleteAccountButton.addEventListener("click", function () {
+        if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+          document.getElementById("delete-account-form").submit();
+        }
+      });
+    });
 }
 
 // Activity modal stuff
