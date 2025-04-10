@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
           originalValues = { ...currentSelections };
           
           // Apply the loaded data to the UI
-          applySelectionsToUI();
+          // applySelectionsToUI();
         } else {
           console.log('No saved character found, using defaults');
           // Keep using default values

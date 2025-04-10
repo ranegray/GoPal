@@ -250,10 +250,6 @@ app.get('/activity', auth, async (req, res) => {
     }
   });
 
-app.get('/pal',auth, (req, res) => {
-    res.render('pages/pal',{user: req.session.user});
-});
-
 app.get("/settings/:tab?",auth, async (req, res) => {
     try{
         var user = {}
@@ -812,14 +808,14 @@ app.get('/api/character', auth, async (req, res) => {
       
       let characterData = {
         characterName: 'Unnamed Pal',
-        hatChoice: '',
+        hatChoice: 'none',
         colorChoice: 'default'
       };
       
       if (result) {
         characterData = {
           characterName: result.character_name,
-          hatChoice: result.hat_choice || '',
+          hatChoice: result.hat_choice || 'none',
           colorChoice: result.color_choice || 'default'
         };
       }
@@ -828,14 +824,14 @@ app.get('/api/character', auth, async (req, res) => {
       // TODO: Work on a way to connect this imagePath to characterCustomization imagePath
       let imagePath = '../../extra_resources/character_assets/';
       let characterImage;
-      if (!characterData.hatChoice) {
+      if (characterData.hatChoice === 'none') {
         // No hat selected
         if (characterData.colorChoice === 'default') {
           // No color selected either, use base monster
           characterImage = imagePath + 'basemonster.jpeg';
         } else {
           // Color selected but no hat
-          characterImage = imaptePath `basemonster_${characterData.colorChoice}.jpeg`;
+          characterImage = imagePath + `basemonster_${characterData.colorChoice}.jpeg`;
         }
       } else {
         // Hat selected
