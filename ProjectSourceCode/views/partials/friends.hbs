@@ -21,8 +21,12 @@
         <div class="space-y-4">
         {{#each friends}}
           <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md mb-2">
-            <img src={{#if profile_photo_path}} {{profile_photo_path}} {{/if}} class="w-10 h-10 object-cover rounded-full mr-4">
-            <p><strong>{{username}}</strong> {{display_name}}</p>
+            <div class="flex items-center gap-3">
+              <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "../../extra_resources/images/default.png" {{/if}} class="w-10 h-10 object-cover rounded-full">
+              <p><strong>{{username}}</strong> {{display_name}}</p>
+            </div>
+
+            
             {{#if (eq request_type "incoming")}}
               <div class="flex gap-2">
                 <button onclick="acceptFriend({{user_id}})" 
