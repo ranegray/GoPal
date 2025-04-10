@@ -203,13 +203,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // CHARACTER WORK:
 // In app.js
-document.addEventListener("DOMContentLoaded", function() {
-  // Existing code...
-
-  // Conditionally load the character customization script
-  if (window.location.pathname === "/settings/pal-settings") {
-    import('./characterCustomization.js').catch(err => {
-      console.error("Error loading character customization script:", err);
-    });
-  }
-});
+// Conditionally load the character customization script
+if (window.location.pathname === "/settings/pal-settings") {
+  import('./characterCustomization.js').catch(err => {
+    console.error("Error loading character customization script:", err);
+  });
+}
