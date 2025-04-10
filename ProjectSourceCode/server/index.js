@@ -825,24 +825,26 @@ app.get('/api/character', auth, async (req, res) => {
       }
       
       // Determine the character image path based on customizations
+      // TODO: Work on a way to connect this imagePath to characterCustomization imagePath
+      let imagePath = '../../extra_resources/character_assets/';
       let characterImage;
       if (!characterData.hatChoice) {
         // No hat selected
         if (characterData.colorChoice === 'default') {
           // No color selected either, use base monster
-          characterImage = '../../extra_resources/character_assets/basemonster.jpeg';
+          characterImage = imagePath + 'basemonster.jpeg';
         } else {
           // Color selected but no hat
-          characterImage = `../../extra_resources/character_assets/basemonster_${characterData.colorChoice}.jpeg`;
+          characterImage = imaptePath `basemonster_${characterData.colorChoice}.jpeg`;
         }
       } else {
         // Hat selected
         if (characterData.colorChoice === 'default') {
           // Hat selected but no color, use default color with hat
-          characterImage = `../../extra_resources/character_assets/monster_default_${characterData.hatChoice}.jpeg`;
+          characterImage = imagePath + `monster_default_${characterData.hatChoice}.jpeg`;
         } else {
           // Both hat and color selected
-          characterImage = `../../extra_resources/character_assets/monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
+          characterImage = imagePath + `monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
         }
       }
       

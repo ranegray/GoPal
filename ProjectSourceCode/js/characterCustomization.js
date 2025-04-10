@@ -114,25 +114,25 @@ document.addEventListener('DOMContentLoaded', function() {
       const color = currentSelections.color || 'default';
       
       // Create base image path
-      let imagePath;
+      let imagePath = '../../extra_resources/character_assets/';
       
       if (hat === 'none' || hat === '') {
         // No hat selected
         if (color === 'default') {
           // No color selected either, use base monster
-          imagePath = '../../extra_resources/character_assets/basemonster.jpeg';
+          imagePath = imagePath + `basemonster.jpeg`;
         } else {
           // Color selected but no hat
-          imagePath = `../../extra_resources/character_assets/basemonster_${color}.jpeg`;
+          imagePath = imagePath + `basemonster_${color}.jpeg`;
         }
       } else {
         // Hat selected
         if (color === 'default') {
           // Hat selected but no color, use default color with hat
-          imagePath = `../../extra_resources/character_assets/monster_default_${hat}.jpeg`;
+          imagePath = imagePath + `monster_default_${hat}.jpeg`;
         } else {
           // Both hat and color selected
-          imagePath = `../../extra_resources/character_assets/monster_${color}_${hat}.jpeg`;
+          imagePath = imagePath + `monster_${color}_${hat}.jpeg`;
         }
       }
       
