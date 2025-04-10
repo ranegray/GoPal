@@ -157,7 +157,7 @@ app.get('/',auth, (req, res) => {
     res.redirect('/home');
 });
 
-app.get('/logout', (req, res) => {
+app.get('/logout', auth, (req, res) => {
     if (req.session) {
         req.session.destroy((err) => {
             if (err) {
@@ -169,6 +169,37 @@ app.get('/logout', (req, res) => {
     } else {
         res.clearCookie('connect.sid', { path: '/' });
         res.redirect('/login');
+    }
+});
+
+app.post('/delete-account', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        
+        // Delete profile photo if it exists
+        if (req.session.user.profile_photo_path) {
+            const oldProfilePhotoFilePath = path.join(__dirname, "../", req.session.user.profile_photo_path);
+            try {
+                await fs.promises.unlink(oldProfilePhotoFilePath);
+            } catch (err) {
+                console.error("Error deleting profile photo:", err);
+            }
+        }
+        
+        // Delete user from database
+        const query = `DELETE FROM users WHERE user_id = $1;`;
+        await db.none(query, [userId]);
+        
+        // Destroy the session
+        req.session.destroy(err => {
+            if (err) {
+                console.error("Error destroying session:", err);
+            }
+            res.redirect('/register');
+        });
+    } catch (err) {
+        console.error('Error deleting user account:', err);
+        res.render('pages/settings/account', { user: req.session.user });
     }
 });
 
@@ -318,12 +349,12 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         const newProfilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
 
         //Delete the old profile photo: if it exists and the user is uploading a new one
-        if (oldProfilePhotoFilePath && newProfilePhotoFilePath) {
-            fs.unlink(oldProfilePhotoFilePath, (err) => {
-                if (err) {
-                  console.error("Error deleting file:", err);
-                }
-              });
+        if (req.session.user.profile_photo_path && newProfilePhotoFilePath) {
+            try {
+                await fs.promises.unlink(oldProfilePhotoFilePath);
+            } catch (err) {
+                console.error("Error deleting file:", err);
+            }
         }
 
         //Helper function for adding fields to the query
@@ -479,6 +510,11 @@ app.post('/api/notifications/read', auth, async (req, res) => {
       res.status(500).json({ error: 'Failed to update notifications' });
   }
 });
+
+// Endpoint for testing testing framework
+app.get('/welcome', (req, res) => {
+    res.json({status: 'success', message: 'Welcome!'});
+  });
 
 app.post('/api/friends/request', auth, async (req, res) => {
     try {
@@ -688,4 +724,4 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
 });
 
 //Ensure App is Listening For Requests
-app.listen(3000);
+module.exports = app.listen(3000);
