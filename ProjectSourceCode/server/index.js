@@ -693,9 +693,6 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
 });
 
 // CHARACTER WORK
-
-// CHARACTER WORK
-
 // Route to get character customization data
 app.get('/api/character', auth, async (req, res) => {
     try {
@@ -710,17 +707,21 @@ app.get('/api/character', auth, async (req, res) => {
       if (!result) {
         // No character exists yet, return default values
         return res.json({
-          characterName: 'Unnamed Pal',
-          hatChoice: '',
-          colorChoice: 'default'
+          character: {
+            characterName: 'Unnamed Pal',
+            hatChoice: '',
+            colorChoice: 'default'
+            }
         });
       }
       
       // Return the found character data
       res.json({
-        characterName: result.character_name,
-        hatChoice: result.hat_choice || '',
-        colorChoice: result.color_choice || 'default'
+        character: {
+            characterName: result.character_name,
+            hatChoice: result.hat_choice || '',
+            colorChoice: result.color_choice || 'default'
+        }
       });
     } catch (error) {
       console.error('Error fetching character data:', error);
