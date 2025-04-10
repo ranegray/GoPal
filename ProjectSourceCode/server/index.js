@@ -220,15 +220,6 @@ app.get('/activity', auth, async (req, res) => {
         [userId]
       );
 
-    const journals = await db.any(
-        `SELECT * FROM journal_logs
-         WHERE user_id = $1
-         ORDER BY entry_date DESC, entry_time DESC`,
-         [userId]
-    );
-
-    const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
-
       // Fetch user's unread notifications
       const notifications = await db.any(
         `SELECT * FROM notifications 
@@ -245,11 +236,7 @@ app.get('/activity', auth, async (req, res) => {
       res.render('pages/activity', { 
         activities: activities,
         user: req.session.user, 
-        stats:  {
-            ...stats,
-            journals: journals,
-            journalStats: journalStats
-        },
+        stats:  stats,
         notifications: notifications,
         hasNotifications: notifications.length > 0
       });
@@ -290,6 +277,30 @@ app.get("/settings/:tab?",auth, async (req, res) => {
         res.render("pages/settings", { activeTab: 'account', user: req.session.user });
     }
 });
+
+app.get("/journal",auth, async (req, res) => {
+    try{
+        const userId = req.session.user.user_id;
+        const journals = await db.any(
+            `SELECT * FROM journal_logs
+             WHERE user_id = $1
+             ORDER BY entry_date DESC, entry_time DESC`,
+             [userId]
+        );
+        
+        const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
+
+        res.render("pages/journal", {
+            user: req.session.user, 
+            journals: journals,
+            journalStats: journalStats
+        });
+    } catch(err) {
+        console.error(err);
+        res.render("pages/journal", {user: req.session.user });
+    }
+});
+
 
 app.post('/settings/account',auth, async (req, res) => {
     let messages = [];
@@ -487,11 +498,11 @@ app.post('/api/journal', auth, async (req, res) => {
         [userId, journalEntry, currentDate, currentTime]
       );
   
-      return res.status(201).redirect('/activity');
+      return res.status(201).redirect('/journal');
 
     } catch (err) {
       console.error('Error logging journal entry:', err);
-      return res.status(500).redirect('/activity');
+      return res.status(500).redirect('/journal');
     }
   });
 
