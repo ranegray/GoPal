@@ -602,28 +602,28 @@ app.get("/social/friends", auth, async (req, res) => {
 
         // Fetch the friends list
         const friends = await db.any(`
-            SELECT u.user_id, u.username, u.display_name, 'incoming' AS request_type, 1 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'incoming' AS request_type, 1 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.user_id
             WHERE f.friend_id = $1 AND f.status = 'pending'
 
             UNION
 
-            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'accepted' AS request_type, 2 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
             WHERE f.user_id = $1 AND f.status = 'accepted'
 
             UNION
 
-            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'accepted' AS request_type, 2 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.user_id
             WHERE f.friend_id = $1 AND f.status = 'accepted'
 
             UNION
 
-            SELECT u.user_id, u.username, u.display_name, 'outgoing' AS request_type, 3 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'outgoing' AS request_type, 3 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
             WHERE f.user_id = $1 AND f.status = 'pending'

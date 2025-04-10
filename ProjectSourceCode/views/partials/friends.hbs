@@ -21,8 +21,8 @@
         <div class="space-y-4">
         {{#each friends}}
           <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md mb-2">
+            <img src={{#if profile_photo_path}} {{profile_photo_path}} {{/if}} class="w-10 h-10 object-cover rounded-full mr-4">
             <p><strong>{{username}}</strong> {{display_name}}</p>
-            
             {{#if (eq request_type "incoming")}}
               <div class="flex gap-2">
                 <button onclick="acceptFriend({{user_id}})" 
