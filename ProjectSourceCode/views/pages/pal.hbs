@@ -68,7 +68,11 @@
               <!-- Hat Selection -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Hat</label>
-                <div class="grid grid-cols-5 gap-2">
+                <div class="grid grid-cols-6 gap-2">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="none">
+                    <img src="../../pictures/basemonster.jpeg" alt="Hat 6" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">None</span>
+                  </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="propeller">
                     <img src="../../pictures/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Propeller</span>
@@ -89,6 +93,7 @@
                     <img src="/pictures/beanie.jpeg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Beanie</span>
                   </button>
+
                 </div>
               </div>
               
@@ -96,6 +101,7 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Color</label>
                 <div class="flex justify-between">
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-white-500 border-2 border-black hover:border-gray-800" data-color="default"></button>
                   <button type="button" class="color-option w-12 h-12 rounded-full bg-orange-500 border-2 border-transparent hover:border-gray-800" data-color="orange"></button>
                   <button type="button" class="color-option w-12 h-12 rounded-full bg-pink-500 border-2 border-transparent hover:border-gray-800" data-color="pink"></button>
                   <button type="button" class="color-option w-12 h-12 rounded-full bg-green-500 border-2 border-transparent hover:border-gray-800" data-color="green"></button>
