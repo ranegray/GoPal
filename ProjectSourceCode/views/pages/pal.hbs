@@ -70,27 +70,27 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Hat</label>
                 <div class="grid grid-cols-6 gap-2">
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="none">
-                    <img src="../../pictures/basemonster.jpeg" alt="Hat 6" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/basemonster.jpeg" alt="Hat 6" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">None</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="propeller">
-                    <img src="../../pictures/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Propeller</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="party">
-                    <img src="/pictures/partyhat.jpeg" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/partyhat.jpeg" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Party</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="crown">
-                    <img src="/pictures/crown.jpeg" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/crown.jpeg" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Crown</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="tophat">
-                    <img src="/pictures/tophat.jpeg" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/tophat.jpeg" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Top Hat</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="beanie">
-                    <img src="/pictures/beanie.jpeg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/beanie.jpeg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Beanie</span>
                   </button>
 
@@ -246,19 +246,19 @@
       // No hat selected
       if (color === 'default') {
         // No color selected either, use base monster
-        imagePath = '../../pictures/basemonster.jpeg';
+        imagePath = '../../extra_resources/character_assets/basemonster.jpeg';
       } else {
         // Color selected but no hat
-        imagePath = `../../pictures/basemonster_${color}.jpeg`;
+        imagePath = `../../extra_resources/character_assets/basemonster_${color}.jpeg`;
       }
     } else {
       // Hat selected
       if (color === 'default') {
         // Hat selected but no color, use default color with hat
-        imagePath = `../../pictures/monster_default_${hat}.jpeg`;
+        imagePath = `../../extra_resources/character_assets/monster_default_${hat}.jpeg`;
       } else {
         // Both hat and color selected
-        imagePath = `../../pictures/monster_${color}_${hat}.jpeg`;
+        imagePath = `../../extra_resources/character_assets/monster_${color}_${hat}.jpeg`;
       }
     }
     

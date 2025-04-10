@@ -830,19 +830,19 @@ app.get('/api/character', auth, async (req, res) => {
         // No hat selected
         if (characterData.colorChoice === 'default') {
           // No color selected either, use base monster
-          characterImage = '../../pictures/basemonster.jpeg';
+          characterImage = '../../extra_resources/character_assets/basemonster.jpeg';
         } else {
           // Color selected but no hat
-          characterImage = `../../pictures/basemonster_${characterData.colorChoice}.jpeg`;
+          characterImage = `../../extra_resources/character_assets/basemonster_${characterData.colorChoice}.jpeg`;
         }
       } else {
         // Hat selected
         if (characterData.colorChoice === 'default') {
           // Hat selected but no color, use default color with hat
-          characterImage = `../../pictures/monster_default_${characterData.hatChoice}.jpeg`;
+          characterImage = `../../extra_resources/character_assets/monster_default_${characterData.hatChoice}.jpeg`;
         } else {
           // Both hat and color selected
-          characterImage = `../../pictures/monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
+          characterImage = `../../extra_resources/character_assets/monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
         }
       }
       
