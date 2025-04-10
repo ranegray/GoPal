@@ -1,0 +1,40 @@
+# .github/release.yml
+
+# This configures GitHub's automatic release notes generator
+# See: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  categories:
+    - title: 🚀 Features
+      labels:
+        - feature
+        - enhancement
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: 🧩 API Integration
+      labels:
+        - api
+        - integration
+    - title: 🎨 UI Improvements
+      labels:
+        - ui
+        - design
+    - title: 🔧 Maintenance
+      labels:
+        - maintenance
+        - refactor
+    - title: 📚 Documentation
+      labels:
+        - documentation
+    - title: ⚡ Performance
+      labels:
+        - performance
+        - optimization
+    - title: 🧪 Testing
+      labels:
+        - testing
+    - title: Other Changes
+      labels:
+        - "*"
