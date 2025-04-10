@@ -434,35 +434,35 @@ app.post('/api/activities', auth, async (req, res) => {
 });
 
 // Journal entry api
-app.post('/api/journal', auth, async (req, res) => { 
+app.post('/api/journal', auth, async (req, res) => {
     try {
-        const userId = req.session.user.user_id;
-        const { 'journal-entry': journalEntry } = req.body;
-        
-        // Validate that a journal entry was provided
-        if (!journalEntry) {
-            return res.status(400).json({ success: false, message: 'Journal entry is required' });
-        }
-        
-        // Get the current date
-        const currentDate = new Date().toISOString().split('T')[0];
-        // Get the current time
-        const currentTime = new Date().toTimeString().split(' ')[0];
-        
-        // Insert the journal entry into the journal_logs table
-        await db.none(
-            `INSERT INTO journal_logs (user_id, journal_entry, entry_date, entry_time)
-             VALUES ($1, $2, $3, $4)`,
-            [userId, journalEntry, currentDate, currentTime]
-        );
-        
-        // Respond with a success message
-        res.redirect('/activity?success=Journal entry logged');
+      const userId = req.session.user.user_id;
+      const { 'journal-entry': journalEntry } = req.body;
+  
+      // Validate that a journal entry was provided
+      if (!journalEntry) {
+        console.error('No journal entry provided');
+        return res.status(400).redirect('/activity');
+      }
+  
+      // Get the current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      // Get the current time
+      const currentTime = new Date().toTimeString().split(' ')[0];
+  
+      // Insert the journal entry into the journal_logs table
+      await db.none(
+        `INSERT INTO journal_logs (user_id, journal_entry, entry_date, entry_time) VALUES ($1, $2, $3, $4)`,
+        [userId, journalEntry, currentDate, currentTime]
+      );
+  
+      return res.status(201).redirect('/activity');
+
     } catch (err) {
-        console.error('Error logging journal entry:', err);
-        res.status(500).json({ success: false, message: 'Error logging journal entry' });
+      console.error('Error logging journal entry:', err);
+      return res.status(500).redirect('/activity');
     }
-});
+  });
 
 
 
