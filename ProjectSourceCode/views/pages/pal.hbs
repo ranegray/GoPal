@@ -17,6 +17,8 @@
           {{> character-card 
             characterName=characterName 
             characterImage=characterImage
+            hatChoice=hatChoice
+            colorChoice=colorChoice
           }}
         </div>
         
@@ -49,6 +51,8 @@
               {{> character-card 
                 characterName=characterName 
                 characterImage=characterImage
+                hatChoice=hatChoice
+                colorChoice=colorChoice
               }}
             </div>
           </div>
@@ -69,23 +73,23 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Hat</label>
                 <div class="grid grid-cols-5 gap-2">
-                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="propeller">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center {{#if (eq hatChoice 'propeller')}}border-blue-500 bg-blue-50{{/if}}" data-hat="propeller">
                     <img src="../../pictures/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Propeller</span>
                   </button>
-                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="party">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center {{#if (eq hatChoice 'party')}}border-blue-500 bg-blue-50{{/if}}" data-hat="party">
                     <img src="/pictures/partyhat.jpeg" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Party</span>
                   </button>
-                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="crown">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center {{#if (eq hatChoice 'crown')}}border-blue-500 bg-blue-50{{/if}}" data-hat="crown">
                     <img src="/pictures/crown.jpeg" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Crown</span>
                   </button>
-                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="tophat">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center {{#if (eq hatChoice 'tophat')}}border-blue-500 bg-blue-50{{/if}}" data-hat="tophat">
                     <img src="/pictures/tophat.jpeg" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Top Hat</span>
                   </button>
-                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="beanie">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center {{#if (eq hatChoice 'beanie')}}border-blue-500 bg-blue-50{{/if}}" data-hat="beanie">
                     <img src="/pictures/beanie.jpeg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Beanie</span>
                   </button>
@@ -96,11 +100,11 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Color</label>
                 <div class="flex justify-between">
-                  <button type="button" class="color-option w-12 h-12 rounded-full bg-orange-500 border-2 border-transparent hover:border-gray-800" data-color="orange"></button>
-                  <button type="button" class="color-option w-12 h-12 rounded-full bg-pink-500 border-2 border-transparent hover:border-gray-800" data-color="pink"></button>
-                  <button type="button" class="color-option w-12 h-12 rounded-full bg-green-500 border-2 border-transparent hover:border-gray-800" data-color="green"></button>
-                  <button type="button" class="color-option w-12 h-12 rounded-full bg-purple-500 border-2 border-transparent hover:border-gray-800" data-color="purple"></button>
-                  <button type="button" class="color-option w-12 h-12 rounded-full bg-blue-500 border-2 border-transparent hover:border-gray-800" data-color="blue"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-orange-500 border-2 border-transparent hover:border-gray-800 {{#if (eq colorChoice 'orange')}}border-gray-800{{/if}}" data-color="orange"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-pink-500 border-2 border-transparent hover:border-gray-800 {{#if (eq colorChoice 'pink')}}border-gray-800{{/if}}" data-color="pink"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-green-500 border-2 border-transparent hover:border-gray-800 {{#if (eq colorChoice 'green')}}border-gray-800{{/if}}" data-color="green"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-purple-500 border-2 border-transparent hover:border-gray-800 {{#if (eq colorChoice 'purple')}}border-gray-800{{/if}}" data-color="purple"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-blue-500 border-2 border-transparent hover:border-gray-800 {{#if (eq colorChoice 'blue')}}border-gray-800{{/if}}" data-color="blue"></button>
                 </div>
               </div>
               
@@ -132,11 +136,11 @@
     const hatOptions = document.querySelectorAll('.hat-option');
     const colorOptions = document.querySelectorAll('.color-option');
     
-    // Current selections
+    // Current selections (initialize with server-provided values or defaults)
     let currentSelections = {
-      name: nameInput.value || 'Unnamed Pal',
-      hat: '',
-      color: 'default'
+      name: '{{characterName}}' || 'Unnamed Pal',
+      hat: '{{hatChoice}}' || '',
+      color: '{{colorChoice}}' || 'default'
     };
     
     // Original values to restore on cancel
@@ -181,7 +185,7 @@
         }
       }
       
-      // THIS LINE IS MISSING: Actually update the image src in the DOM
+      // Update the image src in the DOM
       document.querySelectorAll('.character-card img').forEach(img => {
         img.src = imagePath;
         img.alt = `${currentSelections.name} with ${hat !== 'none' ? hat + ' hat' : 'no hat'}`;
@@ -267,7 +271,6 @@
       });
     });
     
-    // Handle form submission
     // Handle form submission
     form.addEventListener('submit', function(e) {
       e.preventDefault();
