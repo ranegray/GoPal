@@ -268,19 +268,46 @@
     });
     
     // Handle form submission
+    // Handle form submission
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Save the current values as the original values for next edit session
-      originalValues = { ...currentSelections };
+      // Create data object for the API call
+      const characterData = {
+        characterName: currentSelections.name,
+        hatChoice: currentSelections.hat,
+        colorChoice: currentSelections.color
+      };
       
-      // Switch back to view mode after saving
-      editMode.classList.add('hidden');
-      viewMode.classList.remove('hidden');
-      
-      // Here you would typically save the character data to a database
-      // For demonstration purposes, we'll just show a success message
-      alert('Character saved!');
+      // Send the data to the server
+      fetch('/api/character', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(characterData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Save the current values as the original values for next edit session
+        originalValues = { ...currentSelections };
+        
+        // Switch back to view mode after saving
+        editMode.classList.add('hidden');
+        viewMode.classList.remove('hidden');
+        
+        // Show success message
+        alert(data.message || 'Character saved successfully!');
+      })
+      .catch(error => {
+        console.error('Error saving character:', error);
+        alert('Error saving character. Please try again.');
+      });
     });
   });
 </script>

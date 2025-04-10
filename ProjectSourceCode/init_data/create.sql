@@ -82,3 +82,24 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- CHARACTER WORK
+CREATE TABLE IF NOT EXISTS character_customizations (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  character_name VARCHAR(50) NOT NULL DEFAULT 'Unnamed Pal',
+  hat_choice VARCHAR(20),
+  color_choice VARCHAR(20) DEFAULT 'default',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS character_customizations (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(user_id),
+  character_name VARCHAR(50) NOT NULL DEFAULT 'Unnamed Pal',
+  hat_choice VARCHAR(20),
+  color_choice VARCHAR(20) DEFAULT 'default',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -687,5 +687,141 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
     }
 });
 
+// CHARACTER WORK
+
+// CHARACTER WORK
+
+// Route to get character customization data
+app.get('/api/character', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      
+      // Query the database for the user's character
+      const result = await db.oneOrNone(
+        'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (!result) {
+        // No character exists yet, return default values
+        return res.json({
+          characterName: 'Unnamed Pal',
+          hatChoice: '',
+          colorChoice: 'default'
+        });
+      }
+      
+      // Return the found character data
+      res.json({
+        characterName: result.character_name,
+        hatChoice: result.hat_choice || '',
+        colorChoice: result.color_choice || 'default'
+      });
+    } catch (error) {
+      console.error('Error fetching character data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Route to save character customization data
+  app.post('/api/character', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      const { characterName, hatChoice, colorChoice } = req.body;
+      
+      console.log('Saving character:', { characterName, hatChoice, colorChoice });
+      
+      // Check if the user already has a character
+      const exists = await db.oneOrNone(
+        'SELECT 1 FROM character_customizations WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (!exists) {
+        // Insert new character data
+        await db.none(
+          `INSERT INTO character_customizations 
+          (user_id, character_name, hat_choice, color_choice) 
+          VALUES ($1, $2, $3, $4)`,
+          [userId, characterName, hatChoice, colorChoice]
+        );
+      } else {
+        // Update existing character data
+        await db.none(
+          `UPDATE character_customizations 
+          SET character_name = $1, hat_choice = $2, color_choice = $3, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = $4`,
+          [characterName, hatChoice, colorChoice, userId]
+        );
+      }
+      
+      res.json({ success: true, message: 'Character saved successfully!' });
+    } catch (error) {
+      console.error('Error saving character data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Update the pal route to fetch character data from the database
+  app.get('/pal', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      
+      // Query the database for the user's character
+      const result = await db.oneOrNone(
+        'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+        [userId]
+      );
+      
+      let characterData = {
+        characterName: 'Unnamed Pal',
+        hatChoice: '',
+        colorChoice: 'default'
+      };
+      
+      if (result) {
+        characterData = {
+          characterName: result.character_name,
+          hatChoice: result.hat_choice || '',
+          colorChoice: result.color_choice || 'default'
+        };
+      }
+      
+      // Determine the character image path based on customizations
+      let characterImage;
+      if (!characterData.hatChoice) {
+        // No hat selected
+        if (characterData.colorChoice === 'default') {
+          // No color selected either, use base monster
+          characterImage = '../../pictures/basemonster.jpeg';
+        } else {
+          // Color selected but no hat
+          characterImage = `../../pictures/basemonster_${characterData.colorChoice}.jpeg`;
+        }
+      } else {
+        // Hat selected
+        if (characterData.colorChoice === 'default') {
+          // Hat selected but no color, use default color with hat
+          characterImage = `../../pictures/monster_default_${characterData.hatChoice}.jpeg`;
+        } else {
+          // Both hat and color selected
+          characterImage = `../../pictures/monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
+        }
+      }
+      
+      // Render the pal page with the character data
+      res.render('pages/pal', {
+        user: req.session.user,
+        characterName: characterData.characterName,
+        characterImage: characterImage,
+        hatChoice: characterData.hatChoice,
+        colorChoice: characterData.colorChoice
+      });
+    } catch (error) {
+      console.error('Error rendering pal page:', error);
+      res.status(500).send('Internal server error');
+    }
+  });
+
 //Ensure App is Listening For Requests
 app.listen(3000);

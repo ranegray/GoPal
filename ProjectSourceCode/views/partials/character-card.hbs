@@ -1,16 +1,17 @@
-<div class="character-card bg-white rounded-lg shadow-lg p-6 max-w-sm mx-auto">
-  <div class="flex flex-col items-center">
-    <!-- Character Image Container -->
-    <div class="relative w-48 h-48 rounded-full bg-gray-100 mb-4 overflow-hidden border-4 border-blue-500">
-      {{#if characterImage}}
-        <img src="{{characterImage}}" alt="Character" class="w-full h-full object-cover">
-      {{else}}
-        <!-- Default character image -->
-        <img src="../pictures/basemonster.jpeg" alt="Character" class="w-full h-full object-cover">
-      {{/if}}
-    </div>
+<!-- views/partials/character-card.hbs -->
+<div class="character-card bg-white rounded-lg shadow-lg p-6 text-center w-64">
+  <div class="mb-4">
+    <img src="{{characterImage}}" alt="{{characterName}}" class="w-full h-48 object-contain mx-auto">
+  </div>
+  <h2 class="text-2xl font-semibold text-gray-800">{{characterName}}</h2>
+  
+  <div class="text-sm text-gray-600 mt-2">
+    {{#if hatChoice}}
+    <p>Hat: {{hatChoice}}</p>
+    {{else}}
+    <p>No hat selected</p>
+    {{/if}}
     
-    <!-- Character Name -->
-    <h2 class="text-xl font-bold text-gray-800 mb-2">{{characterName}}</h2>
+    <p>Color: {{colorChoice}}</p>
   </div>
 </div>
