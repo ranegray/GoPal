@@ -204,9 +204,20 @@ app.post('/delete-account', auth, async (req, res) => {
 });
 
 app.get('/home',auth, (req, res) => {
-
-    res.render('pages/home', { user: req.session.user });
-        
+    const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
+    const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
+    if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
+        //render w/o the weather data
+        return res.render('pages/home', {user: req.session.user});
+    } else{
+        //render with the weather data
+        res.render('pages/home', {
+            user: req.session.user, 
+            weather: req.session.weather.weather,
+            airQuality: req.session.weather.airQuality
+        });
+    }
 });
 
 app.get('/activity', auth, async (req, res) => {
@@ -862,10 +873,8 @@ app.get('/api/character', auth, async (req, res) => {
 
   
 // fetch OpenWeatherMap data:
-app.post('/api/weather', async (req, res) => {
-    console.log(req.body);
-    const { lat, lon } = req.body;
-
+app.get('/weatherAPI', auth, async (req, res) => {
+    const { lat, lon} = req.query;
     // Handling no user coordinates first.
     if (!lat || !lon) {
         return res.status(400).json({ error: 'Location not provided; cannot return weather data.' });
@@ -887,18 +896,25 @@ app.post('/api/weather', async (req, res) => {
             throw new Error('Error fetching air quality data');
         }
         const airQualityData = await airQualityResponse.json();
+
         const airQuality = airQualityData.list && airQualityData.list[0] ? airQualityData.list[0].main.aqi : "N/A";
 
-        return res.json({   
+        req.session.weather = {
             weather: weatherData,
             airQuality: airQuality,
+            timestamp: Date.now()
+        };
+        req.session.save(err => {
+            if (err) {
+                console.error('Error saving session:', err);
+            }
+            res.redirect('/home?weatherAttempted=true');
         });
     } catch (error) {
-        return res.json({   
-            error: error
-        });
+        console.error('Error fetching weather data:', error);
+        res.redirect('/home?weatherAttempted=true');
     }
-  });
+});
 
 //Ensure App is Listening For Requests
 module.exports = app.listen(3000);
