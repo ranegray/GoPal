@@ -157,7 +157,7 @@ app.get('/',auth, (req, res) => {
     res.redirect('/home');
 });
 
-app.get('/logout', (req, res) => {
+app.get('/logout', auth, (req, res) => {
     if (req.session) {
         req.session.destroy((err) => {
             if (err) {
@@ -169,6 +169,37 @@ app.get('/logout', (req, res) => {
     } else {
         res.clearCookie('connect.sid', { path: '/' });
         res.redirect('/login');
+    }
+});
+
+app.post('/delete-account', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        
+        // Delete profile photo if it exists
+        if (req.session.user.profile_photo_path) {
+            const oldProfilePhotoFilePath = path.join(__dirname, "../", req.session.user.profile_photo_path);
+            try {
+                await fs.promises.unlink(oldProfilePhotoFilePath);
+            } catch (err) {
+                console.error("Error deleting profile photo:", err);
+            }
+        }
+        
+        // Delete user from database
+        const query = `DELETE FROM users WHERE user_id = $1;`;
+        await db.none(query, [userId]);
+        
+        // Destroy the session
+        req.session.destroy(err => {
+            if (err) {
+                console.error("Error destroying session:", err);
+            }
+            res.redirect('/register');
+        });
+    } catch (err) {
+        console.error('Error deleting user account:', err);
+        res.render('pages/settings/account', { user: req.session.user });
     }
 });
 
@@ -220,10 +251,6 @@ app.get('/activity', auth, async (req, res) => {
       });
     }
   });
-
-app.get('/pal',auth, (req, res) => {
-    res.render('pages/pal',{user: req.session.user});
-});
 
 app.get("/settings/:tab?",auth, async (req, res) => {
     try{
@@ -320,12 +347,12 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         const newProfilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
 
         //Delete the old profile photo: if it exists and the user is uploading a new one
-        if (oldProfilePhotoFilePath && newProfilePhotoFilePath) {
-            fs.unlink(oldProfilePhotoFilePath, (err) => {
-                if (err) {
-                  console.error("Error deleting file:", err);
-                }
-              });
+        if (req.session.user.profile_photo_path && newProfilePhotoFilePath) {
+            try {
+                await fs.promises.unlink(oldProfilePhotoFilePath);
+            } catch (err) {
+                console.error("Error deleting file:", err);
+            }
         }
 
         //Helper function for adding fields to the query
@@ -694,44 +721,186 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
     }
 });
 
-// Geolocation & air quality endpoints
-// Fetching weather
-app.post('/api/weather', async (req, res) => {
-    const { latitude, longitude } = req.body;
-    const apiKey = process.env.WEATHER_API_KEY;
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=imperial`;
+// CHARACTER WORK
+// Route to get character customization data
+app.get('/api/character', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      
+      // Query the database for the user's character
+      const result = await db.oneOrNone(
+        'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (!result) {
+        // No character exists yet, return default values
+        return res.json({
+          character: {
+            characterName: 'Unnamed Pal',
+            hatChoice: '',
+            colorChoice: 'default'
+            }
+        });
+      }
+      
+      // Return the found character data
+      res.json({
+        character: {
+            characterName: result.character_name,
+            hatChoice: result.hat_choice || '',
+            colorChoice: result.color_choice || 'default'
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching character data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Route to save character customization data
+  app.post('/api/character', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      const { characterName, hatChoice, colorChoice } = req.body;
+      
+      console.log('Saving character:', { characterName, hatChoice, colorChoice });
+      
+      // Check if the user already has a character
+      const exists = await db.oneOrNone(
+        'SELECT 1 FROM character_customizations WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (!exists) {
+        // Insert new character data
+        await db.none(
+          `INSERT INTO character_customizations 
+          (user_id, character_name, hat_choice, color_choice) 
+          VALUES ($1, $2, $3, $4)`,
+          [userId, characterName, hatChoice, colorChoice]
+        );
+      } else {
+        // Update existing character data
+        await db.none(
+          `UPDATE character_customizations 
+          SET character_name = $1, hat_choice = $2, color_choice = $3, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = $4`,
+          [characterName, hatChoice, colorChoice, userId]
+        );
+      }
+      
+      res.json({ success: true, message: 'Character saved successfully!' });
+    } catch (error) {
+      console.error('Error saving character data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Update the pal route to fetch character data from the database
+  app.get('/pal', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      
+      // Query the database for the user's character
+      const result = await db.oneOrNone(
+        'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+        [userId]
+      );
+      
+      let characterData = {
+        characterName: 'Unnamed Pal',
+        hatChoice: 'none',
+        colorChoice: 'default'
+      };
+      
+      if (result) {
+        characterData = {
+          characterName: result.character_name,
+          hatChoice: result.hat_choice || 'none',
+          colorChoice: result.color_choice || 'default'
+        };
+      }
+      
+      // Determine the character image path based on customizations
+      // TODO: Work on a way to connect this imagePath to characterCustomization imagePath
+      let imagePath = '../../extra_resources/character_assets/';
+      let characterImage;
+      if (characterData.hatChoice === 'none') {
+        // No hat selected
+        if (characterData.colorChoice === 'default') {
+          // No color selected either, use base monster
+          characterImage = imagePath + 'basemonster.jpeg';
+        } else {
+          // Color selected but no hat
+          characterImage = imagePath + `basemonster_${characterData.colorChoice}.jpeg`;
+        }
+      } else {
+        // Hat selected
+        if (characterData.colorChoice === 'default') {
+          // Hat selected but no color, use default color with hat
+          characterImage = imagePath + `monster_default_${characterData.hatChoice}.jpeg`;
+        } else {
+          // Both hat and color selected
+          characterImage = imagePath + `monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
+        }
+      }
+      
+      // Render the pal page with the character data
+      res.render('pages/pal', {
+        user: req.session.user,
+        characterName: characterData.characterName,
+        characterImage: characterImage,
+        hatChoice: characterData.hatChoice,
+        colorChoice: characterData.colorChoice
+      });
+    } catch (error) {
+      console.error('Error rendering pal page:', error);
+      res.status(500).send('Internal server error');
+    }
+  });
+
+  
+// fetch OpenWeatherMap data:
+app.get('/weatherAPI', async (req, res) => {
+    const { lat, lon} = req.query;
+
+    // Handling no user coordinates first.
+    if (!lat || !lon) {
+        return res.status(400).json({ error: 'Location not provided; cannot return weather data.' });
+    }
 
     try {
-        const response = await fetch(weatherUrl);
-        if (!response.ok) {
-            throw new Error(`Weather API error: ${response.statusText}`);
-        }
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error fetching weather data' });
-    }
-});
+        const OpenWeatherMap_API = process.env.WEATHER_API_KEY;
 
-// Fetching airquality
-app.post('/api/air-quality', async (req, res) => {
-    const { latitude, longitude } = req.body;
-    const apiKey = process.env.WEATHER_API_KEY;
-    const airQualityUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
-
-    try {
-        const response = await fetch(airQualityUrl);
-        if (!response.ok) {
-            throw new Error(`Air Quality API error: ${response.statusText}`);
+        const weatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}&units=imperial`;
+        const weatherResponse = await fetch(weatherURL);
+        if (!weatherResponse.ok) {
+            throw new Error('Error fetching weather data');
         }
-        const data = await response.json();
-        res.json(data);
+        const weatherData = await weatherResponse.json();
+
+        const airQualityURL = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}`;
+        const airQualityResponse = await fetch(airQualityURL);
+        if (!airQualityResponse.ok) {
+            throw new Error('Error fetching air quality data');
+        }
+        const airQualityData = await airQualityResponse.json();
+        const airQualityIndex = airQualityData.list[0].main.aqi;
+
+        const airQuality = airQualityData.list && airQualityData.list[0] ? airQualityData.list[0].main.aqi : "N/A";
+
+        // Rendering home.
+
+        res.render('pages/home', {
+            weather: weatherData,
+            airQuality: airQuality,
+            user: req.session.user
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error fetching air quality data' });
+        res.render('pages/home', { error: 'There was an error fetching weather data.'});
     }
-});
+  });
 
 //Ensure App is Listening For Requests
 module.exports = app.listen(3000);
