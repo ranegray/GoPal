@@ -23,7 +23,7 @@
           <div class="flex items-center justify-between p-3 bg-gray-100 rounded-md mb-2">
             <div class="flex items-center gap-3">
               <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "../../extra_resources/images/default.png" {{/if}} class="w-10 h-10 object-cover rounded-full">
-              <p><strong>{{username}}</strong> {{display_name}}</p>
+              <p>{{#if display_name}}<strong>{{display_name}}</strong>  ({{username}}){{else}}<strong>{{username}}</strong>{{/if}}</p>
             </div>
 
             
