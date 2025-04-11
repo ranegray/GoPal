@@ -205,7 +205,20 @@ app.post('/delete-account', auth, async (req, res) => {
 });
 
 app.get('/home',auth, (req, res) => {
-    res.render('pages/home',{user: req.session.user});
+    const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
+    const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
+    if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
+        //render w/o the weather data
+        return res.render('pages/home', {user: req.session.user});
+    } else{
+        //render with the weather data
+        res.render('pages/home', {
+            user: req.session.user, 
+            weather: req.session.weather.weather,
+            airQuality: req.session.weather.airQuality
+        });
+    }
 });
 
 app.get('/activity', auth, async (req, res) => {
@@ -917,6 +930,51 @@ app.get('/api/character', auth, async (req, res) => {
       res.status(500).send('Internal server error');
     }
   });
+
+  
+// fetch OpenWeatherMap data:
+app.get('/weatherAPI', auth, async (req, res) => {
+    const { lat, lon} = req.query;
+    // Handling no user coordinates first.
+    if (!lat || !lon) {
+        return res.status(400).json({ error: 'Location not provided; cannot return weather data.' });
+    }
+
+    try {
+        const OpenWeatherMap_API = process.env.WEATHER_API_KEY;
+
+        const weatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}&units=imperial`;
+        const weatherResponse = await fetch(weatherURL);
+        if (!weatherResponse.ok) {
+            throw new Error('Error fetching weather data');
+        }
+        const weatherData = await weatherResponse.json();
+
+        const airQualityURL = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}`;
+        const airQualityResponse = await fetch(airQualityURL);
+        if (!airQualityResponse.ok) {
+            throw new Error('Error fetching air quality data');
+        }
+        const airQualityData = await airQualityResponse.json();
+
+        const airQuality = airQualityData.list && airQualityData.list[0] ? airQualityData.list[0].main.aqi : "N/A";
+
+        req.session.weather = {
+            weather: weatherData,
+            airQuality: airQuality,
+            timestamp: Date.now()
+        };
+        req.session.save(err => {
+            if (err) {
+                console.error('Error saving session:', err);
+            }
+            res.redirect('/home?weatherAttempted=true');
+        });
+    } catch (error) {
+        console.error('Error fetching weather data:', error);
+        res.redirect('/home?weatherAttempted=true');
+    }
+});
 
 //Ensure App is Listening For Requests
 module.exports = app.listen(3000);
