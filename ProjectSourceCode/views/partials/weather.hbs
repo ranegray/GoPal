@@ -2,22 +2,19 @@
 <aside class="fixed bottom-4 right-4 w-64">
   <section class="bg-gray-100 p-4 rounded-lg shadow-md">
     <h2 class="text-2xl font-bold mb-2 text-center">Weather</h2>
-    {{#if weather}}
-      <p class="text-sm text-center">{{weather.name}}</p>
-      <p class="text-4xl font-bold text-center">{{weather.main.temp}}°</p>
-      <div class="flex items-center justify-center space-x-2">
-        <!-- OpenWeatherMap Icon -->
-        <img id="weatherIcon" alt="Weather icon" class="w-8 h-8" src="http://openweathermap.org/img/wn/{{weather.weather.[0].icon}}@2x.png">
-        <p class="text-lg">{{weather.weather.[0].description}}</p>
-      </div>
-      <p class="text-sm">Wind: {{weather.wind.speed}} mph</p>
-      <p class="text-sm">Humidity: {{weather.main.humidity}}%</p>
-      <p class="text-sm">AQI: {{airQuality}}</p>
-      {{#if error}}
-        <p class="text-red-500 font-bold">{{error}}</p>
-      {{/if}}
-    {{else}}
-      <p class="text-center">Awaiting weather data...</p>
-    {{/if}}
+    <div class="text-sm text-center" id="city">Awaiting location...</div>
+    <div class="text-4xl font-bold text-center" id="temperature">--°F</div>
+    <div class="flex items-center justify-center space-x-2">
+      <!-- Weather Icon -->
+      <img id="weatherIcon" alt="Weather icon" class="w-8 h-8" src="">
+      <p class="text-lg" id="weather">--</p>
+    </div>
+    <p class="text-sm">Wind: <span id="wind">--</span> mph</p>
+    <p class="text-sm">Humidity: <span id="humidity">--</span></p>
+    <p class="text-sm">AQI: <span id="air-quality">--</span></p>
+    
+    <!-- Hidden inputs to store coordinates -->
+    <input type="hidden" id="latitude">
+    <input type="hidden" id="longitude">
   </section>
 </aside>
