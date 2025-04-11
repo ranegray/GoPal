@@ -201,6 +201,15 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// CHARACTER WORK:
+// In app.js
+// Conditionally load the character customization script
+if (window.location.pathname === "/settings/pal-settings") {
+  import('./characterCustomization.js').catch(err => {
+    console.error("Error loading character customization script:", err);
+  });
+}
+
 //ensures search message stays after friends list reload
 window.addEventListener("DOMContentLoaded", () => {
   const storedMessage = localStorage.getItem("searchMessage");

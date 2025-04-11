@@ -1,12 +1,127 @@
 <div class="flex">
+  <!-- Left sidebar with nav -->
   <aside class="bg-blue-100 px-4">
     <!-- Nav bar -->
     {{>nav}}
   </aside>
-  <main class="flex-grow p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">Pal</h1>
-      {{>notification}}
+
+  <!-- Main content area -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-center mb-8">Your Pal</h1>
+      
+      <!-- View Mode (Initially Visible) -->
+      <div id="view-mode" class="flex flex-col items-center">
+        <!-- Character Card -->
+        <div class="mb-6">
+          {{> character-card 
+            characterName=characterName 
+            characterImage=characterImage
+          }}
+        </div>
+        
+        <!-- Edit Button -->
+        <button id="edit-button" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg flex items-center">
+          <!-- svg creates the pencil icon-->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+          </svg>
+          Customize Pal
+        </button>
+      </div>
+      
+      <!-- Edit Mode (Initially Hidden) -->
+      <div id="edit-mode" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold">Customize Your Pal</h2>
+          <button id="cancel-button" class="text-gray-600 hover:text-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Character Card Preview -->
+          <div class="flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-4">Preview</h2>
+            <div id="character-preview">
+              {{> character-card 
+                characterName=characterName 
+                characterImage=characterImage
+              }}
+            </div>
+          </div>
+          
+          <!-- Customization Controls -->
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Customize</h2>
+            
+            <form id="character-form" class="space-y-6">
+              <!-- Name Input -->
+              <div>
+                <label for="characterName" class="block text-sm font-medium text-gray-700 mb-1">Character Name</label>
+                <input type="text" id="characterName" name="characterName" value="{{characterName}}" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              
+              <!-- Hat Selection -->
+              <!-- TODO: REFACTOR USING HBS loop-->
+              <!--TODO: Make path to image folder a variable-->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Hat</label>
+                <div class="grid grid-cols-6 gap-2">
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="none">
+                    <img src="../../extra_resources/character_assets/basemonster.jpeg" alt="Hat 6" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">None</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="propeller">
+                    <img src="../../extra_resources/character_assets/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Propeller</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="party">
+                    <img src="../../extra_resources/character_assets/partyhat.jpeg" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Party</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="crown">
+                    <img src="../../extra_resources/character_assets/crown.jpeg" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Crown</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="tophat">
+                    <img src="../../extra_resources/character_assets/tophat.jpeg" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Top Hat</span>
+                  </button>
+                  <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="beanie">
+                    <img src="../../extra_resources/character_assets/beanie.jpeg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
+                    <span class="text-xs mt-1 block">Beanie</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Color Options -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Color</label>
+                <div class="flex justify-between">
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-white-500 border-2 border-black hover:border-gray-800" data-color="default"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-orange-500 border-2 border-transparent hover:border-gray-800" data-color="orange"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-pink-500 border-2 border-transparent hover:border-gray-800" data-color="pink"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-green-500 border-2 border-transparent hover:border-gray-800" data-color="green"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-purple-500 border-2 border-transparent hover:border-gray-800" data-color="purple"></button>
+                  <button type="button" class="color-option w-12 h-12 rounded-full bg-blue-500 border-2 border-transparent hover:border-gray-800" data-color="blue"></button>
+                </div>
+              </div>
+              
+              <!-- Submit Button -->
+              <div class="mt-8">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  Save Character
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
+<script src="/js/characterCustomization.js"></script>
