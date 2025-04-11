@@ -173,7 +173,9 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/home',auth, (req, res) => {
-    res.render('pages/home',{user: req.session.user});
+
+    res.render('pages/home', { user: req.session.user });
+        
 });
 
 app.get('/activity', auth, async (req, res) => {
@@ -692,44 +694,42 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
     }
 });
 
-// fetch OpenWeatherMap data:
-app.get('/weatherAPI', async (req, res) => {
-    const { lat, lon} = req.query;
-
-    // Handling no user coordinates first.
-    if (!lat || !lon) {
-        return res.status(400).json({ error: 'Location not provided; cannot return weather data.' });
-    }
+// Geolocation & air quality endpoints
+// Fetching weather
+app.post('/api/weather', async (req, res) => {
+    const { latitude, longitude } = req.body;
+    const apiKey = process.env.WEATHER_API_KEY;
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=imperial`;
 
     try {
-        const OpenWeatherMap_API = process.env.WEATHER_API_KEY;
-
-        const weatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}&units=imperial`;
-        const weatherResponse = await fetch(weatherURL);
-        if (!weatherResponse.ok) {
-            throw new Error('Error fetching weather data');
+        const response = await fetch(weatherUrl);
+        if (!response.ok) {
+            throw new Error(`Weather API error: ${response.statusText}`);
         }
-        const weatherData = await weatherResponse.json();
-
-        const airQualityURL = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}`;
-        const airQualityResponse = await fetch(airQualityURL);
-        if (!airQualityResponse.ok) {
-            throw new Error('Error fetching air quality data');
-        }
-        const airQualityData = await airQualityResponse.json();
-        const airQualityIndex = airQualityData.list[0].main.aqi;
-
-        const airQuality = airQualityData.list && airQualityData.list[0] ? airQualityData.list[0].main.aqi : "N/A";
-
-        // Rendering home.
-
-        res.render('pages/home', {
-            weather: weatherData,
-            airQuality: airQuality,
-            user: req.session.user
-        });
+        const data = await response.json();
+        res.json(data);
     } catch (error) {
-        res.render('pages/home', { error: 'There was an error fetching weather data.'});
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching weather data' });
+    }
+});
+
+// Fetching airquality
+app.post('/api/air-quality', async (req, res) => {
+    const { latitude, longitude } = req.body;
+    const apiKey = process.env.WEATHER_API_KEY;
+    const airQualityUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+
+    try {
+        const response = await fetch(airQualityUrl);
+        if (!response.ok) {
+            throw new Error(`Air Quality API error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching air quality data' });
     }
 });
 
