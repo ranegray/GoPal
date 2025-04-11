@@ -1,5 +1,4 @@
 import { passwordErrorText } from "./password_error.js";
-import { getLocation } from "./geolocation.js";
 
 //Turns active nav bar buttons blue
 document.addEventListener("DOMContentLoaded", function () {
@@ -70,9 +69,9 @@ if (window.location.pathname === "/register") {
 
 // Home page
 // TODO: Make changes to geolocation.js so that the weather API key is not exposed to the frontend and the repo
-if (window.location.pathname === "/home") {
-  getLocation();
-}
+// if (window.location.pathname === "/home") {
+//   getLocation();
+// }
 
 // Account tab of settings page
 if (window.location.pathname === "/settings/account") {
