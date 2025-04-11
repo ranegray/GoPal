@@ -484,7 +484,7 @@ app.post('/api/journal', auth, async (req, res) => {
       // Validate that a journal entry was provided
       if (!journalEntry) {
         console.error('No journal entry provided');
-        return res.status(400).redirect('/activity');
+        return res.status(400).redirect('/journal');
       }
   
       // Get the current date
