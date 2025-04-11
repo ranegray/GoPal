@@ -11,6 +11,7 @@ const { errors } = require('pg-promise');
 const db = require('./db.js');
 const fs = require("fs");
 
+const { formatInTimeZone } = require('date-fns-tz');
 const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
 const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
@@ -482,11 +483,13 @@ app.post('/api/journal', auth, async (req, res) => {
         console.error('No journal entry provided');
         return res.status(400).redirect('/journal');
       }
-  
-      // Get the current date
-      const currentDate = new Date().toISOString().split('T')[0];
-      // Get the current time
-      const currentTime = new Date().toTimeString().split(' ')[0];
+
+      // Set the timezone to MST (need api to get local timezone, maybe later)
+      const mountainTimeZone = 'America/Denver'; 
+      const now = new Date();
+      
+      const currentDate = formatInTimeZone(now, mountainTimeZone, 'yyyy-MM-dd');
+      const currentTime = formatInTimeZone(now, mountainTimeZone, 'HH:mm:ss');
   
       // Insert the journal entry into the journal_logs table
       await db.none(
