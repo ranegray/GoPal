@@ -59,6 +59,20 @@ if (window.location.pathname === "/settings/profile") {
         defaultIcon.classList.add("hidden");
       }
     });
+
+    // Character counter for bio field
+    const bioField = document.getElementById("userBio");
+    const bioCharCount = document.getElementById("bioCharCount");
+    
+    if (bioField && bioCharCount) {
+        // Set initial count on page load based on existing bio
+        bioCharCount.textContent = bioField.value.length;
+        
+        // Update count as user types
+        bioField.addEventListener("input", function() {
+            bioCharCount.textContent = this.value.length;
+        });
+    }
   });
 }
 
