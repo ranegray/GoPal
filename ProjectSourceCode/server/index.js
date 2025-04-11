@@ -862,8 +862,9 @@ app.get('/api/character', auth, async (req, res) => {
 
   
 // fetch OpenWeatherMap data:
-app.get('/weatherAPI', async (req, res) => {
-    const { lat, lon} = req.query;
+app.post('/api/weather', async (req, res) => {
+    console.log(req.body);
+    const { lat, lon } = req.body;
 
     // Handling no user coordinates first.
     if (!lat || !lon) {
@@ -886,19 +887,16 @@ app.get('/weatherAPI', async (req, res) => {
             throw new Error('Error fetching air quality data');
         }
         const airQualityData = await airQualityResponse.json();
-        const airQualityIndex = airQualityData.list[0].main.aqi;
-
         const airQuality = airQualityData.list && airQualityData.list[0] ? airQualityData.list[0].main.aqi : "N/A";
 
-        // Rendering home.
-
-        res.render('pages/home', {
+        return res.json({   
             weather: weatherData,
             airQuality: airQuality,
-            user: req.session.user
         });
     } catch (error) {
-        res.render('pages/home', { error: 'There was an error fetching weather data.'});
+        return res.json({   
+            error: error
+        });
     }
   });
 
