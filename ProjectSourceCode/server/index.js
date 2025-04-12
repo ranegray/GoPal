@@ -550,10 +550,15 @@ app.post('/api/friends/request', auth, async (req, res) => {
     }
 });
 
-app.get('/api/friends/activities', auth, async (req, res) => {
+app.get('/social/recent', auth, async (req, res) => {
     try {
-        const userId = req.session.user.user_id;
+        const { user_id } = req.session.user;
+        const tab = 'recent';
         
+
+        // Fetch the user from the database
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
+
         // Get the list of friend IDs where the friendship is accepted
         const friends = await db.any(`
             SELECT friend_id AS id FROM friends 
@@ -561,27 +566,27 @@ app.get('/api/friends/activities', auth, async (req, res) => {
             UNION
             SELECT user_id AS id FROM friends 
             WHERE friend_id = $1 AND status = 'accepted'
-        `, [userId]);
-
-        if (friends.length === 0) {
-            return res.json({ activities: [] });
-        }
+        `, [user_id]);
 
         // Extract friend IDs from result
         const friendIds = friends.map(friend => friend.id);
 
-        // Fetch recent activities from friends
-        const activities = await db.any(`
-            SELECT al.activity_id, al.user_id, u.username, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
-            FROM activity_logs al
-            JOIN users u ON al.user_id = u.user_id
-            JOIN activity_types at ON al.activity_type_id = at.activity_type_id
-            WHERE al.user_id IN ($1:csv)
-            ORDER BY al.created_at DESC
-            LIMIT 20
-        `, [friendIds]);
+        let activities = [];
 
-        return res.json({ activities });
+        if (friends.length > 0) {
+            // Fetch recent activities from friends
+            activities = await db.any(`
+                SELECT al.activity_id, al.user_id, u.username, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
+                FROM activity_logs al
+                JOIN users u ON al.user_id = u.user_id
+                JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+                WHERE al.user_id IN ($1:csv)
+                ORDER BY al.created_at DESC
+                LIMIT 5
+            `, [friendIds]);
+        }
+
+        res.render("pages/social", { activeTab: tab, user, activities });
     } catch (err) {
         console.error('Error fetching friend activities:', err);
         return res.status(500).json({ error: 'Failed to fetch friend activities' });
@@ -630,21 +635,6 @@ app.get("/social/friends", auth, async (req, res) => {
         res.render("pages/social", { activeTab: tab, user, friends });
     } catch (err) {
         console.error("Error fetching user or friends data:", err);
-        res.render("pages/social", { activeTab: 'account', user: req.session.user });
-    }
-});
-
-app.get("/social/recent", auth, async (req, res) => {
-    try {
-        const { user_id } = req.session.user;
-        const tab = 'recent';
-
-        // Fetch the user from the database
-        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
-
-        res.render("pages/social", { activeTab: tab, user });
-    } catch (err) {
-        console.error("Error fetching user data:", err);
         res.render("pages/social", { activeTab: 'account', user: req.session.user });
     }
 });
