@@ -252,3 +252,12 @@ document.addEventListener("DOMContentLoaded", function () {
     journalCancelButton.addEventListener("click", closeModal);
   }
 }); 
+
+//ensures search message stays after friends list reload
+window.addEventListener("DOMContentLoaded", () => {
+  const storedMessage = localStorage.getItem("searchMessage");
+  if (storedMessage) {
+      document.getElementById("search-result").textContent = storedMessage;
+      localStorage.removeItem("searchMessage"); // Clear it after displaying
+  }
+});
