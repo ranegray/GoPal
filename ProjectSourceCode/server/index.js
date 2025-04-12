@@ -11,6 +11,7 @@ const { errors } = require('pg-promise');
 const db = require('./db.js');
 const fs = require("fs");
 
+const { formatInTimeZone } = require('date-fns-tz');
 const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
 const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
@@ -239,7 +240,7 @@ app.get('/activity', auth, async (req, res) => {
          WHERE user_id = $1 AND is_read = FALSE 
          ORDER BY created_at DESC LIMIT 10`,
         [userId]
-      );
+        );
 
       // Can pass a string to getDateRange to get different ranges
       // For example: "week", "month", "year"
@@ -249,7 +250,7 @@ app.get('/activity', auth, async (req, res) => {
       res.render('pages/activity', { 
         activities: activities,
         user: req.session.user, 
-        stats: stats,
+        stats:  stats,
         notifications: notifications,
         hasNotifications: notifications.length > 0
       });
@@ -286,6 +287,30 @@ app.get("/settings/:tab?",auth, async (req, res) => {
         res.render("pages/settings", { activeTab: 'account', user: req.session.user });
     }
 });
+
+app.get("/journal",auth, async (req, res) => {
+    try{
+        const userId = req.session.user.user_id;
+        const journals = await db.any(
+            `SELECT * FROM journal_logs
+             WHERE user_id = $1
+             ORDER BY entry_date DESC, entry_time DESC`,
+             [userId]
+        );
+        
+        const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
+
+        res.render("pages/journal", {
+            user: req.session.user, 
+            journals: journals,
+            journalStats: journalStats
+        });
+    } catch(err) {
+        console.error(err);
+        res.render("pages/journal", {user: req.session.user });
+    }
+});
+
 
 app.post('/settings/account',auth, async (req, res) => {
     let messages = [];
@@ -460,6 +485,41 @@ app.post('/api/activities', auth, async (req, res) => {
         return res.redirect('/activity?error=Failed to add activity');
     }
 });
+
+// Journal entry api
+app.post('/api/journal', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      const { 'journal-entry': journalEntry } = req.body;
+  
+      // Validate that a journal entry was provided
+      if (!journalEntry) {
+        console.error('No journal entry provided');
+        return res.status(400).redirect('/journal');
+      }
+
+      // Set the timezone to MST (need api to get local timezone, maybe later)
+      const mountainTimeZone = 'America/Denver'; 
+      const now = new Date();
+      
+      const currentDate = formatInTimeZone(now, mountainTimeZone, 'yyyy-MM-dd');
+      const currentTime = formatInTimeZone(now, mountainTimeZone, 'HH:mm:ss');
+  
+      // Insert the journal entry into the journal_logs table
+      await db.none(
+        `INSERT INTO journal_logs (user_id, journal_entry, entry_date, entry_time) VALUES ($1, $2, $3, $4)`,
+        [userId, journalEntry, currentDate, currentTime]
+      );
+  
+      return res.status(201).redirect('/journal');
+
+    } catch (err) {
+      console.error('Error logging journal entry:', err);
+      return res.status(500).redirect('/journal');
+    }
+  });
+
+
 
 // Delete an activity
 app.post('/api/activities/:id', auth, async (req, res) => {
