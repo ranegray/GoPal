@@ -646,6 +646,7 @@ app.get('/social/recent', auth, async (req, res) => {
         const friendIds = friends.map(friend => friend.id);
 
         let activities = [];
+        let achievements = [];
 
         if (friends.length > 0) {
             // Fetch recent activities from friends
@@ -658,9 +659,26 @@ app.get('/social/recent', auth, async (req, res) => {
                 ORDER BY al.created_at DESC
                 LIMIT 5
             `, [friendIds]);
+
+            achievements = await db.any(`
+                SELECT 
+                    ua.user_id,
+                    u.username,
+                    u.profile_photo_path,
+                    a.name AS achievement_name,
+                    a.description,
+                    a.code,
+                    ua.unlocked_at
+                FROM user_achievements ua
+                JOIN users u ON ua.user_id = u.user_id
+                JOIN achievements a ON ua.achievement_id = a.id
+                WHERE ua.user_id IN ($1:csv)
+                ORDER BY ua.unlocked_at DESC
+                LIMIT 5;
+        `, [friendIds]);
         }
 
-        res.render("pages/social", { activeTab: tab, user, activities });
+        res.render("pages/social", { activeTab: tab, user, activities, achievements});
     } catch (err) {
         console.error('Error fetching friend activities:', err);
         return res.status(500).json({ error: 'Failed to fetch friend activities' });
