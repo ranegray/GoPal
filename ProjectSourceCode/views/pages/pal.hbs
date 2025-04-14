@@ -28,6 +28,20 @@
           </svg>
           Customize Pal
         </button>
+
+        <!-- Character Evolution Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 class="text-2xl font-semibold mb-4">Evolution Progress</h2>
+          {{> pal-evolution 
+            evolutionLevel=evolutionLevel
+            evolutionProgress=evolutionProgress
+            evolutionName=evolutionName
+            evolutionDescription=evolutionDescription
+            nextEvolutionName=nextEvolutionName
+            nextEvolutionRequirements=nextEvolutionRequirements
+            unlockedAbilities=unlockedAbilities
+          }}
+        </div>
       </div>
       
       <!-- Edit Mode (Initially Hidden) -->
