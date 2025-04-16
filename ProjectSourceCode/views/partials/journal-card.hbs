@@ -1,18 +1,13 @@
 <div class="journal-card bg-white rounded shadow-md p-4 mb-4">
   <div class="journal-header flex justify-between items-center">
     <div class="journal-entry-label text-lg font-bold">
-      Journal Entry {{entry_id}}
+      {{journal_title}}
     </div>
     <div class="journal-date text-sm text-gray-600">
       {{formatDate entry_date}}
       {{#if entry_time}}
         at {{formatTime entry_time}}
       {{/if}}
-    </div>
-  </div>
-  <div class="journal-header flex justify-between items-center">
-    <div class="journal-entry-label text-lg font-bold">
-      {{entry_title}}
     </div>
   </div>
   <div class="journal-body mt-2">
