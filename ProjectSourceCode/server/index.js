@@ -989,5 +989,51 @@ app.get('/weatherAPI', auth, async (req, res) => {
     }
 });
 
+app.post('/user-profile-content', auth, async (req, res) => {
+try {
+    const { userId } = req.body;
+    
+    // Get the user profile
+    const user = await db.oneOrNone(`
+        SELECT user_id, username, display_name, profile_photo_path, fitness_level, bio, visibility
+        FROM users WHERE user_id = $1
+        `, [userId]);
+    
+    if (!user) {
+        return res.send('<div class="p-4 text-red-500">User not found</div>');
+    }
+
+    const isFriend = await db.oneOrNone(`
+        SELECT 1 FROM friends 
+        WHERE ((user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1))
+          AND status = 'accepted'
+      `, [req.session.user.user_id, userId]);
+      
+    if (user.visibility === 'private' || (user.visibility === 'friends' && !isFriend)) {
+    return res.send('<div class="p-4 text-red-500">Not authorized to view this profile</div>');
+    }
+    
+    // Get recent activities
+    const activities = await db.any(`
+        SELECT al.*, at.activity_name
+        FROM activity_logs al
+        JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+        WHERE al.user_id = $1
+        ORDER BY al.activity_date DESC, al.created_at DESC
+        LIMIT 5
+        `, [userId]);
+    
+    // Render the friend profile content partial
+    res.render('partials/user-profile-content', {
+    layout: false,
+    user: user,
+    activities: activities
+    });
+} catch (error) {
+    console.error('Error fetching profile:', error);
+    res.send('<div class="p-4 text-red-500">Error loading profile. Please try again.</div>');
+}
+});
+
 //Ensure App is Listening For Requests
 module.exports = app.listen(3000);

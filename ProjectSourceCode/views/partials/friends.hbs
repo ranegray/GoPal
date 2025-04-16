@@ -26,26 +26,28 @@
               <p>{{#if display_name}}<strong>{{display_name}}</strong>  ({{username}}){{else}}<strong>{{username}}</strong>{{/if}}</p>
             </div>
 
-            
-            {{#if (eq request_type "incoming")}}
-              <div class="flex gap-2">
-                <button onclick="acceptFriend({{user_id}})" 
-                        class="bg-green-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-green-600">
-                  Accept
-                </button>
+            <div class="flex gap-2">
+              {{#if (eq request_type "incoming")}}
+                <div class="flex gap-2">
+                  <button onclick="acceptFriend({{user_id}})" 
+                          class="bg-green-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-green-600">
+                    Accept
+                  </button>
 
-                <button onclick="declineFriend({{user_id}})" 
-                        class="bg-red-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-red-600">
-                  Decline
-                </button>
+                  <button onclick="declineFriend({{user_id}})" 
+                          class="bg-red-500 text-white p-2 rounded-full text-sm font-semibold hover:bg-red-600">
+                    Decline
+                  </button>
 
-              </div>
-            {{else}}
-              <button class="bg-blue-200 p-2 rounded-full text-sm font-semibold">
-                {{#if (eq request_type "outgoing")}}Pending{{/if}}
-                {{#if (eq request_type "accepted")}}Friend{{/if}}
-              </button>
-            {{/if}}
+                </div>
+              {{else}}
+                <button class="bg-blue-200 p-2 rounded-full text-sm font-semibold">
+                  {{#if (eq request_type "outgoing")}}Pending{{/if}}
+                  {{#if (eq request_type "accepted")}}Friend{{/if}}
+                </button>
+              {{/if}}
+              <button user-id={{user_id}} class="profile-button bg-blue-200 hover:bg-blue-400 p-2 rounded-full text-sm font-semibold">View Profile</button>
+            </div>
           </div>
         {{/each}}
         </div>
@@ -55,5 +57,5 @@
     </div>
   </main>
 </div>
-
+{{> user-profile-modal}}
 <script src="../../server/utils/friends.js"></script>

@@ -1,0 +1,48 @@
+<div class="flex flex-col items-center">
+  <img src="{{#if user.profile_photo_path}}{{user.profile_photo_path}}{{else}}../../extra_resources/images/default.png{{/if}}" 
+       alt="Profile" class="w-24 h-24 object-cover rounded-full mb-4">
+  
+  <p class="font-semibold text-lg">{{#if user.display_name}}{{user.display_name}}{{/if}}</p>
+  <p class="text-md {{#unless user.display_name}}font-semibold{{/unless}}">{{#if user.display_name}}({{user.username}}){{else}}{{user.username}}{{/if}}</p>
+  
+  <div class="w-full mt-4">
+    {{#if user.fitness_level}}
+        <div class="flex justify-between mb-2">
+            <span class="font-medium">Fitness Level:</span>
+            <span>{{user.fitness_level}}</span>
+        </div>
+    {{/if}}
+
+    {{#if user.bio}}
+      <div class="mb-4">
+        <h3 class="font-medium mb-2">Bio:</h3>
+        <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg max-h-32 overflow-y-auto overflow-x-hidden break-words whitespace-normal">
+          <p class="w-full">{{user.bio}}</p>
+        </div>
+      </div>
+      <div class="border-t border-gray-200 my-4"></div>
+    {{/if}}
+    
+    <div class="border-t border-gray-200 my-4"></div>
+    
+    <div class="mt-4">
+      <h3 class="font-medium mb-2">Recent Activities</h3>
+      <div class="max-h-40 overflow-y-auto">
+        {{#if activities.length}}
+          {{#each activities}}
+            <div class="py-2 border-b border-gray-100">
+              <p class="font-medium">{{activity_name}}</p>
+              <p class="text-sm text-gray-500">
+                {{formatDate activity_date}} • 
+                {{#if distance_mi}}{{distance_mi}}{{else}}0{{/if}} miles • 
+                {{formatDuration duration_minutes}}
+              </p>
+            </div>
+          {{/each}}
+        {{else}}
+          <p class="text-gray-500 text-center py-2">No recent activities</p>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>
