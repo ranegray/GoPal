@@ -49,6 +49,7 @@ CREATE TABLE journal_logs (
   entry_time TIME DEFAULT CURRENT_TIME,
   journal_entry TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  journal_title VARCHAR(100) NOT NULL,
 );
 
 INSERT INTO activity_types (activity_name) VALUES 
