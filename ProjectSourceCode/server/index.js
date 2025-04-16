@@ -743,6 +743,10 @@ app.post("/search/:username", auth, async (req, res) => {
             return res.json({ message: `User "${username}" not found.` });
         }
 
+        if(user_id == user.user_id){
+            return res.json({ message: `User "${username}" not found.` });
+        }
+
         // Check if a friend request already exists
         const existingRequest = await db.oneOrNone(`
             SELECT * FROM friends 
