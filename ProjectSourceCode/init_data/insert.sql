@@ -27,15 +27,6 @@ VALUES (
   'Morning run around the park'
 );
 
--- Just a test achievement to test if working properly
-INSERT INTO achievements (code, name, description, criteria_type, criteria_value)
-VALUES (
-  'COMPLETE_5_ACTIVITIES',
-  'Activity Starter',
-  'Complete 5 activities',
-  'ACTIVITY_COUNT',
-  5
-)
 ON CONFLICT (code) DO NOTHING;
 
 --test achievement for alice
