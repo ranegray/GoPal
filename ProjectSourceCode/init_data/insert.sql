@@ -27,7 +27,6 @@ VALUES (
   'Morning run around the park'
 );
 
-ON CONFLICT (code) DO NOTHING;
 
 --test achievement for alice
 INSERT INTO user_achievements (user_id, achievement_id)
