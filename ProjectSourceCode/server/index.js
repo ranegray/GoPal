@@ -818,7 +818,7 @@ app.get('/api/character', auth, async (req, res) => {
       );
       
       if (!result) {
-        // No character exists yet, return default values
+        // No character exisçdocker compose down --vts yet, return default values
         return res.json({
           character: {
             characterName: 'Unnamed Pal',
