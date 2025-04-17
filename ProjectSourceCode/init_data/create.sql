@@ -132,15 +132,15 @@ CREATE TABLE achievement_rewards (
 -- The abilites are perhaps features that we could keep as future work on the project?
 INSERT INTO character_evolution_stages (level, name, description, min_xp, abilities_unlocked)
 VALUES 
-(1, 'Rookie', 'I am just getting started on their fitness journey', 0, 
+(1, 'Rookie', 'I am just getting started on my fitness journey!', 0, 
    ARRAY['basic_greeting']),
-(2, 'Energetic', 'Wow! I am becoming more active and energetic', 100, 
+(2, 'Energetic', 'Wow! I am becoming more active and energetic.', 100, 
    ARRAY['basic_greeting', 'workout_suggestion']),
-(3, 'Fit', 'Goodness gracious. I am now noticeably more fit and athletic', 300, 
+(3, 'Fit', 'Goodness gracious! I am now noticeably more fit and athletic.', 300, 
    ARRAY['basic_greeting', 'workout_suggestion', 'motivational_quotes']),
-(4, 'Athlete', 'Look at me! I have become a serious athlete', 600, 
+(4, 'Athlete', 'Look at me! I have become a serious athlete.', 600, 
    ARRAY['basic_greeting', 'workout_suggestion', 'motivational_quotes', 'personalized_workout_plans']),
-(5, 'Champion', 'Just like you, I have reached the peak of fitness excellence', 1000, 
+(5, 'Champion', 'Just like you, I have reached the peak of fitness excellence!', 1000, 
    ARRAY['all']);
 
 -- Insert XP rewards for existing achievements
