@@ -1,5 +1,4 @@
 import { passwordErrorText } from "./password_error.js";
-import { getLocation } from "./geolocation.js";
 
 //Turns active nav bar buttons blue
 document.addEventListener("DOMContentLoaded", function () {
@@ -59,6 +58,20 @@ if (window.location.pathname === "/settings/profile") {
         defaultIcon.classList.add("hidden");
       }
     });
+
+    // Character counter for bio field
+    const bioField = document.getElementById("userBio");
+    const bioCharCount = document.getElementById("bioCharCount");
+    
+    if (bioField && bioCharCount) {
+        // Set initial count on page load based on existing bio
+        bioCharCount.textContent = bioField.value.length;
+        
+        // Update count as user types
+        bioField.addEventListener("input", function() {
+            bioCharCount.textContent = this.value.length;
+        });
+    }
   });
 }
 
@@ -70,9 +83,9 @@ if (window.location.pathname === "/register") {
 
 // Home page
 // TODO: Make changes to geolocation.js so that the weather API key is not exposed to the frontend and the repo
-if (window.location.pathname === "/home") {
-  getLocation();
-}
+// if (window.location.pathname === "/home") {
+//   getLocation();
+// }
 
 // Account tab of settings page
 if (window.location.pathname === "/settings/account") {
@@ -209,3 +222,101 @@ if (window.location.pathname === "/settings/pal-settings") {
     console.error("Error loading character customization script:", err);
   });
 }
+
+//ensures search message stays after friends list reload
+window.addEventListener("DOMContentLoaded", () => {
+  const storedMessage = localStorage.getItem("searchMessage");
+  if (storedMessage) {
+      document.getElementById("search-result").textContent = storedMessage;
+      localStorage.removeItem("searchMessage"); // Clear it after displaying
+  }
+});
+// Separate DOMContentLoaded listener for Journal Modal logic
+document.addEventListener("DOMContentLoaded", function () {
+  // --- Journal Modal Elements ---
+  const journalModal = document.getElementById("journal-modal");
+  const journalForm = document.getElementById("journal-form");
+  const journalCloseModalButton = document.getElementById("journal-close-modal-button");
+  const journalCancelButton = document.getElementById("journal-cancel-button"); 
+  const journalAddButton = document.getElementById("journal-add-button");
+
+  if (journalAddButton) {
+    journalAddButton.addEventListener("click", function () {
+      journalModal.classList.remove("hidden");
+      journalModal.classList.add("flex");
+    });
+  }
+
+  function closeModal() {
+    journalModal.classList.add("hidden");
+    journalModal.classList.remove("flex");
+    journalForm.reset();
+  }
+
+  if (journalCloseModalButton) {
+    journalCloseModalButton.addEventListener("click", closeModal);
+  }
+
+  if (journalCancelButton) {
+    journalCancelButton.addEventListener("click", closeModal);
+  }
+}); 
+
+// Friend Profile Modal
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if we're on the friends page
+  if (window.location.pathname.includes('/social/friends')) {
+    const profileButtons = document.querySelectorAll('.profile-button');
+    const modal = document.getElementById('friend-profile-modal');
+    const modalContent = document.getElementById('friend-profile-content');
+    const closeModal = document.getElementById('close-friend-modal');
+    
+    // Function to load user profile
+    function loadUserProfile(userId) {
+      
+      // Fetch the profile content from the server using POST
+      fetch('/user-profile-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId: userId })
+      })
+      .then(response => response.text())
+      .then(html => {
+        //set the modal content to the fetched HTML, and reveal the modal
+        modalContent.innerHTML = html;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      })
+      .catch(error => {
+        console.error('Error loading friend profile:', error);
+        modalContent.innerHTML = '<div class="p-4 text-red-500">Error loading profile. Please try again.</div>';
+      });
+    }
+    
+    // Add click event to each friend item
+    profileButtons.forEach(item => {
+      item.addEventListener('click', function() {
+        const userId = this.getAttribute('user-id');
+        loadUserProfile(userId);
+      });
+    });
+    
+    // Close modal when clicking the close button
+    if (closeModal) {
+      closeModal.addEventListener('click', function() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+    }
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    });
+  }
+});

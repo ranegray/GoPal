@@ -6,6 +6,7 @@
     <nav class="flex flex-col gap-3 my-auto">
         <a href="/home" class="sidebar-nav-button py-6 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 text-xl font-medium">Home</a>
         <a href="/activity" class="sidebar-nav-button py-6 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 text-xl font-medium">Activity</a>
+        <a href="/journal" class="sidebar-nav-button py-6 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 text-xl font-medium">Journal</a>
         <a href="/social/recent" class="sidebar-nav-button py-6 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 text-xl font-medium">Social</a>
         <a href="/pal" class="sidebar-nav-button py-6 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 text-xl font-medium">Pal</a>
         <a href="/settings" class="sidebar-nav-button py-6 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 text-xl font-medium">Settings</a>
@@ -15,7 +16,7 @@
     <!-- User Profile Section -->
     <div class="mt-auto mb-3 mx-auto bg-white p-4 rounded-xl shadow flex flex-col">
         <div class = "flex flex-row">
-            <img {{#if user.profile_photo_path}}src={{user.profile_photo_path}}{{/if}} class="w-10 h-10 object-cover rounded-full mr-4">
+            <img {{#if user.profile_photo_path}}src={{user.profile_photo_path}}{{else}} src="../../extra_resources/images/default.png"{{/if}} class="w-10 h-10 object-cover rounded-full mr-4">
             <div class="flex flex-col mb-1">
                 <p class="font-semibold">{{#if user.display_name}}{{user.display_name}}{{else}}{{user.username}}{{/if}}</p>
                 <p class="text-sm text-gray-500">Level 5</p>

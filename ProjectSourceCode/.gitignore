@@ -143,3 +143,6 @@ sessions/
 
 # Uploads
 uploads/
+
+# Mac system files
+**/.DS_Store

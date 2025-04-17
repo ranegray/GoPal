@@ -8,6 +8,7 @@ CREATE TABLE users (
   country VARCHAR(60),
   phone VARCHAR(15),
   profile_photo_path VARCHAR(255),
+  bio TEXT,
   display_name VARCHAR(15),
   fitness_level VARCHAR(20),
   visibility VARCHAR(10) DEFAULT 'anyone',
@@ -39,6 +40,15 @@ CREATE TABLE friends (
   accepted_at TIMESTAMP,
   PRIMARY KEY (user_id, friend_id),
   CHECK (user_id <> friend_id)
+);
+
+CREATE TABLE journal_logs (
+  entry_id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+  entry_date DATE DEFAULT CURRENT_DATE,
+  entry_time TIME DEFAULT CURRENT_TIME,
+  journal_entry TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO activity_types (activity_name) VALUES 
@@ -82,6 +92,7 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- CHARACTER WORK
 CREATE TABLE IF NOT EXISTS character_customizations (

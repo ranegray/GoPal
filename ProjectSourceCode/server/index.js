@@ -11,6 +11,7 @@ const { errors } = require('pg-promise');
 const db = require('./db.js');
 const fs = require("fs");
 
+const { formatInTimeZone } = require('date-fns-tz');
 const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
 const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
@@ -223,7 +224,20 @@ app.post('/delete-account', auth, async (req, res) => {
 });
 
 app.get('/home',auth, (req, res) => {
-    res.render('pages/home',{user: req.session.user});
+    const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
+    const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
+    if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
+        //render w/o the weather data
+        return res.render('pages/home', {user: req.session.user});
+    } else{
+        //render with the weather data
+        res.render('pages/home', {
+            user: req.session.user, 
+            weather: req.session.weather.weather,
+            airQuality: req.session.weather.airQuality
+        });
+    }
 });
 
 app.get('/activity', auth, async (req, res) => {
@@ -245,7 +259,7 @@ app.get('/activity', auth, async (req, res) => {
          WHERE user_id = $1 AND is_read = FALSE 
          ORDER BY created_at DESC LIMIT 10`,
         [userId]
-      );
+        );
 
       // Can pass a string to getDateRange to get different ranges
       // For example: "week", "month", "year"
@@ -255,7 +269,7 @@ app.get('/activity', auth, async (req, res) => {
       res.render('pages/activity', { 
         activities: activities,
         user: req.session.user, 
-        stats: stats,
+        stats:  stats,
         notifications: notifications,
         hasNotifications: notifications.length > 0
       });
@@ -292,6 +306,30 @@ app.get("/settings/:tab?",auth, async (req, res) => {
         res.render("pages/settings", { activeTab: 'account', user: req.session.user });
     }
 });
+
+app.get("/journal",auth, async (req, res) => {
+    try{
+        const userId = req.session.user.user_id;
+        const journals = await db.any(
+            `SELECT * FROM journal_logs
+             WHERE user_id = $1
+             ORDER BY entry_date DESC, entry_time DESC`,
+             [userId]
+        );
+        
+        const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
+
+        res.render("pages/journal", {
+            user: req.session.user, 
+            journals: journals,
+            journalStats: journalStats
+        });
+    } catch(err) {
+        console.error(err);
+        res.render("pages/journal", {user: req.session.user });
+    }
+});
+
 
 app.post('/settings/account',auth, async (req, res) => {
     let messages = [];
@@ -358,7 +396,7 @@ app.post('/settings/account',auth, async (req, res) => {
 app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, res) => {
     let messages = [];
     try {
-        const {fitnessLevel, displayName, profileVisibility} = req.body;
+        const {fitnessLevel, displayName, profileVisibility, userBio} = req.body;
         const userId = req.session.user.user_id;
         const oldProfilePhotoFilePath = path.join(__dirname,"../" + req.session.user.profile_photo_path);
         const newProfilePhotoFilePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -387,6 +425,7 @@ app.post('/settings/profile',auth, upload.single('profilePicture'), async (req, 
         addQueryParam('display_name', displayName);
         addQueryParam('visibility', profileVisibility);
         addQueryParam('fitness_level', fitnessLevel);
+        addQueryParam('bio', userBio);
         
         if (queryParams.length > 0) {
             const query = `UPDATE users SET ${queryParams.join(', ')} WHERE user_id = $${queryParams.length + 1}`;
@@ -465,6 +504,41 @@ app.post('/api/activities', auth, async (req, res) => {
         return res.redirect('/activity?error=Failed to add activity');
     }
 });
+
+// Journal entry api
+app.post('/api/journal', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      const { 'journal-entry': journalEntry } = req.body;
+  
+      // Validate that a journal entry was provided
+      if (!journalEntry) {
+        console.error('No journal entry provided');
+        return res.status(400).redirect('/journal');
+      }
+
+      // Set the timezone to MST (need api to get local timezone, maybe later)
+      const mountainTimeZone = 'America/Denver'; 
+      const now = new Date();
+      
+      const currentDate = formatInTimeZone(now, mountainTimeZone, 'yyyy-MM-dd');
+      const currentTime = formatInTimeZone(now, mountainTimeZone, 'HH:mm:ss');
+  
+      // Insert the journal entry into the journal_logs table
+      await db.none(
+        `INSERT INTO journal_logs (user_id, journal_entry, entry_date, entry_time) VALUES ($1, $2, $3, $4)`,
+        [userId, journalEntry, currentDate, currentTime]
+      );
+  
+      return res.status(201).redirect('/journal');
+
+    } catch (err) {
+      console.error('Error logging journal entry:', err);
+      return res.status(500).redirect('/journal');
+    }
+  });
+
+
 
 // Delete an activity
 app.post('/api/activities/:id', auth, async (req, res) => {
@@ -569,10 +643,15 @@ app.post('/api/friends/request', auth, async (req, res) => {
     }
 });
 
-app.get('/api/friends/activities', auth, async (req, res) => {
+app.get('/social/recent', auth, async (req, res) => {
     try {
-        const userId = req.session.user.user_id;
+        const { user_id } = req.session.user;
+        const tab = 'recent';
         
+
+        // Fetch the user from the database
+        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
+
         // Get the list of friend IDs where the friendship is accepted
         const friends = await db.any(`
             SELECT friend_id AS id FROM friends 
@@ -580,27 +659,45 @@ app.get('/api/friends/activities', auth, async (req, res) => {
             UNION
             SELECT user_id AS id FROM friends 
             WHERE friend_id = $1 AND status = 'accepted'
-        `, [userId]);
-
-        if (friends.length === 0) {
-            return res.json({ activities: [] });
-        }
+        `, [user_id]);
 
         // Extract friend IDs from result
         const friendIds = friends.map(friend => friend.id);
 
-        // Fetch recent activities from friends
-        const activities = await db.any(`
-            SELECT al.activity_id, al.user_id, u.username, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
-            FROM activity_logs al
-            JOIN users u ON al.user_id = u.user_id
-            JOIN activity_types at ON al.activity_type_id = at.activity_type_id
-            WHERE al.user_id IN ($1:csv)
-            ORDER BY al.created_at DESC
-            LIMIT 20
-        `, [friendIds]);
+        let activities = [];
+        let achievements = [];
 
-        return res.json({ activities });
+        if (friends.length > 0) {
+            // Fetch recent activities from friends
+            activities = await db.any(`
+                SELECT al.activity_id, al.user_id, u.username, u.profile_photo_path, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
+                FROM activity_logs al
+                JOIN users u ON al.user_id = u.user_id
+                JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+                WHERE al.user_id IN ($1:csv)
+                ORDER BY al.created_at DESC
+                LIMIT 5
+            `, [friendIds]);
+
+            achievements = await db.any(`
+                SELECT 
+                    ua.user_id,
+                    u.username,
+                    u.profile_photo_path,
+                    a.name AS achievement_name,
+                    a.description,
+                    a.code,
+                    ua.unlocked_at
+                FROM user_achievements ua
+                JOIN users u ON ua.user_id = u.user_id
+                JOIN achievements a ON ua.achievement_id = a.id
+                WHERE ua.user_id IN ($1:csv)
+                ORDER BY ua.unlocked_at DESC
+                LIMIT 5;
+        `, [friendIds]);
+        }
+
+        res.render("pages/social", { activeTab: tab, user, activities, achievements});
     } catch (err) {
         console.error('Error fetching friend activities:', err);
         return res.status(500).json({ error: 'Failed to fetch friend activities' });
@@ -617,28 +714,28 @@ app.get("/social/friends", auth, async (req, res) => {
 
         // Fetch the friends list
         const friends = await db.any(`
-            SELECT u.user_id, u.username, u.display_name, 'incoming' AS request_type, 1 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'incoming' AS request_type, 1 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.user_id
             WHERE f.friend_id = $1 AND f.status = 'pending'
 
             UNION
 
-            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'accepted' AS request_type, 2 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
             WHERE f.user_id = $1 AND f.status = 'accepted'
 
             UNION
 
-            SELECT u.user_id, u.username, u.display_name, 'accepted' AS request_type, 2 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'accepted' AS request_type, 2 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.user_id
             WHERE f.friend_id = $1 AND f.status = 'accepted'
 
             UNION
 
-            SELECT u.user_id, u.username, u.display_name, 'outgoing' AS request_type, 3 AS sort_order
+            SELECT u.user_id, u.username, u.display_name, u.profile_photo_path, 'outgoing' AS request_type, 3 AS sort_order
             FROM friends f
             JOIN users u ON u.user_id = f.friend_id
             WHERE f.user_id = $1 AND f.status = 'pending'
@@ -653,21 +750,6 @@ app.get("/social/friends", auth, async (req, res) => {
     }
 });
 
-app.get("/social/recent", auth, async (req, res) => {
-    try {
-        const { user_id } = req.session.user;
-        const tab = 'recent';
-
-        // Fetch the user from the database
-        const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
-
-        res.render("pages/social", { activeTab: tab, user });
-    } catch (err) {
-        console.error("Error fetching user data:", err);
-        res.render("pages/social", { activeTab: 'account', user: req.session.user });
-    }
-});
-
 app.post("/search/:username", auth, async (req, res) => {
     try {
         const { user_id } = req.session.user;
@@ -677,6 +759,10 @@ app.post("/search/:username", auth, async (req, res) => {
         const user = await db.oneOrNone("SELECT user_id FROM users WHERE username = $1;", [username]);
 
         if (!user) {
+            return res.json({ message: `User "${username}" not found.` });
+        }
+
+        if(user_id == user.user_id){
             return res.json({ message: `User "${username}" not found.` });
         }
 
@@ -870,14 +956,102 @@ app.get('/pal', auth, async (req, res) => {
         error: req.query.error,
         success: req.query.success
       });
-    } catch (err) {
-      console.error('Error loading PAL page:', err);
-      res.render('pages/pal', { 
-        user: req.session.user,
-        error: 'Error loading character information. Please try again.'
-      });
+    } catch (error) {
+      console.error('Error rendering pal page:', error);
+      res.status(500).send('Internal server error');
     }
   });
+
+  
+// fetch OpenWeatherMap data:
+app.get('/weatherAPI', auth, async (req, res) => {
+    const { lat, lon} = req.query;
+    // Handling no user coordinates first.
+    if (!lat || !lon) {
+        return res.status(400).json({ error: 'Location not provided; cannot return weather data.' });
+    }
+
+    try {
+        const OpenWeatherMap_API = process.env.WEATHER_API_KEY;
+
+        const weatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}&units=imperial`;
+        const weatherResponse = await fetch(weatherURL);
+        if (!weatherResponse.ok) {
+            throw new Error('Error fetching weather data');
+        }
+        const weatherData = await weatherResponse.json();
+
+        const airQualityURL = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OpenWeatherMap_API}`;
+        const airQualityResponse = await fetch(airQualityURL);
+        if (!airQualityResponse.ok) {
+            throw new Error('Error fetching air quality data');
+        }
+        const airQualityData = await airQualityResponse.json();
+
+        const airQuality = airQualityData.list && airQualityData.list[0] ? airQualityData.list[0].main.aqi : "N/A";
+
+        req.session.weather = {
+            weather: weatherData,
+            airQuality: airQuality,
+            timestamp: Date.now()
+        };
+        req.session.save(err => {
+            if (err) {
+                console.error('Error saving session:', err);
+            }
+            res.redirect('/home?weatherAttempted=true');
+        });
+    } catch (error) {
+        console.error('Error fetching weather data:', error);
+        res.redirect('/home?weatherAttempted=true');
+    }
+});
+
+app.post('/user-profile-content', auth, async (req, res) => {
+try {
+    const { userId } = req.body;
+    
+    // Get the user profile
+    const user = await db.oneOrNone(`
+        SELECT user_id, username, display_name, profile_photo_path, fitness_level, bio, visibility
+        FROM users WHERE user_id = $1
+        `, [userId]);
+    
+    if (!user) {
+        return res.send('<div class="p-4 text-red-500">User not found</div>');
+    }
+
+    const isFriend = await db.oneOrNone(`
+        SELECT 1 FROM friends 
+        WHERE ((user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1))
+          AND status = 'accepted'
+      `, [req.session.user.user_id, userId]);
+      
+    if (user.visibility === 'private' || (user.visibility === 'friends' && !isFriend)) {
+    return res.send('<div class="p-4 text-red-500">Not authorized to view this profile</div>');
+    }
+    
+    // Get recent activities
+    const activities = await db.any(`
+        SELECT al.*, at.activity_name
+        FROM activity_logs al
+        JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+        WHERE al.user_id = $1
+        ORDER BY al.activity_date DESC, al.created_at DESC
+        LIMIT 5
+        `, [userId]);
+    
+    // Render the friend profile content partial
+    res.render('partials/user-profile-content', {
+    layout: false,
+    user: user,
+    activities: activities
+    });
+} catch (error) {
+    console.error('Error fetching profile:', error);
+    res.send('<div class="p-4 text-red-500">Error loading profile. Please try again.</div>');
+}
+});
   
   // Add routes for character customization
   app.post('/pal/customize', auth, async (req, res) => {

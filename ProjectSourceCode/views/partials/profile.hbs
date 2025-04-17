@@ -2,32 +2,50 @@
 
 <form action="/settings/profile" method="POST" enctype="multipart/form-data" class="container mx-auto px-8 mt-10">            
     
-    <div class="mb-6">
-        <label class="block text-gray-700 font-semibold mb-2">Profile Picture</label>
-        <div class="flex items-center space-x-4">
-            <!-- Hidden File Input -->
-            <input 
-                type="file" 
-                name="profilePicture" 
-                id="profilePicture" 
-                accept="image/*" 
-                class="hidden"
-            >
-            <!-- Profile Picture Label (Clickable) -->
-            <label 
-                for="profilePicture" 
-                class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer 
-                    hover:opacity-75 transition-opacity relative group overflow-hidden"
-            >
-                <!-- Default Icon or Image Preview -->
-                <img id="profilePreview" {{#if user.profile_photo_path}}src={{user.profile_photo_path}}{{/if}} class="absolute inset-0 w-full h-full object-cover rounded-full {{#if user.profile_photo_path}}{{else}}hidden{{/if}}">
-                <svg id="defaultIcon" class="w-12 h-12 text-gray-400 z-10 {{#if user.profile_photo_path}}hidden{{/if}}" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
+    <div class="mb-6 flex flex-row">
+        <!-- Profile Picture Section -->
+        <div class="w-1/8">
+            <label class="block text-gray-700 font-semibold mb-2">Profile Picture</label>
+            <div class="flex items-center space-x-4">
+                <!-- Hidden File Input -->
+                <input 
+                    type="file" 
+                    name="profilePicture" 
+                    id="profilePicture" 
+                    accept="image/*" 
+                    class="hidden"
+                >
+                <!-- Profile Picture Label (Clickable) -->
+                <label 
+                    for="profilePicture" 
+                    class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer 
+                        hover:opacity-75 transition-opacity relative group overflow-hidden"
+                >
+                    <!-- Default Icon or Image Preview -->
+                    <img id="profilePreview" {{#if user.profile_photo_path}}src={{user.profile_photo_path}}{{/if}} class="absolute inset-0 w-full h-full object-cover rounded-full {{#if user.profile_photo_path}}{{else}}hidden{{/if}}">
+                    <svg id="defaultIcon" class="w-12 h-12 text-gray-400 z-10 {{#if user.profile_photo_path}}hidden{{/if}}" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </label>
+            </div>
+        </div>
+
+        <!-- Bio Section -->
+        <div class="w-7/8">
+            <label class="block text-gray-700 font-semibold mb-2" for="userBio">
+                About Me
             </label>
+            <textarea 
+                id="userBio" 
+                name="userBio"
+                placeholder="Tell others about your fitness journey..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-500 focus:text-gray-900"
+                maxlength="500"
+                rows="5"
+            >{{user.bio}}</textarea>
+            <p class="text-gray-500 text-sm mt-1">Characters: <span id="bioCharCount">0</span>/500</p>
         </div>
     </div>
-
     <!-- Display Name -->
     <div class="mb-4">
         <label class="block text-gray-700 font-semibold mb-2" for="displayName">
