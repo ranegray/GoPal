@@ -73,48 +73,6 @@ async function createDefaultCharacter(userId) {
  * @param {Object} updates - Character customization updates
  * @returns {Promise<Object>} Updated character
  */
-async function updateCharacter(userId, updates) {
-  try {
-    const updateFields = [];
-    const queryParams = [userId];
-    let paramCounter = 2;
-
-    // Build dynamic query based on provided updates
-    if (updates.character_name) {
-      updateFields.push(`character_name = $${paramCounter++}`);
-      queryParams.push(updates.character_name);
-    }
-    
-    if (updates.hat_choice) {
-      updateFields.push(`hat_choice = $${paramCounter++}`);
-      queryParams.push(updates.hat_choice);
-    }
-    
-    if (updates.color_choice) {
-      updateFields.push(`color_choice = $${paramCounter++}`);
-      queryParams.push(updates.color_choice);
-    }
-    
-    // Add updated_at timestamp
-    updateFields.push('updated_at = CURRENT_TIMESTAMP');
-    
-    if (updateFields.length === 0) {
-      throw new Error('No valid update fields provided');
-    }
-
-    // Execute update
-    return await db.one(
-      `UPDATE character_customizations
-       SET ${updateFields.join(', ')}
-       WHERE user_id = $1
-       RETURNING *`,
-      queryParams
-    );
-  } catch (err) {
-    console.error("Error updating character:", err);
-    throw err;
-  }
-}
 
 /**
  * Award XP for an achievement
@@ -237,7 +195,6 @@ async function awardXp(userId, xpAmount, reason) {
 module.exports = {
   getCharacterInfo,
   createDefaultCharacter,
-  updateCharacter,
   awardXp,
   awardXpForAchievement
 };

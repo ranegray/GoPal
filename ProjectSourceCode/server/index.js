@@ -1052,50 +1052,6 @@ try {
     res.send('<div class="p-4 text-red-500">Error loading profile. Please try again.</div>');
 }
 });
-  
-  // Add routes for character customization
-  app.post('/pal/customize', auth, async (req, res) => {
-    try {
-      const userId = req.session.user.user_id;
-      const { characterName, hatChoice, colorChoice } = req.body;
-      
-      // Update character
-      await updateCharacter(userId, {
-        character_name: characterName,
-        hat_choice: hatChoice,
-        color_choice: colorChoice
-      });
-      
-      res.redirect('/pal?success=Character updated successfully');
-    } catch (err) {
-      console.error('Error updating character:', err);
-      res.redirect('/pal?error=Failed to update character');
-    }
-  });
-  
-  // Add route for manual XP awards (for testing)
-  app.post('/pal/award-xp', auth, async (req, res) => {
-    try {
-      const userId = req.session.user.user_id;
-      const xpAmount = parseInt(req.body.xpAmount, 10);
-      const reason = req.body.reason || 'Manual award';
-      
-      if (isNaN(xpAmount) || xpAmount <= 0) {
-        return res.redirect('/pal?error=Invalid XP amount');
-      }
-      
-      const result = await awardXp(userId, xpAmount, reason);
-      
-      if (result.didLevelUp) {
-        return res.redirect('/pal?success=Congratulations! Your pal evolved to level ' + result.newLevel);
-      } else {
-        return res.redirect('/pal?success=XP awarded: ' + xpAmount);
-      }
-    } catch (err) {
-      console.error('Error awarding XP:', err);
-      res.redirect('/pal?error=Failed to award XP');
-    }
-  });
 
 const server = app.listen(3000);
 module.exports = server;
