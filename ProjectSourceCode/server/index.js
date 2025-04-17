@@ -648,14 +648,6 @@ app.get('/social/recent', auth, async (req, res) => {
         let activities = [];
         let achievements = [];
 
-        // Fetch user's unread notifications
-        const notifications = await db.any(
-            `SELECT * FROM notifications 
-            WHERE user_id = $1 AND is_read = FALSE 
-            ORDER BY created_at DESC LIMIT 10`,
-            [user_id]
-        );
-
         if (friends.length > 0) {
             // Fetch recent activities from friends
             activities = await db.any(`
@@ -685,6 +677,14 @@ app.get('/social/recent', auth, async (req, res) => {
                 LIMIT 5;
         `, [friendIds]);
         }
+
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
 
         res.render("pages/social", { activeTab: tab, user, activities, achievements, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
@@ -739,7 +739,7 @@ app.get("/social/friends", auth, async (req, res) => {
             ORDER BY created_at DESC LIMIT 10`,
             [user_id]
         );
-        
+
         res.render("pages/social", { activeTab: tab, user, friends, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error("Error fetching user or friends data:", err);
