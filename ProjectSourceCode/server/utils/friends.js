@@ -4,7 +4,7 @@ async function searchUser() {
         const response = await fetch(`/search/${username}`, { method: "POST" });
         const result = await response.json();
         const message = result.message || "Something went wrong.";
-        document.getElementById("search-result").textContent = message;
+        localStorage.setItem("searchMessage", message); // Save message
         location.reload(); // Refresh the page to update the friend list
     } catch (err) {
         document.getElementById("search-result").textContent = "User not found";
