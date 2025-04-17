@@ -463,6 +463,8 @@ app.post('/api/activities', auth, async (req, res) => {
         if (!activityType) {
             return res.status(400).redirect('/activity?error=Invalid activity type');
         }
+
+        awardXp(userId, 10,  "You are the GOAT");
         
         const activityTypeId = activityType.activity_type_id;
         
