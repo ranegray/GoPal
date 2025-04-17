@@ -1,58 +1,48 @@
 {{!-- views/partials/pal-evolution.hbs --}}
-<div class="bg-white rounded-lg shadow-md p-6 mb-6">
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-2xl font-semibold">{{character.character_name}}</h2>
-    <div class="text-gray-600 font-medium">Level {{character.level}} - {{evolutionStage.name}}</div>
-  </div>
+<div class="flex items-center justify-between mb-4">
+  <div class="text-gray-600 font-medium">Level {{character.level}} - {{evolutionStage.name}}</div>
+</div>
 
-  <div class="flex flex-col md:flex-row">
-    <!-- Character Avatar Display -->
-    <div class="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 bg-blue-100 rounded-lg flex items-center justify-center mb-4 md:mb-0 md:mr-6">
-      <img src="{{characterImage}}" alt="Your Pal" class="max-w-full max-h-full object-contain">
+<div class="flex-grow">
+  <!-- Character Description -->
+  <p class="text-gray-700 mb-4">{{evolutionStage.description}}</p>
+  
+  <!-- XP Progress Bar -->
+  <div class="mb-4">
+    <div class="flex justify-between mb-1">
+      <span class="text-sm font-medium">XP Progress</span>
+      <span class="text-sm font-medium">{{character.xp}} / {{#if nextLevel}}{{nextLevel.min_xp}}{{else}}MAX{{/if}} XP</span>
     </div>
-
-    <div class="flex-grow">
-      <!-- Character Description -->
-      <p class="text-gray-700 mb-4">{{evolutionStage.description}}</p>
-      
-      <!-- XP Progress Bar -->
-      <div class="mb-4">
-        <div class="flex justify-between mb-1">
-          <span class="text-sm font-medium">XP Progress</span>
-          <span class="text-sm font-medium">{{character.xp}} / {{#if nextLevel}}{{nextLevel.min_xp}}{{else}}MAX{{/if}} XP</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-4">
-          {{#if nextLevel}}
-            <div class="bg-blue-600 h-4 rounded-full" style="width: {{multiply (divide character.xp nextLevel.min_xp) 100}}%"></div>
-          {{else}}
-            <div class="bg-green-600 h-4 rounded-full" style="width: 100%"></div>
-          {{/if}}
-        </div>
-      </div>
-
-      <!-- Abilities Unlocked -->
-      <div>
-        <h3 class="text-lg font-medium mb-2">Abilities:</h3>
-        <ul class="list-disc pl-5 space-y-1">
-          {{#each evolutionStage.abilities_unlocked}}
-            <li class="text-gray-700">{{this}}</li>
-          {{/each}}
-        </ul>
-      </div>
-      
+    <div class="w-full bg-gray-200 rounded-full h-4">
       {{#if nextLevel}}
-        <!-- Next Evolution Preview -->
-        <div class="mt-4 p-3 bg-gray-100 rounded-lg">
-          <h3 class="text-md font-medium">Next Evolution: {{nextLevel.name}} (Level {{nextLevel.level}})</h3>
-          <p class="text-sm text-gray-600">{{xpToNextLevel}} XP needed to evolve</p>
-        </div>
+        <div class="bg-blue-600 h-4 rounded-full" style="width: {{multiply (divide character.xp nextLevel.min_xp) 100}}%"></div>
       {{else}}
-        <!-- Max Level Message -->
-        <div class="mt-4 p-3 bg-yellow-100 rounded-lg">
-          <h3 class="text-md font-medium">Maximum Level Reached!</h3>
-          <p class="text-sm text-gray-600">You've reached the highest evolution stage.</p>
-        </div>
+        <div class="bg-green-600 h-4 rounded-full" style="width: 100%"></div>
       {{/if}}
     </div>
   </div>
+
+  <!-- Abilities Unlocked -->
+  <div>
+    <h3 class="text-lg font-medium mb-2">Abilities:</h3>
+    <ul class="list-disc pl-5 space-y-1">
+      {{#each evolutionStage.abilities_unlocked}}
+        <li class="text-gray-700">{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  
+  {{#if nextLevel}}
+    <!-- Next Evolution Preview -->
+    <div class="mt-4 p-3 bg-gray-100 rounded-lg">
+      <h3 class="text-md font-medium">Next Evolution: {{nextLevel.name}} (Level {{nextLevel.level}})</h3>
+      <p class="text-sm text-gray-600">{{xpToNextLevel}} XP needed to evolve</p>
+    </div>
+  {{else}}
+    <!-- Max Level Message -->
+    <div class="mt-4 p-3 bg-yellow-100 rounded-lg">
+      <h3 class="text-md font-medium">Maximum Level Reached!</h3>
+      <p class="text-sm text-gray-600">You've reached the highest evolution stage.</p>
+    </div>
+  {{/if}}
 </div>
