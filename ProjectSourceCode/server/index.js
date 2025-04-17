@@ -648,6 +648,14 @@ app.get('/social/recent', auth, async (req, res) => {
         let activities = [];
         let achievements = [];
 
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
+
         if (friends.length > 0) {
             // Fetch recent activities from friends
             activities = await db.any(`
@@ -678,7 +686,7 @@ app.get('/social/recent', auth, async (req, res) => {
         `, [friendIds]);
         }
 
-        res.render("pages/social", { activeTab: tab, user, activities, achievements});
+        res.render("pages/social", { activeTab: tab, user, activities, achievements, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error('Error fetching friend activities:', err);
         return res.status(500).json({ error: 'Failed to fetch friend activities' });
@@ -724,7 +732,15 @@ app.get("/social/friends", auth, async (req, res) => {
             ORDER BY sort_order, username;
         `, [user_id]);
 
-        res.render("pages/social", { activeTab: tab, user, friends });
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
+        
+        res.render("pages/social", { activeTab: tab, user, friends, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error("Error fetching user or friends data:", err);
         res.render("pages/social", { activeTab: 'account', user: req.session.user });
