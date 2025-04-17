@@ -34,4 +34,3 @@ VALUES (
   (SELECT user_id FROM users WHERE username = 'alice'),
   (SELECT id FROM achievements WHERE code = 'COMPLETE_5_ACTIVITIES')
 )
-ON CONFLICT DO NOTHING;
