@@ -528,9 +528,10 @@ app.post('/api/journal', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
       const { 'journal-entry': journalEntry } = req.body;
+      const { 'journal-title': journalTitle } = req.body;
   
       // Validate that a journal entry was provided
-      if (!journalEntry) {
+      if (!journalEntry || !journalTitle) {
         console.error('No journal entry provided');
         return res.status(400).redirect('/journal');
       }
@@ -544,8 +545,8 @@ app.post('/api/journal', auth, async (req, res) => {
   
       // Insert the journal entry into the journal_logs table
       await db.none(
-        `INSERT INTO journal_logs (user_id, journal_entry, entry_date, entry_time) VALUES ($1, $2, $3, $4)`,
-        [userId, journalEntry, currentDate, currentTime]
+        `INSERT INTO journal_logs (user_id, journal_entry, entry_date, entry_time, journal_title) VALUES ($1, $2, $3, $4, $5)`,
+        [userId, journalEntry, currentDate, currentTime, journalTitle]
       );
   
       return res.status(201).redirect('/journal');
@@ -1099,4 +1100,4 @@ try {
 });
 
 //Ensure App is Listening For Requests
-module.exports = app.listen(process.env.PORT);
+module.exports = app.listen(3000);
