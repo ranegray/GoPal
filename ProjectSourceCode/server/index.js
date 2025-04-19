@@ -268,7 +268,7 @@ app.get("/settings/:tab?",auth, async (req, res) => {
     try{
         var user = {}
         const tab = req.params.tab;
-        const allowedTabs = ["account", "profile", "pal-settings"];
+        const allowedTabs = ["account", "profile", "pal-settings", "alert-settings"];
         if (!tab){
             return res.redirect('/settings/account');
         }
