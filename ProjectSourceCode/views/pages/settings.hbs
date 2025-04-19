@@ -19,6 +19,8 @@
           <a href="/settings/pal-settings"
             class="sub-nav-button px-10 py-4 bg-white text-black hover:bg-gray-300 rounded-xl text-lg font-semibold">Pal
             Settings</a>
+            <a href="/settings/alert-settings"
+            class="sub-nav-button px-10 py-4 bg-white text-black hover:bg-gray-300 rounded-xl text-lg font-semibold">Alerts</a>
         </nav>
       </div>
 
@@ -26,6 +28,7 @@
         {{#if (eq activeTab "account")}} {{> account}} {{/if}}
         {{#if (eq activeTab "profile")}} {{> profile}} {{/if}}
         {{#if (eq activeTab "pal-settings")}} {{> pal-settings}} {{/if}}
+        {{#if (eq activeTab "alert-settings")}} {{> alert-settings alertSettings=alertSettings}} {{/if}}
       </div>
     </div>
   </main>
