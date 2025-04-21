@@ -242,7 +242,5 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Error saving character. Please try again.');
       });
     });
-
-
     
 });

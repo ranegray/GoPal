@@ -119,6 +119,65 @@ const auth = (req, res, next) => {
     next();
 };
 
+//START CHARACTER MIDDLEWARE
+// Dynamic middleware to assign character customization data
+app.use(auth, async (req, res, next) => {
+    // Only process for authenticated users (auth middleware should already handle this)
+    try {
+      const userId = req.session.user.user_id;
+      
+      // Get character information using your existing utility function
+      const characterInfo = await getCharacterInfo(userId);
+      
+      // Determine the character image path based on customizations
+      let imagePath = '../../extra_resources/character_assets/';
+      let characterImage;
+      const character = characterInfo.character;
+      
+      if (!character.hat_choice || character.hat_choice === 'none') {
+        // No hat selected
+        if (character.color_choice === 'default') {
+          // No color selected either, use base monster
+          characterImage = imagePath + 'basemonster.svg';
+        } else {
+          // Color selected but no hat
+          characterImage = imagePath + `basemonster_${character.color_choice}.svg`;
+        }
+      } else {
+        // Hat selected
+        if (character.color_choice === 'default') {
+          // Hat selected but no color, use default color with hat
+          characterImage = imagePath + `monster_default_${character.hat_choice}.svg`;
+        } else {
+          // Both hat and color selected
+          characterImage = imagePath + `monster_${character.color_choice}_${character.hat_choice}.svg`;
+        }
+      }
+      
+      // Make character data available to all views
+      res.locals.character = character;
+      res.locals.characterName = character.character_name;
+      res.locals.characterImage = characterImage;
+      res.locals.hatChoice = character.hat_choice || 'none';
+      res.locals.colorChoice = character.color_choice || 'default';
+      res.locals.evolutionStage = characterInfo.evolutionStage;
+      res.locals.nextLevel = characterInfo.nextLevel;
+      res.locals.xpToNextLevel = characterInfo.xpToNextLevel;
+    } catch (err) {
+      console.error('Error loading character data in middleware:', err);
+      // Set defaults in case of error
+      res.locals.characterName = "Your Pal";
+      res.locals.characterImage = "../../extra_resources/character_assets/basemonster.svg";
+      res.locals.hatChoice = 'none';
+      res.locals.colorChoice = 'default';
+    }
+    
+    // Continue to the next middleware/route handler
+    next();
+  });
+//END CHARACTER MIDDLEWARE
+
+
 app.get('/login', (req, res) => {
     res.render('pages/login');
 });
@@ -956,13 +1015,9 @@ app.get('/api/character', auth, async (req, res) => {
     }
   });
   
-  // Replace your existing /pal route with this updated one
-app.get('/pal', auth, async (req, res) => {
+  app.get('/pal', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
-      
-      // Get character information using the new utility
-      const characterInfo = await getCharacterInfo(userId);
       
       // Get user's unread notifications
       const notifications = await db.any(
@@ -972,51 +1027,22 @@ app.get('/pal', auth, async (req, res) => {
         [userId]
       );
       
-      // Determine the character image path based on customizations
-      let imagePath = '../../extra_resources/character_assets/';
-      let characterImage;
-      const character = characterInfo.character;
-      
-      if (!character.hat_choice || character.hat_choice === 'none') {
-        // No hat selected
-        if (character.color_choice === 'default') {
-          // No color selected either, use base monster
-          characterImage = imagePath + 'basemonster.svg';
-        } else {
-          // Color selected but no hat
-          characterImage = imagePath + `basemonster_${character.color_choice}.svg`;
-        }
-      } else {
-        // Hat selected
-        if (character.color_choice === 'default') {
-          // Hat selected but no color, use default color with hat
-          characterImage = imagePath + `monster_default_${character.hat_choice}.svg`;
-        } else {
-          // Both hat and color selected
-          characterImage = imagePath + `monster_${character.color_choice}_${character.hat_choice}.svg`;
-        }
-      }
+      // Character data is already in res.locals, no need to fetch it again
       
       res.render('pages/pal', {
         user: req.session.user,
-        character: characterInfo.character,
-        characterName: character.character_name,
-        characterImage: characterImage,
-        hatChoice: character.hat_choice || 'none',
-        colorChoice: character.color_choice || 'default',
-        evolutionStage: characterInfo.evolutionStage,
-        nextLevel: characterInfo.nextLevel,
-        xpToNextLevel: characterInfo.xpToNextLevel,
         notifications: notifications,
         hasNotifications: notifications.length > 0,
         error: req.query.error,
         success: req.query.success
+        // No need to pass character data - it's already in res.locals
       });
     } catch (error) {
       console.error('Error rendering pal page:', error);
       res.status(500).send('Internal server error');
     }
   });
+  //END CHARACTER WORK
 
   
 // fetch OpenWeatherMap data:
