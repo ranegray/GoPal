@@ -262,6 +262,59 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 }); 
 
+//Character Animation work:
+document.addEventListener('DOMContentLoaded', () => {
+  const animations = ['float-animation', 'wiggle-animation', 'shimmy-animation', 'heartbeat-animation'];
+  const img = document.querySelector('.character-card img');
+  
+  if (img) {
+    // Function to apply a random animation
+    function applyRandomAnimation() {
+      // Remove all animation classes
+      img.classList.remove(...animations);
+      
+      // Pick a random animation
+      const random = animations[Math.floor(Math.random() * animations.length)];
+      
+      // Add the chosen animation class
+      img.classList.add(random);
+    }
+
+    // Call the function immediately to apply the first animation
+    applyRandomAnimation();
+
+    // Set an interval to cycle through animations every 3 seconds
+    setInterval(applyRandomAnimation, 3000); // Adjust 3000 to change the time interval
+
+    // Add a click event listener to the character image for the spin animation
+    img.addEventListener('click', function() {
+      // Remove any previous random animation classes
+      img.classList.remove(...animations);
+      
+      // Remove the spin-once animation to reset it
+      img.classList.remove('spin-once-animation');
+      
+      // Trigger the spin-once animation
+      img.classList.add('spin-once-animation');
+      
+      // After the spin animation ends, restart the random animations
+      img.addEventListener('animationend', function handleSpinEnd(event) {
+        if (event.animationName === 'spin-once') {
+          // Once the spin animation ends, remove the spin class
+          img.classList.remove('spin-once-animation');
+          
+          // Resume random animation
+          applyRandomAnimation();
+          
+          // Remove the event listener so it doesn't trigger again
+          img.removeEventListener('animationend', handleSpinEnd);
+        }
+      });
+    });
+  }
+});
+
+
 // Friend Profile Modal
 document.addEventListener('DOMContentLoaded', function() {
   // Check if we're on the friends page

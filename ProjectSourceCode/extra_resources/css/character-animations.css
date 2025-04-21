@@ -1,0 +1,59 @@
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(2deg); }
+    75% { transform: rotate(-2deg); }
+  }
+
+  @keyframes shimmy {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+
+  @keyframes quickSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.1); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    70% { transform: scale(1); }
+  }
+
+  @keyframes spin-once {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .float-animation {
+    animation: float 0.6s ease-in-out infinite;
+  }
+  
+  .wiggle-animation {
+    animation: wiggle 0.6s ease-in-out infinite;
+  }
+
+  .shimmy-animation {
+    animation: shimmy 0.4s ease-in-out infinite;
+  }
+
+  .spin-once {
+    animation: quickSpin 0.6s ease-in-out;
+  }
+
+  .heartbeat-animation {
+    animation: heartbeat 1.5s ease-in-out infinite;
+  }
+
+  .spin-once-animation {
+    animation: spin-once 1s ease-out forwards;
+  }
+  

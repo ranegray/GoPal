@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.getElementById('characterName');
     const hatOptions = document.querySelectorAll('.hat-option');
     const colorOptions = document.querySelectorAll('.color-option');
-    
+
     // Current selections
     let currentSelections = {
       name: 'Unnamed Pal',
@@ -242,4 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Error saving character. Please try again.');
       });
     });
+
+
+    
 });
