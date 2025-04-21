@@ -981,19 +981,19 @@ app.get('/pal', auth, async (req, res) => {
         // No hat selected
         if (character.color_choice === 'default') {
           // No color selected either, use base monster
-          characterImage = imagePath + 'basemonster.jpeg';
+          characterImage = imagePath + 'basemonster.svg';
         } else {
           // Color selected but no hat
-          characterImage = imagePath + `basemonster_${character.color_choice}.jpeg`;
+          characterImage = imagePath + `basemonster_${character.color_choice}.svg`;
         }
       } else {
         // Hat selected
         if (character.color_choice === 'default') {
           // Hat selected but no color, use default color with hat
-          characterImage = imagePath + `monster_default_${character.hat_choice}.jpeg`;
+          characterImage = imagePath + `monster_default_${character.hat_choice}.svg`;
         } else {
           // Both hat and color selected
-          characterImage = imagePath + `monster_${character.color_choice}_${character.hat_choice}.jpeg`;
+          characterImage = imagePath + `monster_${character.color_choice}_${character.hat_choice}.svg`;
         }
       }
       

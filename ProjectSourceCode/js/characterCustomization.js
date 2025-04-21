@@ -120,19 +120,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // No hat selected
         if (color === 'default') {
           // No color selected either, use base monster
-          imagePath = imagePath + `basemonster.jpeg`;
+          imagePath = imagePath + `basemonster.svg`;
         } else {
           // Color selected but no hat
-          imagePath = imagePath + `basemonster_${color}.jpeg`;
+          imagePath = imagePath + `basemonster_${color}.svg`;
         }
       } else {
         // Hat selected
         if (color === 'default') {
           // Hat selected but no color, use default color with hat
-          imagePath = imagePath + `monster_default_${hat}.jpeg`;
+          imagePath = imagePath + `monster_default_${hat}.svg`;
         } else {
           // Both hat and color selected
-          imagePath = imagePath + `monster_${color}_${hat}.jpeg`;
+          imagePath = imagePath + `monster_${color}_${hat}.svg`;
         }
       }
       
