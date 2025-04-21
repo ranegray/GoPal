@@ -204,20 +204,36 @@ app.post('/delete-account', auth, async (req, res) => {
     }
 });
 
-app.get('/home',auth, (req, res) => {
-    const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
-    const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
-    const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
-    if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
-        //render w/o the weather data
-        return res.render('pages/home', {user: req.session.user});
-    } else{
-        //render with the weather data
-        res.render('pages/home', {
-            user: req.session.user, 
-            weather: req.session.weather.weather,
-            airQuality: req.session.weather.airQuality
-        });
+app.get('/home',auth, async (req, res) => {
+    try{
+        const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
+        const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
+
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [req.session.user.user_id]
+        );
+
+        if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
+            //render w/o the weather data
+            return res.render('pages/home', {user: req.session.user, notifications, hasNotifications: notifications.length > 0});
+        } else{
+            //render with the weather data
+            res.render('pages/home', {
+                user: req.session.user, 
+                weather: req.session.weather.weather,
+                airQuality: req.session.weather.airQuality,
+                notifications,
+                hasNotifications: notifications.length > 0
+            });
+        }
+    } catch (err){
+        console.error(err);
+        res.render("pages/login");
     }
 });
 
@@ -281,7 +297,17 @@ app.get("/settings/:tab?",auth, async (req, res) => {
         {
             user.birthday = user.birthday.toISOString().split("T")[0];
         }
-        res.render("pages/settings", { activeTab: tab, user: user });
+
+
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [req.session.user.user_id]
+        );
+
+        res.render("pages/settings", { activeTab: tab, user: user, notifications, hasNotifications: notifications.length > 0});
     } catch(err) {
         console.error(err);
         res.render("pages/settings", { activeTab: 'account', user: req.session.user });
@@ -300,11 +326,22 @@ app.get("/journal",auth, async (req, res) => {
         
         const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
 
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [userId]
+        );
+
         res.render("pages/journal", {
             user: req.session.user, 
             journals: journals,
-            journalStats: journalStats
+            journalStats: journalStats,
+            notifications,
+            hasNotifications: notifications.length > 0
         });
+
     } catch(err) {
         console.error(err);
         res.render("pages/journal", {user: req.session.user });
@@ -679,7 +716,15 @@ app.get('/social/recent', auth, async (req, res) => {
         `, [friendIds]);
         }
 
-        res.render("pages/social", { activeTab: tab, user, activities, achievements});
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
+
+        res.render("pages/social", { activeTab: tab, user, activities, achievements, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error('Error fetching friend activities:', err);
         return res.status(500).json({ error: 'Failed to fetch friend activities' });
@@ -725,7 +770,15 @@ app.get("/social/friends", auth, async (req, res) => {
             ORDER BY sort_order, username;
         `, [user_id]);
 
-        res.render("pages/social", { activeTab: tab, user, friends });
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
+
+        res.render("pages/social", { activeTab: tab, user, friends, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error("Error fetching user or friends data:", err);
         res.render("pages/social", { activeTab: 'account', user: req.session.user });
@@ -930,6 +983,14 @@ app.get('/api/character', auth, async (req, res) => {
           characterImage = imagePath + `monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
         }
       }
+
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [userId]
+        );
       
       // Render the pal page with the character data
       res.render('pages/pal', {
@@ -937,7 +998,9 @@ app.get('/api/character', auth, async (req, res) => {
         characterName: characterData.characterName,
         characterImage: characterImage,
         hatChoice: characterData.hatChoice,
-        colorChoice: characterData.colorChoice
+        colorChoice: characterData.colorChoice,
+        notifications,
+        hasNotifications: notifications.length > 0
       });
     } catch (error) {
       console.error('Error rendering pal page:', error);
