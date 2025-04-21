@@ -16,6 +16,7 @@ const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
 const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
 const { createAchievementNotifications } = require("./utils/notification-utils.js");
+const { getCharacterInfo, updateCharacter, awardXp } = require("./utils/character-utils.js");
 
 const app = express();
 
@@ -61,6 +62,24 @@ const hbs = handlebars.create({
     pluralize: function (count, singular, plural) {
       return count === 1 ? singular : plural;
     },
+    gt: function (a, b) {
+        return a > b;
+    },
+    lt: function (a, b) {
+        return a < b;
+    },
+    subtract: function (a, b) {
+        return a - b;
+    },
+    divide: function (a, b) {
+        return a / b;
+    },
+    multiply: function (a, b) {
+        return a * b;
+    },
+    lookup: function (obj, key) {
+        return obj[key];
+    }
   },
 });
 
@@ -481,6 +500,8 @@ app.post('/api/activities', auth, async (req, res) => {
         if (!activityType) {
             return res.status(400).redirect('/activity?error=Invalid activity type');
         }
+
+        awardXp(userId, 10,  "You are the GOAT");
         
         const activityTypeId = activityType.activity_type_id;
         
@@ -935,72 +956,61 @@ app.get('/api/character', auth, async (req, res) => {
     }
   });
   
-  // Update the pal route to fetch character data from the database
-  app.get('/pal', auth, async (req, res) => {
+  // Replace your existing /pal route with this updated one
+app.get('/pal', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
       
-      // Query the database for the user's character
-      const result = await db.oneOrNone(
-        'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+      // Get character information using the new utility
+      const characterInfo = await getCharacterInfo(userId);
+      
+      // Get user's unread notifications
+      const notifications = await db.any(
+        `SELECT * FROM notifications 
+         WHERE user_id = $1 AND is_read = FALSE 
+         ORDER BY created_at DESC LIMIT 10`,
         [userId]
       );
       
-      let characterData = {
-        characterName: 'Unnamed Pal',
-        hatChoice: 'none',
-        colorChoice: 'default'
-      };
-      
-      if (result) {
-        characterData = {
-          characterName: result.character_name,
-          hatChoice: result.hat_choice || 'none',
-          colorChoice: result.color_choice || 'default'
-        };
-      }
-      
       // Determine the character image path based on customizations
-      // TODO: Work on a way to connect this imagePath to characterCustomization imagePath
       let imagePath = '../../extra_resources/character_assets/';
       let characterImage;
-      if (characterData.hatChoice === 'none') {
+      const character = characterInfo.character;
+      
+      if (!character.hat_choice || character.hat_choice === 'none') {
         // No hat selected
-        if (characterData.colorChoice === 'default') {
+        if (character.color_choice === 'default') {
           // No color selected either, use base monster
           characterImage = imagePath + 'basemonster.jpeg';
         } else {
           // Color selected but no hat
-          characterImage = imagePath + `basemonster_${characterData.colorChoice}.jpeg`;
+          characterImage = imagePath + `basemonster_${character.color_choice}.jpeg`;
         }
       } else {
         // Hat selected
-        if (characterData.colorChoice === 'default') {
+        if (character.color_choice === 'default') {
           // Hat selected but no color, use default color with hat
-          characterImage = imagePath + `monster_default_${characterData.hatChoice}.jpeg`;
+          characterImage = imagePath + `monster_default_${character.hat_choice}.jpeg`;
         } else {
           // Both hat and color selected
-          characterImage = imagePath + `monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
+          characterImage = imagePath + `monster_${character.color_choice}_${character.hat_choice}.jpeg`;
         }
       }
-
-        // Fetch user's unread notifications
-        const notifications = await db.any(
-            `SELECT * FROM notifications 
-            WHERE user_id = $1 AND is_read = FALSE 
-            ORDER BY created_at DESC LIMIT 10`,
-            [userId]
-        );
       
-      // Render the pal page with the character data
       res.render('pages/pal', {
         user: req.session.user,
-        characterName: characterData.characterName,
+        character: characterInfo.character,
+        characterName: character.character_name,
         characterImage: characterImage,
-        hatChoice: characterData.hatChoice,
-        colorChoice: characterData.colorChoice,
-        notifications,
-        hasNotifications: notifications.length > 0
+        hatChoice: character.hat_choice || 'none',
+        colorChoice: character.color_choice || 'default',
+        evolutionStage: characterInfo.evolutionStage,
+        nextLevel: characterInfo.nextLevel,
+        xpToNextLevel: characterInfo.xpToNextLevel,
+        notifications: notifications,
+        hasNotifications: notifications.length > 0,
+        error: req.query.error,
+        success: req.query.success
       });
     } catch (error) {
       console.error('Error rendering pal page:', error);
@@ -1099,5 +1109,5 @@ try {
 }
 });
 
-//Ensure App is Listening For Requests
-module.exports = app.listen(3000);
+const server = app.listen(3000);
+module.exports = server;
