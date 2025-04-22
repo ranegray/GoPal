@@ -19,12 +19,12 @@
     action="/api/journal"
     method="POST"
     id="journal-form"
-    class="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-3/4 lg:w-1/2 max-w-2xl mx-auto mt-16 md:mt-20" {{! Adjusted width/max-width for responsiveness }}
+    class="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-3/4 lg:w-1/2 max-w-2xl mx-auto mt-16 md:mt-20" 
   >
     {{! Modal Header }}
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold">Journal Entry</h2>
-      <button type="button" id="journal-close-modal-button" title="Close modal" class="text-gray-500 hover:text-gray-700"> {{! Changed SVG to button for better semantics }}
+      <button type="button" id="journal-close-modal-button" title="Close modal" class="text-gray-500 hover:text-gray-700"> 
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x">
             <path stroke="none" d="M0 0h24v24H0z" fill="none" />
             <path d="M18 6l-12 12" />
@@ -56,7 +56,7 @@
       <textarea
         id="journal-entry"
         name="journal-entry"
-        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden min-h-[100px] max-h-80" {{! **** Added resize classes **** }}
+        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden min-h-[100px] max-h-80" 
         maxlength="1000"
         rows="4" 
       ></textarea>

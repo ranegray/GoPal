@@ -1155,4 +1155,12 @@ try {
 });
 
 //Ensure App is Listening For Requests
-module.exports = app.listen(3000);
+// Start the server and store the instance
+const server = app.listen(3000, () => {
+    console.log("Database connection successful"); // Your existing log
+    console.log("Server listening on port 3000"); // Optional log
+  });
+  
+  // Export both the app and the server instance
+module.exports = { app, server };
+  // --- End of changes ---
