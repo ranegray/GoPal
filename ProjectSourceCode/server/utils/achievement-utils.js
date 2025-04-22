@@ -1,5 +1,7 @@
+// server/utils/achievement-utils.js
 const db = require("../db.js");
 const pgp = require("pg-promise")();
+const { awardXpForAchievement } = require("./character-utils.js");
 
 async function checkAndAwardAchievements(userId) {
   try {
@@ -50,6 +52,12 @@ async function checkAndAwardAchievements(userId) {
               ' ON CONFLICT (user_id, achievement_id) DO NOTHING';
           
           await db.none(query);
+          
+          // Award XP for each achievement
+          for (const achievementId of newlyUnlocked) {
+              await awardXpForAchievement(userId, achievementId);
+          }
+          
           console.log(`User ${userId} unlocked achievements: ${newlyUnlocked.join(', ')}`);
           return newlyUnlocked;
       }
