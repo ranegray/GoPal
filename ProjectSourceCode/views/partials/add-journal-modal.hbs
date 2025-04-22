@@ -42,14 +42,14 @@
         type="text"
         id="journal-title"
         name="journal-title"
-        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" {{! Added focus styles }}
+        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" 
         required
         maxlength="100"
       >
     </div>
 
     {{! Journal Entry Textarea }}
-    <div class="mb-6"> {{! Increased bottom margin before buttons }}
+    <div class="mb-6"> 
       <label for="journal-entry" class="block text-sm font-medium text-gray-700 mb-1">
         Entry
       </label>
@@ -58,12 +58,12 @@
         name="journal-entry"
         class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden min-h-[100px] max-h-80" {{! **** Added resize classes **** }}
         maxlength="1000"
-        rows="4" {{! Initial row hint }}
+        rows="4" 
       ></textarea>
     </div>
 
     {{! Action Buttons }}
-    <div class="flex justify-end space-x-3"> {{! Use flex for button alignment }}
+    <div class="flex justify-end space-x-3"> 
       <button
         type="button"
         id="journal-cancel-button"
