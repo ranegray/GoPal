@@ -224,33 +224,55 @@ if (window.location.pathname === "/settings/pal-settings") {
 }
 
 //ensures search message stays after friends list reload
-window.addEventListener("DOMContentLoaded", () => {
-  const storedMessage = localStorage.getItem("searchMessage");
-  if (storedMessage) {
-      document.getElementById("search-result").textContent = storedMessage;
-      localStorage.removeItem("searchMessage"); // Clear it after displaying
-  }
-});
-// Separate DOMContentLoaded listener for Journal Modal logic
 document.addEventListener("DOMContentLoaded", function () {
   // --- Journal Modal Elements ---
   const journalModal = document.getElementById("journal-modal");
   const journalForm = document.getElementById("journal-form");
-  const journalCloseModalButton = document.getElementById("journal-close-modal-button");
-  const journalCancelButton = document.getElementById("journal-cancel-button"); 
+  const journalCloseModalButton = document.getElementById( "journal-close-modal-button" );
+  const journalCancelButton = document.getElementById("journal-cancel-button");
   const journalAddButton = document.getElementById("journal-add-button");
+  const journalEntryTextarea = document.getElementById('journal-entry'); // Get textarea
 
-  if (journalAddButton) {
-    journalAddButton.addEventListener("click", function () {
+  // --- Textarea Auto-Resizing Logic ---
+  const autoResizeTextarea = () => {
+    if (journalEntryTextarea) {
+      journalEntryTextarea.style.height = 'auto'; // Reset height
+      journalEntryTextarea.style.height = (journalEntryTextarea.scrollHeight) + 'px'; // Set to content height
+    }
+  };
+
+  // Add input listener to the textarea for dynamic resizing while typing
+  if (journalEntryTextarea) {
+    journalEntryTextarea.addEventListener('input', autoResizeTextarea);
+  } else {
+     console.error("Textarea with ID 'journal-entry' not found for resizing.");
+  }
+
+  // --- Modal Open/Close Logic ---
+  function openModal() {
+    if (journalModal) {
       journalModal.classList.remove("hidden");
       journalModal.classList.add("flex");
-    });
+      autoResizeTextarea(); // Resize textarea when modal opens
+      // Optional: Focus the first input field
+      const firstInput = journalForm.querySelector('input, textarea');
+      if(firstInput) {
+        firstInput.focus();
+      }
+    }
   }
 
   function closeModal() {
-    journalModal.classList.add("hidden");
-    journalModal.classList.remove("flex");
-    journalForm.reset();
+    if (journalModal && journalForm) {
+      journalModal.classList.add("hidden");
+      journalModal.classList.remove("flex");
+      journalForm.reset(); // Reset form fields
+      autoResizeTextarea(); // Resize textarea back to minimum after reset
+    }
+  }
+
+  if (journalAddButton) {
+    journalAddButton.addEventListener("click", openModal);
   }
 
   if (journalCloseModalButton) {
@@ -260,7 +282,27 @@ document.addEventListener("DOMContentLoaded", function () {
   if (journalCancelButton) {
     journalCancelButton.addEventListener("click", closeModal);
   }
-}); 
+
+  // --- Optional Accessibility Improvements ---
+
+  // Close modal on Escape key press
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !journalModal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // Close modal on background click (optional)
+  if (journalModal) {
+      journalModal.addEventListener('click', function (event) {
+          // Check if the click was directly on the modal background itself
+          if (event.target === journalModal) {
+              closeModal();
+          }
+      });
+  }
+
+});
 
 // Friend Profile Modal
 document.addEventListener('DOMContentLoaded', function() {
