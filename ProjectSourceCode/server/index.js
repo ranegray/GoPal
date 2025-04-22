@@ -558,32 +558,57 @@ app.post('/api/journal', auth, async (req, res) => {
   });
 
 
-
 // Delete an activity
-app.post('/api/activities/:id', auth, async (req, res) => {
+app.post('/api/journal/:id', auth, async (req, res) => {
     try {
-      const userId = req.session.user.user_id;
-      const activityId = req.params.id;
-      
-      // Ensure the activity belongs to the user
-      const activity = await db.oneOrNone(
-        'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
-        [activityId, userId]
-      );
-      
-      if (!activity) {
-        return res.status(404).redirect('/activity?error=Activity not found');
-      }
-      
-      await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
-      
-      // Redirect back to activities page
-      res.redirect('/activity?success=Activity deleted');
+        const userId = req.session.user.user_id;
+        const entryId = req.params.id;
+        
+        // Ensure the journal entry belongs to the user
+        const journalEntry = await db.oneOrNone(
+        'SELECT * FROM journal_logs WHERE entry_id = $1 AND user_id = $2',
+        [entryId, userId]
+        );
+        
+        if (!journalEntry) {
+        return res.status(404).redirect('/journal?error=Journal entry not found');
+        }
+        
+        await db.none('DELETE FROM journal_logs WHERE entry_id = $1', [entryId]);
+        
+        // Redirect back to activities page
+        res.redirect('/journal?success=Journal entry deleted');
     } catch (err) {
-      console.error('Error deleting activity:', err);
-      res.redirect('/activity?error=Error deleting activity');
+        console.error('Error deleting journal entry:', err);
+        res.redirect('/journal?error=Error deleting journal entry');
     }
   });
+
+// Delete a journal entry
+app.post('/api/activities/:id', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        const activityId = req.params.id;
+        
+        // Ensure the activity belongs to the user
+        const activity = await db.oneOrNone(
+        'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+        [activityId, userId]
+        );
+        
+        if (!activity) {
+        return res.status(404).redirect('/activity?error=Activity not found');
+        }
+        
+        await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
+        
+        // Redirect back to activities page
+        res.redirect('/activity?success=Activity deleted');
+    } catch (err) {
+        console.error('Error deleting activity:', err);
+        res.redirect('/activity?error=Error deleting activity');
+    }
+    });
 
 // Add endpoints to fetch notifications
 app.get('/api/notifications', auth, async (req, res) => {
