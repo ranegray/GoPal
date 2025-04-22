@@ -171,7 +171,7 @@ app.use(auth, async (req, res, next) => {
       res.locals.hatChoice = 'none';
       res.locals.colorChoice = 'default';
     }
-    
+
     // Continue to the next middleware/route handler
     next();
   });
