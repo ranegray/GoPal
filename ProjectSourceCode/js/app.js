@@ -223,6 +223,16 @@ if (window.location.pathname === "/settings/pal-settings") {
   });
 }
 
+//ensures search message stays after friends list reload
+window.addEventListener("DOMContentLoaded", () => {
+  const storedMessage = localStorage.getItem("searchMessage");
+  if (storedMessage) {
+      document.getElementById("search-result").textContent = storedMessage;
+      localStorage.removeItem("searchMessage"); // Clear it after displaying
+  }
+});
+
+// Separate DOMContentLoaded listener for Journal Modal logic
 document.addEventListener("DOMContentLoaded", function () {
   // --- Journal Modal Elements ---
   const journalModal = document.getElementById("journal-modal");
