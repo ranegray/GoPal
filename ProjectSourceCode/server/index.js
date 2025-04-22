@@ -947,7 +947,37 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
         res.status(500).json({ message: "Failed to decline friend request." });
     }
 });
-
+app.post('/comment/:activityId', auth, async (req, res) => {
+    try {
+      const { user_id, username } = req.session.user;  // who is commenting
+      const { activityId } = req.params;
+      const { comment } = req.body;  // comment text sent from client
+  
+      // Find the activity to know who posted it
+      const activity = await db.one(`
+        SELECT al.user_id AS owner_id, at.activity_name
+        FROM activity_logs al
+        JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+        WHERE al.activity_id = $1
+      `, [activityId]);
+  
+      // Insert into notifications
+      await db.none(`
+        INSERT INTO notifications (user_id, type, reference_id, title, message)
+        VALUES ($1, 'comment', $2, $3, $4)
+      `, [
+        activity.owner_id,         // send to the original poster
+        activityId,                // link to the activity
+        `New comment on ${activity.activity_name}`,  // title
+        `${username} commented: "${comment}"`        // message
+      ]);
+  
+      res.json({ success: true });
+    } catch (err) {
+      console.error('Error sending notification:', err);
+      res.status(500).json({ success: false });
+    }
+  });
 // CHARACTER WORK
 // Route to get character customization data
 app.get('/api/character', auth, async (req, res) => {
