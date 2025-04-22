@@ -58,7 +58,6 @@ async function submitComment() {
 
     const result = await response.json();
     if (result.success) {
-      alert("Comment sent!");
       closeCommentModal();
     } else {
       alert("Failed to send comment.");
