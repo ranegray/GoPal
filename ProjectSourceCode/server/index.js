@@ -120,10 +120,15 @@ const auth = (req, res, next) => {
 };
 
 //START CHARACTER MIDDLEWARE
-// Dynamic middleware to assign character customization data
-app.use(auth, async (req, res, next) => {
-    // Only process for authenticated users (auth middleware should already handle this)
+/// First, define the character middleware as a separate function
+const characterMiddleware = async (req, res, next) => {
     try {
+      // Check if user is authenticated
+      if (!req.session || !req.session.user || !req.session.user.user_id) {
+        // If not authenticated, skip character processing and continue
+        return next();
+      }
+      
       const userId = req.session.user.user_id;
       
       // Get character information using your existing utility function
@@ -171,10 +176,14 @@ app.use(auth, async (req, res, next) => {
       res.locals.hatChoice = 'none';
       res.locals.colorChoice = 'default';
     }
-
+  
     // Continue to the next middleware/route handler
     next();
-  });
+  };
+  
+  // Then apply the middleware globally, but without the auth dependency
+  app.use(characterMiddleware);
+
 //END CHARACTER MIDDLEWARE
 
 
