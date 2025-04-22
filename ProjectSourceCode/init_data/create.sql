@@ -47,7 +47,7 @@ CREATE TABLE journal_logs (
   user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
   entry_date DATE DEFAULT CURRENT_DATE,
   entry_time TIME DEFAULT CURRENT_TIME,
-  journal_entry VARCHAR(1000) NOT NULL,
+  journal_entry TEXT NOT NULL, -- not able to limit length of TEXT
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   journal_title VARCHAR(100) NOT NULL
 );

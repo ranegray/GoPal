@@ -618,12 +618,18 @@ app.post('/api/journal', auth, async (req, res) => {
       const userId = req.session.user.user_id;
       const { 'journal-entry': journalEntry } = req.body;
       const { 'journal-title': journalTitle } = req.body;
+      const MAX_JOURNAL_LENGTH = 1000; 
   
       // Validate that a journal entry was provided
       if (!journalEntry || !journalTitle) {
         console.error('No journal entry provided');
         return res.status(400).redirect('/journal');
       }
+      
+      if (journalEntry.length > MAX_JOURNAL_LENGTH) {
+        console.error(`User <span class="math-inline">\{userId\} tried to submit journal entry exceeding length limit \(</span>{journalEntry.length}/${MAX_JOURNAL_LENGTH})`);
+        return res.redirect(`/journal?error=Entry+exceeds+maximum+length+of+${MAX_JOURNAL_LENGTH}+characters`);
+    }
 
       // Set the timezone to MST (need api to get local timezone, maybe later)
       const mountainTimeZone = 'America/Denver'; 
