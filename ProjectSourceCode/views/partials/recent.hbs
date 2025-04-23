@@ -6,7 +6,7 @@
     <div class="grid grid-cols-3 gap-8 mt-6">
       <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
       <!--This is where friend activities will be displayed once friend functionality is working, both of these fields will work the same-->
-        <h2 class="text-xl font-semibold mb-4">Activity</h2>
+        <h2 class="text-xl font-semibold mb-4">Friends Activity</h2>
         <div class="space-y-4">
         {{#each activities}}  
           <div class="flex justify-between items-center p-3 bg-gray-100 rounded-md">
@@ -16,7 +16,7 @@
 
               <div class="flex items-center gap-3">
                 <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "../../extra_resources/images/default.png" {{/if}} class="w-10 h-10 object-cover rounded-full">
-                <p><strong>{{username}}</strong> - {{activity_name}}</p>
+                <p><strong>{{display_name}}</strong> - {{activity_name}}</p>
               </div>
 
               {{#if notes}}<p class="text-sm mt-1 ml-13">{{notes}}</p>{{/if}}
@@ -42,12 +42,12 @@
 
     <!--This is where friend achievements will be displayed once friend functionality is working, both of these fields will essentially work the same-->
       <div class="bg-white p-4 rounded-md shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Achievements</h2>
+        <h2 class="text-xl font-semibold mb-4">Friends Achievements</h2>
         <div class="space-y-3">
           {{#each achievements}}
               <div class="flex items-center gap-3">
                 <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "../../extra_resources/images/default.png" {{/if}} class="w-10 h-10 object-cover rounded-full">
-                <p><strong>{{username}}</strong> - {{achievement_name}}</p>
+                <p><strong>{{display_name}}</strong> - {{achievement_name}}</p>
               </div>
               <p class="text-sm ml-13"> ✅ {{description}}</p>
           {{/each}}

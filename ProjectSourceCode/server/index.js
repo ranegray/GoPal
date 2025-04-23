@@ -966,7 +966,7 @@ app.get('/social/recent', auth, async (req, res) => {
         if (friends.length > 0) {
             // Fetch recent activities from friends
             activities = await db.any(`
-                SELECT al.activity_id, al.user_id, u.username, u.profile_photo_path, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
+                SELECT al.activity_id, al.user_id, u.username, u,display_name, u.profile_photo_path, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
                 FROM activity_logs al
                 JOIN users u ON al.user_id = u.user_id
                 JOIN activity_types at ON al.activity_type_id = at.activity_type_id
@@ -979,6 +979,7 @@ app.get('/social/recent', auth, async (req, res) => {
                 SELECT 
                     ua.user_id,
                     u.username,
+                    u.display_name,
                     u.profile_photo_path,
                     a.name AS achievement_name,
                     a.description,
