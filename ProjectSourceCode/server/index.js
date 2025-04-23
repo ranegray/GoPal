@@ -204,22 +204,201 @@ app.post('/delete-account', auth, async (req, res) => {
     }
 });
 
-app.get('/home',auth, (req, res) => {
-    const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
-    const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
-    const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
-    if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
-        //render w/o the weather data
-        return res.render('pages/home', {user: req.session.user});
-    } else{
-        //render with the weather data
-        res.render('pages/home', {
-            user: req.session.user, 
-            weather: req.session.weather.weather,
-            airQuality: req.session.weather.airQuality
-        });
+app.get('/home', auth, async (req, res) => {
+    try {
+      const userId = req.session.user.user_id;
+      const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+      const lastWeatherUpdate = req.session.weather?.timestamp || 0;
+      const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate;
+      
+      // Create an object to store all our data
+      let data = {
+        user: req.session.user
+      };
+      
+      // 1. Get activity stats and recent activities
+      try {
+        const activities = await db.any(
+          `SELECT wl.*, at.activity_name 
+          FROM activity_logs wl
+          JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
+          WHERE wl.user_id = $1
+          ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC
+          LIMIT 5`,
+          [userId]
+        );
+        
+        const { startDate, endDate } = getDateRange("week");
+        const stats = getStatsForRange(activities, startDate, endDate);
+        
+        data.stats = stats;
+      } catch (err) {
+        console.error('Error fetching activities:', err);
+        data.stats = {
+          activityCount: 0,
+          totalDistance: "0.00",
+          totalDuration: 0,
+          currentStreak: 0,
+          activities: []
+        };
+      }
+      
+      // 2. Get character data
+      try {
+        const characterResult = await db.oneOrNone(
+          'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+          [userId]
+        );
+        
+        let characterData = {
+          characterName: 'Unnamed Pal',
+          hatChoice: 'none',
+          colorChoice: 'default'
+        };
+        
+        if (characterResult) {
+          characterData = {
+            characterName: characterResult.character_name,
+            hatChoice: characterResult.hat_choice || 'none',
+            colorChoice: characterResult.color_choice || 'default'
+          };
+        }
+        
+        // Determine the character image path based on customizations
+        let imagePath = '../../extra_resources/character_assets/';
+        if (characterData.hatChoice === 'none') {
+          if (characterData.colorChoice === 'default') {
+            data.characterImage = imagePath + 'basemonster.jpeg';
+          } else {
+            data.characterImage = imagePath + `basemonster_${characterData.colorChoice}.jpeg`;
+          }
+        } else {
+          if (characterData.colorChoice === 'default') {
+            data.characterImage = imagePath + `monster_default_${characterData.hatChoice}.jpeg`;
+          } else {
+            data.characterImage = imagePath + `monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
+          }
+        }
+        
+        data.characterName = characterData.characterName;
+      } catch (err) {
+        console.error('Error fetching character data:', err);
+        data.characterName = 'Unnamed Pal';
+        data.characterImage = '../../extra_resources/character_assets/basemonster.jpeg';
+      }
+      
+      // 3. Get achievements data
+      try {
+        const userAchievements = await db.any(
+          `SELECT a.* 
+           FROM achievements a
+           JOIN user_achievements ua ON a.id = ua.achievement_id
+           WHERE ua.user_id = $1`,
+          [userId]
+        );
+        
+        const pendingAchievements = await db.any(
+          `SELECT a.*, COUNT(ua.user_id) = 0 as is_pending
+           FROM achievements a
+           LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = $1
+           WHERE COUNT(ua.user_id) = 0
+           LIMIT 3`,
+          [userId]
+        );
+        
+        data.achievements = userAchievements;
+        data.pendingAchievements = pendingAchievements;
+      } catch (err) {
+        console.error('Error fetching achievements:', err);
+        data.achievements = [];
+        data.pendingAchievements = [];
+      }
+      
+      // 4. Get friend activity data
+      try {
+        // Get the list of friend IDs where the friendship is accepted
+        const friends = await db.any(`
+          SELECT friend_id AS id FROM friends 
+          WHERE user_id = $1 AND status = 'accepted'
+          UNION
+          SELECT user_id AS id FROM friends 
+          WHERE friend_id = $1 AND status = 'accepted'
+        `, [userId]);
+        
+        if (friends.length > 0) {
+          // Extract friend IDs from result
+          const friendIds = friends.map(friend => friend.id);
+          
+          // Fetch recent activities from friends
+          const friendActivities = await db.any(`
+            SELECT al.activity_id, al.user_id, u.username, u.display_name, al.activity_type_id, 
+                   at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, 
+                   al.distance_mi, al.notes, al.created_at
+            FROM activity_logs al
+            JOIN users u ON al.user_id = u.user_id
+            JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+            WHERE al.user_id IN ($1:csv)
+            ORDER BY al.created_at DESC
+            LIMIT 5
+          `, [friendIds]);
+          
+          // Fetch recent achievement unlocks from friends
+          const friendAchievements = await db.any(`
+            SELECT ua.user_id, u.username, u.display_name, a.name, a.description, ua.unlocked_at
+            FROM user_achievements ua
+            JOIN users u ON ua.user_id = u.user_id
+            JOIN achievements a ON ua.achievement_id = a.id
+            WHERE ua.user_id IN ($1:csv)
+            ORDER BY ua.unlocked_at DESC
+            LIMIT 5
+          `, [friendIds]);
+          
+          data.friendActivities = friendActivities;
+          data.friendAchievements = friendAchievements;
+        } else {
+          data.friendActivities = [];
+          data.friendAchievements = [];
+        }
+      } catch (err) {
+        console.error('Error fetching friend data:', err);
+        data.friendActivities = [];
+        data.friendAchievements = [];
+      }
+      
+      // 5. Add weather data if valid and recent
+      if (req.session.weather && timeSinceLastWeatherUpdate <= weatherTimeLimit) {
+        data.weather = req.session.weather.weather;
+        data.airQuality = req.session.weather.airQuality;
+      }
+      
+      // 6. Get notifications
+      try {
+        const notifications = await db.any(
+          `SELECT * FROM notifications 
+           WHERE user_id = $1 AND is_read = FALSE 
+           ORDER BY created_at DESC LIMIT 10`,
+          [userId]
+        );
+        
+        data.notifications = notifications;
+        data.hasNotifications = notifications.length > 0;
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+        data.notifications = [];
+        data.hasNotifications = false;
+      }
+      
+      // Render the homepage with all data
+      res.render('pages/home', data);
+      
+    } catch (err) {
+      console.error('Error rendering homepage:', err);
+      res.render('pages/home', { 
+        user: req.session.user,
+        error: 'Error loading data. Please try again.'
+      });
     }
-});
+  });
 
 app.get('/activity', auth, async (req, res) => {
     try {
