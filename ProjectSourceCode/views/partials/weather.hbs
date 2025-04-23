@@ -1,21 +1,42 @@
-<!-- views/partials/weather.hbs -->
-<div class="bg-gray-100 p-4 rounded-lg shadow-md w-full">
-  <h2 class="text-2xl font-bold mb-2 text-center">Weather</h2>
-  {{#if weather}}
-    <p class="text-sm text-center">{{weather.name}}</p>
-    <p class="text-4xl font-bold text-center">{{weather.main.temp}}°</p>
-    <div class="flex items-center justify-center space-x-2">
-      <!-- OpenWeatherMap Icon -->
-      <img id="weatherIcon" alt="Weather icon" class="w-8 h-8" src="http://openweathermap.org/img/wn/{{weather.weather.[0].icon}}@2x.png">
-      <p class="text-lg">{{weather.weather.[0].description}}</p>
-    </div>
-    <p class="text-sm">Wind: {{weather.wind.speed}} mph</p>
-    <p class="text-sm">Humidity: {{weather.main.humidity}}%</p>
-    <p class="text-sm">AQI: {{airQuality}}</p>
-    {{#if error}}
-      <p class="text-red-500 font-bold">{{error}}</p>
-    {{/if}}
-  {{else}}
-    <p id="await-message" class="text-center">Awaiting weather data...</p>
-  {{/if}}
-</div>
+<div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-xl font-semibold mb-4">Weather</h2>
+          
+          {{#if weather}}
+            <div class="text-center">
+              <div class="flex justify-center items-center">
+                <img id="weatherIcon" alt="Weather icon" class="w-16 h-16" src="http://openweathermap.org/img/wn/{{weather.weather.[0].icon}}@2x.png">
+                <p class="text-4xl font-bold">{{weather.main.temp}}°</p>
+              </div>
+              
+              <p class="text-lg mt-2">{{weather.weather.[0].description}}</p>
+              <p class="text-gray-600">{{weather.name}}</p>
+              
+              <div class="grid grid-cols-2 mt-4 gap-3">
+                <div class="bg-gray-50 p-2 rounded">
+                  <p class="text-sm text-gray-600">Wind</p>
+                  <p class="font-semibold">{{weather.wind.speed}} mph</p>
+                </div>
+                <div class="bg-gray-50 p-2 rounded">
+                  <p class="text-sm text-gray-600">Humidity</p>
+                  <p class="font-semibold">{{weather.main.humidity}}%</p>
+                </div>
+              </div>
+              
+              <div class="mt-3 bg-gray-50 p-2 rounded">
+                <p class="text-sm text-gray-600">Air Quality</p>
+                <p class="font-semibold">{{airQuality}}</p>
+              </div>
+              
+              {{#if error}}
+                <p class="text-red-500 font-bold mt-2">{{error}}</p>
+              {{/if}}
+            </div>
+          {{else}}
+            <div class="text-center py-4">
+              <p id="await-message">Getting weather data...</p>
+              <div class="animate-pulse mt-4 flex justify-center">
+                <div class="h-10 w-10 bg-gray-200 rounded-full"></div>
+              </div>
+            </div>
+          {{/if}}
+        </div>
