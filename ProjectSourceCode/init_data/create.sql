@@ -47,8 +47,9 @@ CREATE TABLE journal_logs (
   user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
   entry_date DATE DEFAULT CURRENT_DATE,
   entry_time TIME DEFAULT CURRENT_TIME,
-  journal_entry TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  journal_entry VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  journal_title VARCHAR(100) NOT NULL
 );
 
 INSERT INTO activity_types (activity_name) VALUES 
@@ -101,6 +102,63 @@ CREATE TABLE IF NOT EXISTS character_customizations (
   character_name VARCHAR(50) NOT NULL DEFAULT 'Unnamed Pal',
   hat_choice VARCHAR(20),
   color_choice VARCHAR(20) DEFAULT 'default',
+  xp INTEGER NOT NULL DEFAULT 0,
+  level INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create table for character evolution stages (simplified)
+CREATE TABLE character_evolution_stages (
+    id SERIAL PRIMARY KEY,
+    level INTEGER NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    min_xp INTEGER NOT NULL,
+    abilities_unlocked TEXT[], -- Array of abilities that get unlocked at this stage
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create table for achievement rewards (simplified)
+CREATE TABLE achievement_rewards (
+    id SERIAL PRIMARY KEY,
+    achievement_id INTEGER NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
+    xp_reward INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- SHOULD I PUT THESE IN THE INSERT.SQL file? --
+
+-- Insert some initial evolution stages
+-- The abilites are perhaps features that we could keep as future work on the project?
+INSERT INTO character_evolution_stages (level, name, description, min_xp, abilities_unlocked)
+VALUES 
+(1, 'Rookie', 'I am just getting started on my fitness journey!', 0, 
+   ARRAY['basic_greeting']),
+(2, 'Energetic', 'Wow! I am becoming more active and energetic.', 100, 
+   ARRAY['basic_greeting', 'workout_suggestion']),
+(3, 'Fit', 'Goodness gracious! I am now noticeably more fit and athletic.', 300, 
+   ARRAY['basic_greeting', 'workout_suggestion', 'motivational_quotes']),
+(4, 'Athlete', 'Look at me! I have become a serious athlete.', 600, 
+   ARRAY['basic_greeting', 'workout_suggestion', 'motivational_quotes', 'personalized_workout_plans']),
+(5, 'Champion', 'Just like you, I have reached the peak of fitness excellence!', 1000, 
+   ARRAY['all']);
+
+-- Insert XP rewards for existing achievements
+INSERT INTO achievement_rewards (achievement_id, xp_reward)
+VALUES 
+((SELECT id FROM achievements WHERE code = 'COMPLETE_1_ACTIVITY'), 50),
+((SELECT id FROM achievements WHERE code = 'COMPLETE_5_ACTIVITIES'), 100),
+((SELECT id FROM achievements WHERE code = 'COMPLETE_10_ACTIVITIES'), 200);
+
+-- ALERT SETTINGS
+CREATE TABLE IF NOT EXISTS alert_settings (
+  user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  aqiOn BOOLEAN DEFAULT TRUE,
+  windON BOOLEAN DEFAULT TRUE,
+  tempOn BOOLEAN DEFAULT TRUE,
+  aqiLevel INTEGER DEFAULT 3,
+  windSpeed INTEGER DEFAULT 22,
+  hotTemp INTEGER DEFAULT 95,
+  coldTemp INTEGER DEFAULT 10
 );
