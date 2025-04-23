@@ -1,64 +1,78 @@
+<h1 class="text-2xl font-bold inline-block">Recent</h1>
+<!--This button displays a modal which will display any friend requests along with give the ability to send requests to users in database-->
 
-  
-  <h1 class="text-2xl font-bold inline-block">Recent</h1>
-    <!--This button dispalays a modal which will display any friend requests along with give the ability to send requests to users in database-->
+<div class="grid grid-cols-3 gap-8 mt-6">
+  <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
+    <!--This is where friend activities will be displayed once friend functionality is working, both of these fields will work the same-->
+    <h2 class="text-xl font-semibold mb-4">Friends Activity</h2>
+    <div class="space-y-4">
+      {{#each activities}}
+      <div class="flex justify-between items-center p-3 bg-gray-100 rounded-md">
 
-    <div class="grid grid-cols-3 gap-8 mt-6">
-      <div class="col-span-2 bg-white p-4 rounded-md shadow-md">
-      <!--This is where friend activities will be displayed once friend functionality is working, both of these fields will work the same-->
-        <h2 class="text-xl font-semibold mb-4">Friends Activity</h2>
-        <div class="space-y-4">
-        {{#each activities}}  
-          <div class="flex justify-between items-center p-3 bg-gray-100 rounded-md">
-            
-            <!-- LEFT: User + Notes + Duration -->
-            <div class="text-base">
+        <!-- LEFT: User + Notes + Duration -->
+        <div class="text-base">
 
-              <div class="flex items-center gap-3">
-                <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "../../extra_resources/images/default.png" {{/if}} class="w-10 h-10 object-cover rounded-full">
-                <p><strong>{{display_name}}</strong> - {{activity_name}}</p>
-              </div>
-
-              {{#if notes}}<p class="text-sm mt-1 ml-13">{{notes}}</p>{{/if}}
-              <p class = "mt-1 ml-13">{{#if distance_mi}}{{distance_mi}} miles • {{/if}}{{#if duration_minutes}}{{duration_minutes}} minute(s){{/if}}</p>
-              
-            </div>
-
-            <!-- RIGHT: Time + Button -->
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span>{{formatDate activity_date}} at {{formatTime activity_time}}</span>
-              <button 
-                onclick="commentOnActivity({{activity_id}})" 
-                class="bg-blue-200 p-2 rounded-full hover:bg-blue-300"
-              >
-                💬
-              </button>
-            </div>
-
+          <div class="flex items-center gap-3">
+            <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "/images/default.png" {{/if}}
+              class="w-10 h-10 object-cover rounded-full">
+            <p><strong>{{display_name}}</strong> - {{activity_name}}</p>
           </div>
-        {{/each}}
-        </div>
-      </div>
 
-    <!--This is where friend achievements will be displayed once friend functionality is working, both of these fields will essentially work the same-->
-      <div class="bg-white p-4 rounded-md shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Friends Achievements</h2>
-        <div class="space-y-3">
-          {{#each achievements}}
-              <div class="flex items-center gap-3">
-                <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "../../extra_resources/images/default.png" {{/if}} class="w-10 h-10 object-cover rounded-full">
-                <p><strong>{{display_name}}</strong> - {{achievement_name}}</p>
-              </div>
-              <p class="text-sm ml-13"> ✅ {{description}}</p>
-          {{/each}}
+          {{#if notes}}<p class="text-sm mt-1 ml-12">{{notes}}</p>{{/if}}
+          <p class="mt-1 ml-12">{{#if distance_mi}}{{distance_mi}} miles •
+            {{/if}}{{#if duration_minutes}}{{duration_minutes}} minute(s){{/if}}</p>
+
         </div>
+
+        <!-- RIGHT: Time + Button -->
+        <div class="flex items-center gap-3 text-sm text-gray-600">
+          <span>{{formatDate activity_date}} at {{formatTime activity_time}}</span>
+          <button onclick="commentOnActivity({{activity_id}})" class="bg-blue-300 p-2 rounded-full hover:bg-blue-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-message-circle">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" />
+            </svg>
+          </button>
+        </div>
+
       </div>
+      {{/each}}
     </div>
-  </main>
+  </div>
+
+  <!--This is where friend achievements will be displayed once friend functionality is working, both of these fields will essentially work the same-->
+  <div class="bg-white p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Friends Achievements</h2>
+    <div class="space-y-3">
+      {{#each achievements}}
+      <div class="flex items-center gap-3">
+        <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "/images/default.png" {{/if}}
+          class="w-10 h-10 object-cover rounded-full">
+        <p><strong>{{display_name}}</strong> - {{achievement_name}}</p>
+      </div>
+      <div class="flex bg-green-100 p-4 my-4 rounded-lg items-center">
+        <div class="rounded-full bg-green-300 p-2 mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-star">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path
+              d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" />
+          </svg>
+        </div>
+        <p>{{description}}</p>
+      </div>
+      {{/each}}
+    </div>
+  </div>
 </div>
+
 <!-- Comment Modal -->
-<div id="comment-modal" class="fixed inset-0 bg-black/50 flex justify-center items-center hidden z-50">
-  <div class="bg-blue-100 rounded-lg p-6 w-full max-w-sm">
+<div id="comment-modal" class="fixed inset-0 bg-black/50 justify-center items-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-1/2 max-w-128 mx-auto mt-20">
     <h2 class="text-xl font-semibold mb-4">Send a Reply</h2>
     <textarea id="comment-text" class="w-full border p-2 rounded mb-4" placeholder="Write your comment..."></textarea>
     <div class="flex justify-end gap-2">
@@ -67,6 +81,4 @@
     </div>
   </div>
 </div>
-<script src="../../server/utils/friends.js"></script>
-
-
+<script src="/js/friends.js"></script>
