@@ -36,9 +36,15 @@ const hbs = handlebars.create({
   layoutsDir: path.join(__dirname, "../views/layouts"),
   partialsDir: path.join(__dirname, "../views/partials"),
   helpers: {
-        eq: function (a, b) {
-            return a === b;
-        },
+    eq: function (a, b) {
+      return a === b;
+    },
+    now: function() {
+        return new Date();
+    },
+    formatMonth: function(date) {
+    return date.toLocaleString('default', { month: 'long' });
+    },
     formatDate: function (date) {
       return new Date(date).toLocaleDateString();
     },
@@ -63,23 +69,52 @@ const hbs = handlebars.create({
       return count === 1 ? singular : plural;
     },
     gt: function (a, b) {
-        return a > b;
+      return a > b;
     },
     lt: function (a, b) {
-        return a < b;
+      return a < b;
     },
     subtract: function (a, b) {
-        return a - b;
+      return a - b;
     },
     divide: function (a, b) {
-        return a / b;
+      return a / b;
     },
     multiply: function (a, b) {
-        return a * b;
+      return a * b;
     },
     lookup: function (obj, key) {
-        return obj[key];
-    }
+      return obj[key];
+    },
+    getActivityIcon: function (activityName) {
+      let svgIcon = "";
+      // Use lowercase for case-insensitive matching
+      switch (activityName.toLowerCase()) {
+        case "running":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-run"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 17l5 1l.75 -1.5" /><path d="M15 21l0 -4l-4 -3l1 -6" /><path d="M7 12l0 -3l5 -1l3 3l3 1" /></svg>`;
+          break;
+        case "walking":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-walk"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 21l3 -4" /><path d="M16 21l-2 -4l-3 -3l1 -6" /><path d="M6 12l2 -3l4 -1l3 3l3 1" /></svg>`;
+          break;
+        case "cycling":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-bike"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M19 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 19l0 -4l-3 -3l5 -4l2 3l3 0" /><path d="M17 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>`;
+          break;
+        case "swimming":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-swimming"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M6 11l4 -2l3.5 3l-1.5 2" /><path d="M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25" /></svg>`;
+          break;
+        case "hiking":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trekking"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 21l2 -4" /><path d="M13 21v-4l-3 -3l1 -6l3 4l3 2" /><path d="M10 14l-1.827 -1.218a2 2 0 0 1 -.831 -2.15l.28 -1.117a2 2 0 0 1 1.939 -1.515h1.439l4 1l3 -2" /><path d="M17 12v9" /><path d="M16 20h2" /></svg>`;
+          break;
+        case "skiing/snowboarding":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-ski-jumping"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11 3a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M17 17.5l-5 -4.5v-6l5 4" /><path d="M7 17.5l5 -4.5" /><path d="M15.103 21.58l6.762 -14.502a2 2 0 0 0 -.968 -2.657" /><path d="M8.897 21.58l-6.762 -14.503a2 2 0 0 1 .968 -2.657" /><path d="M7 11l5 -4" /></svg>`;
+          break;
+        default:
+          // Default icon if no match is found
+          svgIcon = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`; // Example placeholder
+      }
+      // Return the SVG icon as a safe string
+      return new Handlebars.SafeString(svgIcon);
+    },
   },
 });
 
@@ -349,12 +384,11 @@ app.get('/home', auth, async (req, res) => {
           FROM activity_logs wl
           JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
           WHERE wl.user_id = $1
-          ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC
-          LIMIT 5`,
+          ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC`,
           [userId]
       );
       
-      // Get weekly stats
+      // Get monthly stats
       const { startDate, endDate } = require('./utils/date-utils').getDateRange("month");
       const stats = require('./utils/stat-utils').getStatsForRange(activities, startDate, endDate);
 
