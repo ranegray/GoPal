@@ -253,7 +253,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // Add input listener to the textarea for dynamic resizing while typing
   if (journalEntryTextarea) {
     journalEntryTextarea.addEventListener('input', autoResizeTextarea);
-  } else {
+  } 
+  else {
      console.error("Textarea with ID 'journal-entry' not found for resizing.");
   }
 
@@ -263,11 +264,6 @@ document.addEventListener("DOMContentLoaded", function () {
       journalModal.classList.remove("hidden");
       journalModal.classList.add("flex");
       autoResizeTextarea(); 
-      // Optional: Focus the first input field
-      const firstInput = journalForm.querySelector('input, textarea');
-      if(firstInput) {
-        firstInput.focus();
-      }
     }
   }
 
