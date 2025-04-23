@@ -240,83 +240,31 @@ document.addEventListener("DOMContentLoaded", function () {
   const journalCloseModalButton = document.getElementById( "journal-close-modal-button" );
   const journalCancelButton = document.getElementById("journal-cancel-button");
   const journalAddButton = document.getElementById("journal-add-button");
-  const journalEntryTextarea = document.getElementById('journal-entry');
-
-  // --- NEW: Character Counter Elements ---
-  const charCountElement = document.getElementById('current-char-count'); // Span displaying current count
-  const charCounterDiv = document.getElementById('char-counter'); // Container div for styling
-  const journalSubmitButton = document.querySelector('#journal-form button[type="submit"]'); // Submit button
-  const maxLength = 1000; // *** IMPORTANT: Set this to match your HTML maxlength & backend limit ***
+  const journalEntryTextarea = document.getElementById('journal-entry'); 
 
   // --- Textarea Auto-Resizing Logic ---
   const autoResizeTextarea = () => {
     if (journalEntryTextarea) {
-      // Reset height first to get correct scrollHeight calculation
-      journalEntryTextarea.style.height = 'auto';
-      // Set height based on content scroll height
-      journalEntryTextarea.style.height = (journalEntryTextarea.scrollHeight) + 'px';
+      journalEntryTextarea.style.height = 'auto'; 
+      journalEntryTextarea.style.height = (journalEntryTextarea.scrollHeight) + 'px'; 
     }
   };
 
-  // --- NEW: Character Counting and Validation Logic ---
-  const updateCharCount = () => {
-    // Ensure all required elements exist before proceeding
-    if (!journalEntryTextarea || !charCountElement || !charCounterDiv || !journalSubmitButton) {
-        // Silently return if any element is missing to prevent errors
-        // console.error("Missing elements for character counter functionality.");
-        return;
-    }
-
-    const currentLength = journalEntryTextarea.value.length;
-    charCountElement.textContent = currentLength; // Update the displayed count
-
-    // Check if limit is exceeded and apply/remove validation styles/state
-    if (currentLength > maxLength) {
-      charCounterDiv.classList.add('text-red-500'); // Make counter text red
-      journalEntryTextarea.classList.add('border-red-500'); // Add red border to textarea
-      journalEntryTextarea.classList.remove('focus:ring-blue-500', 'focus:border-blue-500'); // Optional: remove blue focus ring when invalid
-      journalEntryTextarea.classList.add('focus:ring-red-500', 'focus:border-red-500'); // Optional: add red focus ring when invalid
-
-      journalSubmitButton.disabled = true; // Disable submit button
-      journalSubmitButton.classList.add('opacity-50', 'cursor-not-allowed'); // Style disabled button
-
-    } else {
-      charCounterDiv.classList.remove('text-red-500'); // Revert counter text color
-      journalEntryTextarea.classList.remove('border-red-500'); // Remove red border
-      journalEntryTextarea.classList.remove('focus:ring-red-500', 'focus:border-red-500'); // Optional: remove red focus ring
-      journalEntryTextarea.classList.add('focus:ring-blue-500', 'focus:border-blue-500'); // Optional: restore blue focus ring
-
-      journalSubmitButton.disabled = false; // Enable submit button
-      journalSubmitButton.classList.remove('opacity-50', 'cursor-not-allowed'); // Style enabled button
-    }
-  };
-
-
-  // Add input listener for Auto-Resizing
+  // Add input listener to the textarea for dynamic resizing while typing
   if (journalEntryTextarea) {
     journalEntryTextarea.addEventListener('input', autoResizeTextarea);
   } else {
      console.error("Textarea with ID 'journal-entry' not found for resizing.");
   }
 
-  // Add input listener for Character Counting
-  if (journalEntryTextarea) {
-      journalEntryTextarea.addEventListener('input', updateCharCount);
-  } else {
-      // Error already logged above if textarea is missing
-  }
-
-
   // --- Modal Open/Close Logic ---
   function openModal() {
-    if (journalModal && journalForm) { // Added journalForm check
+    if (journalModal) {
       journalModal.classList.remove("hidden");
       journalModal.classList.add("flex");
-      autoResizeTextarea(); // Resize on open
-      updateCharCount(); // Update count on open (for potential pre-filled data)
-
+      autoResizeTextarea(); 
       // Optional: Focus the first input field
-      const firstInput = journalForm.querySelector('input[type="text"], textarea'); // Target text input first
+      const firstInput = journalForm.querySelector('input, textarea');
       if(firstInput) {
         firstInput.focus();
       }
@@ -327,13 +275,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (journalModal && journalForm) {
       journalModal.classList.add("hidden");
       journalModal.classList.remove("flex");
-      journalForm.reset();
-      autoResizeTextarea(); // Resize after reset
-      updateCharCount(); // Update count after reset
+      journalForm.reset(); 
+      autoResizeTextarea(); 
     }
   }
 
-  // --- Attach Event Listeners ---
   if (journalAddButton) {
     journalAddButton.addEventListener("click", openModal);
   }
@@ -345,12 +291,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (journalCancelButton) {
     journalCancelButton.addEventListener("click", closeModal);
   }
-
-  // --- Initial State Update ---
-  // Call once on load in case the modal is somehow initially visible
-  // or to set initial state if needed (though usually handled by openModal)
-  updateCharCount();
-
 });
 
 //Character Animation work:

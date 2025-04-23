@@ -19,7 +19,7 @@
     action="/api/journal"
     method="POST"
     id="journal-form"
-    class="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-5/6 lg:w-2/3 max-w-4xl mx-auto mt-16 md:mt-20" 
+    class="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-3/4 lg:w-1/2 max-w-2xl mx-auto mt-16 md:mt-20" 
   >
     {{! Modal Header }}
     <div class="flex justify-between items-center mb-4">
@@ -57,12 +57,9 @@
         id="journal-entry"
         name="journal-entry"
         class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden min-h-[100px] max-h-80" 
-        maxlength="1000" {{! setting max length to 1000 characters }}
+        maxlength="1000"
         rows="4" 
       ></textarea>
-      <div class="text-right text-sm text-gray-500 mb-4" id="char-counter">
-        <span id="current-char-count">0</span> / 1000 characters
-      </div>
     </div>
 
     {{! Action Buttons }}
