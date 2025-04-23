@@ -8,8 +8,73 @@
       <h1 class="text-3xl font-bold">Dashboard</h1>
       {{>notification}}
     </div>
+
+<!-- Welcome section -->
+    <div class="mb-6">
+      <h2 class="text-2xl font-semibold">Welcome, {{user.username}}!</h2>
+    </div>
     
-     {{> weather}}
+    <!-- Character section with stats -->
+    <div class="flex gap-6 mb-6">
+      <div class="bg-yellow-50 rounded-xl p-4 w-1/3">
+        <div class="flex">
+          <img src="{{characterImage}}" alt="{{characterName}}" class="w-32 h-32 object-contain">
+          <div class="ml-4">
+            <h3 class="text-xl font-semibold">{{characterName}}</h3>
+            <p class="text-sm text-gray-600">{{evolutionStage.name}}</p>
+            
+            <!-- Progress bars -->
+            <div class="mt-4 space-y-2">
+              <div>
+                <p class="text-sm font-medium">Level Progress</p>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{multiply (divide character.xp nextLevel.min_xp) 100}}%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="text-sm mt-2">Keep exercising to improve your pal's stats and unlock new customization options!</p>
+      </div>
+      
+      <!-- Activity summary -->
+      <div class="flex-grow">
+        {{> activity-summary}}
+      </div>
+    </div>
+    
+    <!-- Two column layout for various sections -->
+    <div class="grid grid-cols-2 gap-6">
+      <!-- Recent Activities -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Recent Activities</h3>
+          <a href="/activity" class="text-sm text-blue-500 hover:underline">View All</a>
+        </div>
+        {{> recent-activities-list limit=4}}
+      </div>
+      
+      <!-- Achievements -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Achievements</h3>
+          <a href="#" class="text-sm text-blue-500 hover:underline">View All</a>
+        </div>
+        {{> achievements-list limit=3}}
+      </div>
+      
+      {{!-- Weather --}}
+      {{> weather}}
+      
+      <!-- Friend Activity -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Friend Activity</h3>
+          <a href="/social/recent" class="text-sm text-blue-500 hover:underline">View All</a>
+        </div>
+        {{> friend-activity-list limit=2}}
+      </div>
+    </div>
   </main>
   <script src="/js/geolocation.js"></script>
 </div>

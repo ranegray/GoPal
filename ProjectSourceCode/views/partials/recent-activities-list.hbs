@@ -1,0 +1,24 @@
+{{#if activities.length}}
+  <div class="space-y-2">
+    {{#each activities}}
+      <div class="bg-white rounded-lg shadow p-3 flex items-center">
+        <img 
+          src="{{#if ../user.profile_photo_path}}{{../user.profile_photo_path}}{{else}}../../extra_resources/images/default.png{{/if}}" 
+          class="w-8 h-8 rounded-full object-cover mr-3"
+          alt="User profile"
+        >
+        <div class="flex-grow">
+          <p class="font-medium">{{activity_name}}</p>
+          <p class="text-sm text-gray-500">
+            {{#if distance_mi}}{{distance_mi}} miles • {{/if}}{{duration_minutes}} minutes
+          </p>
+        </div>
+        <div class="text-sm text-gray-500">{{formatDate activity_date}}</div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="bg-white rounded-lg shadow p-4 text-center">
+    <p class="text-gray-500">No activities logged yet.</p>
+  </div>
+{{/if}}

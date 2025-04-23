@@ -291,8 +291,11 @@ app.post('/delete-account', auth, async (req, res) => {
     }
 });
 
-app.get('/home',auth, async (req, res) => {
-    try{
+app.get('/home', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        
+        // Weather data setup (existing code)
         const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
         const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
         const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
@@ -302,25 +305,102 @@ app.get('/home',auth, async (req, res) => {
             `SELECT * FROM notifications 
             WHERE user_id = $1 AND is_read = FALSE 
             ORDER BY created_at DESC LIMIT 10`,
-            [req.session.user.user_id]
+            [userId]
         );
+        
+        // Fetch recent activities
+        const activities = await db.any(
+            `SELECT wl.*, at.activity_name 
+            FROM activity_logs wl
+            JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
+            WHERE wl.user_id = $1
+            ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC
+            LIMIT 2`,
+            [userId]
+        );
+        
+        // Get activity statistics for the current week
+        const { startDate, endDate } = getDateRange("week");
+        const stats = getStatsForRange(activities, startDate, endDate);
+        
+        // Fetch user achievements
+        const achievements = await db.any(
+            `SELECT a.* 
+            FROM user_achievements ua
+            JOIN achievements a ON ua.achievement_id = a.id
+            WHERE ua.user_id = $1
+            ORDER BY ua.unlocked_at DESC
+            LIMIT 3`,
+            [userId]
+        );
+        
+        // Fetch friend activities
+        const friendActivities = await db.any(
+            `WITH friends AS (
+                SELECT friend_id AS id FROM friends 
+                WHERE user_id = $1 AND status = 'accepted'
+                UNION
+                SELECT user_id AS id FROM friends 
+                WHERE friend_id = $1 AND status = 'accepted'
+            )
+            SELECT al.activity_id, al.user_id, 
+                   u.username, 
+                   u.profile_photo_path,
+                   at.activity_name, 
+                   al.duration_minutes,
+                   al.distance_mi,
+                   al.notes,
+                   al.created_at,
+                   'completed a ' || at.activity_name as action,
+                   al.created_at as activity_time
+            FROM activity_logs al
+            JOIN users u ON al.user_id = u.user_id
+            JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+            WHERE al.user_id IN (SELECT id FROM friends)
+            ORDER BY al.created_at DESC
+            LIMIT 2`,
+            [userId]
+        );
+        
+        // Process friend activities to add time ago
+        friendActivities.forEach(activity => {
+            const activityTime = new Date(activity.activity_time);
+            const now = new Date();
+            const diffMs = now - activityTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffDays > 0) {
+                activity.timeAgo = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            } else if (diffHours > 0) {
+                activity.timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            } else {
+                activity.timeAgo = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            }
+        });
 
-        if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
-            //render w/o the weather data
-            return res.render('pages/home', {user: req.session.user, notifications, hasNotifications: notifications.length > 0});
-        } else{
-            //render with the weather data
-            res.render('pages/home', {
-                user: req.session.user, 
-                weather: req.session.weather.weather,
-                airQuality: req.session.weather.airQuality,
-                notifications,
-                hasNotifications: notifications.length > 0
-            });
+        // Render the home page with all data
+        const renderData = {
+            user: req.session.user,
+            notifications,
+            hasNotifications: notifications.length > 0,
+            activities,
+            stats,
+            achievements,
+            friendActivities
+        };
+        
+        // Add weather data if available
+        if (req.session.weather && timeSinceLastWeatherUpdate <= weatherTimeLimit) {
+            renderData.weather = req.session.weather.weather;
+            renderData.airQuality = req.session.weather.airQuality;
         }
-    } catch (err){
+        
+        res.render('pages/home', renderData);
+    } catch (err) {
         console.error(err);
-        res.render("pages/login");
+        res.render("pages/home", { user: req.session.user });
     }
 });
 

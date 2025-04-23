@@ -1,0 +1,29 @@
+{{#if friendActivities.length}}
+  <div class="space-y-3">
+    {{#each friendActivities}}
+      <div class="flex items-start p-3 hover:bg-gray-50 rounded border border-gray-100">
+        <img src="{{#if user.profile_photo_path}}{{user.profile_photo_path}}{{else}}../../extra_resources/images/default.png{{/if}}" 
+             class="w-10 h-10 rounded-full object-cover mr-3">
+        <div class="flex-grow">
+          <div class="flex justify-between items-start">
+            <p class="font-medium">{{username}} - {{activity_name}}</p>
+            <span class="text-xs text-gray-500">{{timeAgo}}</span>
+          </div>
+          <p class="text-sm mt-1">
+            {{#if distance_mi}}<span class="font-medium">{{distance_mi}} miles</span> • {{/if}}
+            <span class="font-medium">{{duration_minutes}} minutes</span>
+            {{#if pace}} • <span>{{pace}} min/mile</span>{{/if}}
+          </p>
+          {{#if notes}}
+            <p class="text-sm text-gray-600 mt-1 italic">"{{notes}}"</p>
+          {{/if}}
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="text-center py-4 text-gray-500">
+    <p>No friend activity yet.</p>
+    <p class="text-sm">Connect with friends to see their activities!</p>
+  </div>
+{{/if}}
