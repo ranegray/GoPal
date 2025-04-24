@@ -42,6 +42,25 @@ function getCurrentMonthRange() {
   };
 }
 
+function getCurrentQuarterRange() {
+  // Get current date
+  const now = new Date();
+  
+  // Create a new date object for three months ago
+  // By subtracting 3 from the current month
+  const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  startDate.setHours(0, 0, 0, 0); // Set to beginning of the day
+  
+  // Create a new date object for the end of the current month
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  endDate.setHours(23, 59, 59, 999); // Set to end of the day
+  
+  return {
+    startDate: startDate,
+    endDate: endDate,
+  };
+}
+
 function getCurrentYearRange() {
   // Get current date
   const now = new Date();
@@ -66,6 +85,8 @@ function getDateRange(dateRange) {
       return getCurrentWeekRange();
     case "month":
       return getCurrentMonthRange();
+    case "quarter":
+      return getCurrentQuarterRange();
     case "year":
       return getCurrentYearRange();
     default:
