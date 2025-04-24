@@ -18,6 +18,26 @@
           class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 transition" />
       </div>
 
+      {{!-- disgusting hard code style tag to account for stinky long strings of text --}}
+      <style>
+        .journal-card {
+          overflow-wrap: break-word;
+          word-wrap: break-word;
+          word-break: break-word;
+          hyphens: auto;
+          max-width: 100%;
+        }
+
+        .journal-entry-label,
+        .journal-body {
+          overflow-wrap: break-word;
+          word-wrap: break-word;
+          word-break: break-word;
+          white-space: normal;
+          overflow: hidden;
+        }
+      </style>
+
       <div id="journal-list" class="flex flex-wrap gap-4">
         {{#if journals.length}}
         {{#each journals}}
