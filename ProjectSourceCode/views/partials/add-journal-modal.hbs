@@ -1,34 +1,30 @@
 <button
-    class="mb-10 p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-300 cursor-pointer"
-    id="journal-add-button">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        class="icon icon-tabler icons-tabler-outline icon-tabler-plus">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-        <path d="M12 5l0 14" />
-        <path d="M5 12l14 0" />
-    </svg>
-    <p>Journal Entry</p>
+  class="mb-10 p-3 rounded-xl flex items-center justify-center transition-colors duration-200 bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+  id="journal-add-button">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    class="icon icon-tabler icons-tabler-outline icon-tabler-plus">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M12 5l0 14" />
+    <path d="M5 12l14 0" />
+  </svg>
+  <p>Journal Entry</p>
 </button>
 
-<div
-  class="z-50 fixed inset-0 items-center justify-center bg-black/50 hidden"
-  id="journal-modal"
->
-  <form
-    action="/api/journal"
-    method="POST"
-    id="journal-form"
-    class="bg-white rounded-lg shadow-lg p-6 w-1/2" 
-  >
+<div class="z-50 fixed inset-0 flex items-center justify-center bg-black/50 hidden overflow-auto" id="journal-modal">
+  <form action="/api/journal" method="POST" id="journal-form"
+    class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
     {{! Modal Header }}
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold">Journal Entry</h2>
-      <button type="button" id="journal-close-modal-button" title="Close modal" class="text-gray-500 hover:text-gray-700"> 
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path d="M18 6l-12 12" />
-            <path d="M6 6l12 12" />
+      <button type="button" id="journal-close-modal-button" title="Close modal"
+        class="text-gray-500 hover:text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-x">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M18 6l-12 12" />
+          <path d="M6 6l12 12" />
         </svg>
       </button>
     </div>
@@ -38,43 +34,29 @@
       <label for="journal-title" class="block text-sm font-medium text-gray-700 mb-1">
         Title
       </label>
-      <input
-        type="text"
-        id="journal-title"
-        name="journal-title"
-        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" 
-        required
-        maxlength="100"
-      >
+      <input type="text" id="journal-title" name="journal-title"
+        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" required
+        maxlength="100">
     </div>
 
     {{! Journal Entry Textarea }}
-    <div class="mb-6"> 
+    <div class="mb-6">
       <label for="journal-entry" class="block text-sm font-medium text-gray-700 mb-1">
         Entry
       </label>
-      <textarea
-        id="journal-entry"
-        name="journal-entry"
-        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 resize-none min-h-[100px] max-h-80" 
-        rows="4" 
-        maxlength="1000"
-      ></textarea>
+      <textarea id="journal-entry" name="journal-entry"
+        class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 resize-none min-h-[100px] max-h-80"
+        rows="4" maxlength="1000"></textarea>
     </div>
 
     {{! Action Buttons }}
-    <div class="flex justify-end space-x-3"> 
-      <button
-        type="button"
-        id="journal-cancel-button"
-        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded cursor-pointer transition-colors duration-150"
-      >
+    <div class="flex justify-end space-x-3">
+      <button type="button" id="journal-cancel-button"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded cursor-pointer transition-colors duration-150">
         Cancel
       </button>
-      <button
-        type="submit"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded cursor-pointer transition-colors duration-150"
-      >
+      <button type="submit"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded cursor-pointer transition-colors duration-150">
         Add Entry
       </button>
     </div>
