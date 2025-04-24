@@ -12,7 +12,7 @@
           {{!-- profile photo, username, time since post section --}}
           <div class="flex items-center gap-3">
             <img
-              src="{{#if profile_photo_path}}{{profile_photo_path}}{{else}}https://avatar.iran.liara.run/username?username={{username}}{{/if}}"
+              src="{{#if profile_photo_path}}{{profile_photo_path}}{{else}}/avatar/{{username}}{{/if}}"
               class="w-10 h-10 object-cover rounded-full">
             <p><strong>{{display_name}}</strong><span class="text-gray-600 text-sm pl-2">@{{username}} ⋅
                 {{timeAgo activity_date activity_time}}</span></p>
@@ -70,7 +70,7 @@
       {{#each achievements}}
       <div class="flex items-center gap-3">
         <img
-          src="{{#if profile_photo_path}}{{profile_photo_path}}{{else}}https://avatar.iran.liara.run/username?username={{username}}{{/if}}"
+          src="{{#if profile_photo_path}}{{profile_photo_path}}{{else}}/avatar/{{username}}{{/if}}"
           class="w-10 h-10 object-cover rounded-full">
         <p><strong>{{display_name}}</strong> - {{achievement_name}}</p>
       </div>

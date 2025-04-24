@@ -11,6 +11,7 @@
         "express-handlebars": "^7.1.2",
         "express-session": "1.17.3",
         "multer": "^1.4.5-lts.1",
+        "node-cache": "^5.1.2",
         "nodemon": "2.0.20",
         "pg-promise": "^10.11.1",
         "session-file-store": "^1.5.0"

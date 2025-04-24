@@ -249,7 +249,7 @@
             {{#if friendActivities.length}}
             {{#each friendActivities}}
             <div class="flex items-center border-b border-gray-100 pb-3">
-              <img src="{{this.profile_photo_path}}" alt="{{this.username}}"
+              <img src="{{#if this.profile_photo_path}}{{this.profile_photo_path}}{{else}}/avatar/{{this.username}}{{/if}}" alt="{{this.username}}"
                 class="w-10 h-10 rounded-full mr-4 object-cover">
               <div>
                 <p><span class="font-semibold">{{this.display_name}}</span> {{this.activity_description}}</p>

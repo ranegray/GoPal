@@ -10,6 +10,8 @@ const multer = require('multer');
 const { errors } = require('pg-promise');
 const db = require('./db.js');
 const fs = require("fs");
+const NodeCache = require('node-cache');
+const avatarCache = new NodeCache({ stdTTL: 86400 }); // cache avatars for 24h
 
 const { formatInTimeZone } = require('date-fns-tz');
 const { getStatsForRange } = require("./utils/stat-utils.js");
@@ -175,6 +177,33 @@ app.use(
 
 app.use(express.static(path.join(__dirname, '..')));
 app.use('/images', express.static(path.join(__dirname, '../extra_resources/images')));
+
+// Avatar proxy and cache
+app.get('/avatar/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+    // Serve from cache if available
+    if (avatarCache.has(username)) {
+      const buffer = avatarCache.get(username);
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.type('image/png').send(buffer);
+      return;
+    }
+    // Fetch from upstream
+    const upstreamUrl = `https://avatar.iran.liara.run/username?username=${encodeURIComponent(username)}`;
+    const response = await fetch(upstreamUrl);
+    if (!response.ok) return res.sendStatus(response.status);
+    const buffer = await response.arrayBuffer();
+    const buf = Buffer.from(buffer);
+    // Cache and send
+    avatarCache.set(username, buf);
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.type('image/png').send(buf);
+  } catch (err) {
+    console.error('Avatar proxy error:', err);
+    res.sendStatus(500);
+  }
+});
 
 //Authentication Middleware
 const auth = (req, res, next) => {
