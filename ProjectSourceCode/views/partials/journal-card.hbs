@@ -1,41 +1,41 @@
-<div class="journal-card bg-white rounded shadow-md p-4 mb-4 flex justify-between items-start"> 
-  {{! Left side - Journal Entry Details }}
-  <div class="flex-grow mr-4"> 
-    <div class="journal-header flex justify-between items-center mb-2"> 
-      <div class="journal-entry-label text-lg font-bold">
-        {{journal_title}}
+<div class="journal-card relative bg-white overflow-hidden rounded-lg shadow-md h-fit w-full">
+  <div class="flex justify-between items-start p-4">
+    <div class="flex-grow mr-4 pl-4">
+      <div class="journal-header flex justify-between items-center mb-2">
+        <div class="journal-entry-label text-xl font-semibold text-gray-800 transition-colors">
+          {{journal_title}}
+          <div class="journal-date text-sm text-gray-500 flex items-center space-x-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{{formatDate entry_date}}</span>
+            {{#if entry_time}}
+            <span>at {{formatTime entry_time}}</span>
+            {{/if}}
+          </div>
+        </div>
       </div>
-      <div class="journal-date text-sm text-gray-600">
-        {{formatDate entry_date}}
-        {{#if entry_time}}
-          at {{formatTime entry_time}}
-        {{/if}}
+      <div class="journal-body text-gray-700">
+        <p>{{journal_entry}}</p>
       </div>
     </div>
-    <div class="journal-body"> 
-      <p>{{journal_entry}}</p>
+    <div class="flex-shrink-0 ml-4 pr-2">
+      <form method="POST" action="/api/journal/{{entry_id}}" class="inline">
+        <button type="submit" class="text-red-500 hover:text-red-700 p-1" title="Delete Journal Entry">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-trash">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M4 7l16 0" />
+            <path d="M10 11l0 6" />
+            <path d="M14 11l0 6" />
+            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+          </svg>
+        </button>
+      </form>
     </div>
   </div>
-
-  {{! Right side - Delete Form/Button }}
-  <div class="flex-shrink-0"> 
-    <form method="POST" action="/api/journal/{{entry_id}}" class="inline"> 
-      <button
-        type="submit"
-        class="text-red-500 hover:text-red-700 cursor-pointer p-1" 
-        title="Delete Journal Entry" 
-       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M4 7l16 0" />
-          <path d="M10 11l0 6" />
-          <path d="M14 11l0 6" />
-          <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-          <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-        </svg>
-      </button>
-    </form>
-    {{! --- END DELETE FORM --- }}
-  </div>
-
 </div>

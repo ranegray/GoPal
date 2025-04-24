@@ -1,54 +1,175 @@
-<div class="flex">
-  <aside class="bg-blue-100 px-4">
+<div class="flex flex-col md:flex-row min-h-screen">
+  <aside class="flex-shrink-0 bg-blue-100 px-4 sticky top-0 h-screen overflow-y-auto">
     <!-- Nav bar -->
     {{>nav}}
   </aside>
-  <main class="flex-grow p-6">    
+
+  <main class="flex-grow p-6">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">My Activities</h1>
-      {{>notification}}
+      <div class="mt-2 md:mt-0">
+        {{>notification}}
+      </div>
     </div>
 
-    {{!-- TODO: Achievements awarded component --}}
-    {{> achievement-card}}
+    <!-- Achievement section -->
+    <div class="mb-6">
+      {{> achievement-card}}
+    </div>
 
-    <div class="flex flex-col items-center border border-gray-300 rounded-lg p-4 mb-6">
-      <p class="uppercase font-semibold text-lg">week of {{stats.startDate}} to {{stats.endDate}}</p>
-      <div class="flex justify-between items-center w-full">
-        <div class="flex flex-col items-center w-1/4 bg-amber-50 m-2 p-4 rounded-lg">
-          <p class="uppercase font-semibold text-amber-500">This week</p>
-          <p>{{stats.activityCount}} {{pluralize stats.activityCount "activity" "activities"}}</p>
+    <!-- Activity filters -->
+    <div class="bg-white rounded-lg p-4 mb-6 shadow-sm">
+      <form id="activity-filter-form" action="/activity" method="GET"
+        class="flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <div class="w-full sm:w-auto">
+          <label for="activity-type" class="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
+          <select id="activity-type" name="type"
+            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 w-full">
+            <option value="all" {{#if (eq filter.type "all")}}selected{{/if}}>All Activities</option>
+            <option value="run" {{#if (eq filter.type "run")}}selected{{/if}}>Running</option>
+            <option value="walk" {{#if (eq filter.type "walk")}}selected{{/if}}>Walking</option>
+            <option value="cycle" {{#if (eq filter.type "cycle")}}selected{{/if}}>Cycling</option>
+            <option value="swim" {{#if (eq filter.type "swim")}}selected{{/if}}>Swimming</option>
+          </select>
         </div>
-        <div class="flex flex-col items-center w-1/4 bg-green-50 m-2 p-4 rounded-lg">
-          <p class="uppercase font-semibold text-green-500">Distance</p>
-          <p>{{stats.totalDistance}} mi</p>
+
+        <div class="w-full sm:w-auto">
+          <label for="date-range" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+          <select id="date-range" name="dateRange"
+            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 w-full">
+            <option value="week" {{#if (eq filter.dateRange "week")}}selected{{/if}}>This Week</option>
+            <option value="month" {{#if (eq filter.dateRange "month")}}selected{{/if}}>This Month</option>
+            <option value="quarter" {{#if (eq filter.dateRange "quarter")}}selected{{/if}}>Last 3 Months</option>
+            <option value="year" {{#if (eq filter.dateRange "year")}}selected{{/if}}>This Year</option>
+          </select>
         </div>
-        <div class="flex flex-col items-center w-1/4 bg-blue-50 m-2 p-4 rounded-lg">
-          <p class="uppercase font-semibold text-blue-500">Duration</p>
-          <p>{{formatDuration stats.totalDuration}}</p>
+
+        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+          <button type="submit"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filter
+          </button>
+
+          <button type="button" id="add-activity-button"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Activity
+          </button>
         </div>
-        <div class="flex flex-col items-center w-1/4 bg-purple-50 m-2 p-4 rounded-lg">
-          <p class="uppercase font-semibold text-purple-500">Streak</p>
-          {{!-- TODO: Add logic to calculate and display the activity streak --}}
-          <p>{{stats.currentStreak}} {{pluralize stats.currentStreak "day" "days"}}</p>
+      </form>
+    </div>
+    <!-- Stats summary -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+      <p class="uppercase font-semibold text-lg text-gray-700 mb-4 text-center">
+        {{#if (eq filter.dateRange "week")}}Week of{{/if}}
+        {{#if (eq filter.dateRange "month")}}Month of{{/if}}
+        {{#if (eq filter.dateRange "quarter")}}Last 3 Months{{/if}}
+        {{#if (eq filter.dateRange "year")}}Year of{{/if}}
+        {{stats.startDate}} to {{stats.endDate}}
+
+        {{#if (ne filter.type "all")}}
+        <span class="inline-block ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+          {{filter.type}}
+        </span>
+        {{/if}}
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="flex flex-col items-center bg-amber-50 p-4 rounded-lg">
+          <p class="uppercase font-semibold text-amber-600 mb-1">
+            {{#if (eq filter.dateRange "week")}}This week{{else}}{{filter.dateRange}}{{/if}}
+          </p>
+          <p class="text-2xl font-bold text-gray-800">{{stats.activityCount}}</p>
+          <p class="text-sm text-gray-600">{{pluralize stats.activityCount "activity" "activities"}}</p>
+        </div>
+
+        <div class="flex flex-col items-center bg-green-50 p-4 rounded-lg">
+          <p class="uppercase font-semibold text-green-600 mb-1">Distance</p>
+          <p class="text-2xl font-bold text-gray-800">{{stats.totalDistance}}</p>
+          <p class="text-sm text-gray-600">miles</p>
+        </div>
+
+        <div class="flex flex-col items-center bg-blue-50 p-4 rounded-lg">
+          <p class="uppercase font-semibold text-blue-600 mb-1">Duration</p>
+          <p class="text-2xl font-bold text-gray-800">{{formatDuration stats.totalDuration}}</p>
+          <p class="text-sm text-gray-600">total time</p>
+        </div>
+
+        <div class="flex flex-col items-center bg-purple-50 p-4 rounded-lg">
+          <p class="uppercase font-semibold text-purple-600 mb-1">Streak</p>
+          <p class="text-2xl font-bold text-gray-800">{{stats.currentStreak}}</p>
+          <p class="text-sm text-gray-600">{{pluralize stats.currentStreak "day" "days"}}</p>
         </div>
       </div>
     </div>
 
-    {{!-- TODO: Add filter for activity types and date ranges --}}
 
-    {{!-- TODO: Add styling/logic to account for large numbers of activities --}}
     <!-- Activity List -->
-    <div id="activities-list">
+    <div id="activities-list" class="bg-white rounded-lg p-4 shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Recent Activities</h2>
+        <div id="filter-badges" class="flex flex-wrap gap-2">
+          {{#if filter.active}}
+          {{#if (ne filter.type "all")}}
+          <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+            {{filter.type}}
+            <button type="button" data-clear="type" class="ml-1.5 text-blue-600 hover:text-blue-900">×</button>
+          </span>
+          {{/if}}
+          {{#if (ne filter.dateRange "week")}}
+          <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+            {{filter.dateRange}}
+            <button type="button" data-clear="dateRange" class="ml-1.5 text-blue-600 hover:text-blue-900">×</button>
+          </span>
+          {{/if}}
+          {{/if}}
+        </div>
+      </div>
+
       {{#if stats.activities.length}}
-      {{#each stats.activities}}
-      {{> activity-card this}}
-      {{/each}}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {{#each stats.activities}}
+        {{> activity-card this}}
+        {{/each}}
+      </div>
+
+      <div class="mt-6 flex justify-center">
+        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+          Load More
+        </button>
+      </div>
       {{else}}
-      <p class="text-center py-4 text-gray-500">No activities found. Add your first activity!</p>
+      <div class="text-center py-12 bg-gray-50 rounded-lg">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+        <p class="mt-2 text-gray-500">{{#if filter.active}}No activities match your filters{{else}}No activities
+          found{{/if}}</p>
+        <div class="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
+          {{#if filter.active}}
+          <button id="clear-filters-btn"
+            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+            Clear Filters
+          </button>
+          {{/if}}
+          <button id="add-first-activity-btn"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Add Your First Activity
+          </button>
+        </div>
+      </div>
       {{/if}}
     </div>
-    
+
+    {{> add-activity-modal}}
     {{> edit-activity-modal}}
   </main>
 </div>

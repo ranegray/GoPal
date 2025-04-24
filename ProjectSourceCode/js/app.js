@@ -124,6 +124,9 @@ if (window.location.pathname === "/settings/account") {
 document.addEventListener("DOMContentLoaded", function () {
   // Activity Modal - Adding Activity
   const activityModal = document.getElementById("activity-modal");
+  const addFirstActivityButton = document.getElementById(
+    "add-first-activity-btn"
+  );
   const activityForm = document.getElementById("activity-form");
   const closeModalButton = document.getElementById("close-modal-button");
   const cancelButton = document.getElementById("cancel-button");
@@ -150,12 +153,19 @@ document.addEventListener("DOMContentLoaded", function () {
     timeInput.value = `${hours}:${minutes}`;
   }
 
-  // Open modal when "Add Activity" button is clicked
-  if (addActivityButton) {
-    addActivityButton.addEventListener("click", function () {
+  function openActivityModal() {
+    if (activityModal) {
       activityModal.classList.remove("hidden");
       activityModal.classList.add("flex");
-    });
+    }
+  }
+
+  if (addActivityButton) {
+    addActivityButton.addEventListener("click", openActivityModal);
+  }
+
+  if (addFirstActivityButton) {
+    addFirstActivityButton.addEventListener("click", openActivityModal);
   }
 
   // Close modal functions
@@ -173,6 +183,80 @@ document.addEventListener("DOMContentLoaded", function () {
     cancelButton.addEventListener("click", closeModal);
   }
 
+  const durationHoursInput = document.getElementById("activity-duration-hours");
+  const durationMinutesInput = document.getElementById(
+    "activity-duration-minutes"
+  );
+  const hiddenDurationInput = document.getElementById("activity-duration");
+
+  if (
+    activityForm &&
+    durationHoursInput &&
+    durationMinutesInput &&
+    hiddenDurationInput
+  ) {
+    activityForm.addEventListener("submit", function (event) {
+      // Get hours and minutes, treating empty strings as 0
+      const hours =
+        durationHoursInput.value.trim() === ""
+          ? 0
+          : parseInt(durationHoursInput.value, 10);
+      const minutes =
+        durationMinutesInput.value.trim() === ""
+          ? 0
+          : parseInt(durationMinutesInput.value, 10);
+
+      // Check if parsing resulted in NaN (invalid input)
+      if (isNaN(hours) || isNaN(minutes)) {
+        event.preventDefault();
+        alert("Please enter valid numbers for duration hours and minutes.");
+        return;
+      }
+
+      const totalMinutes = hours * 60 + minutes;
+
+      if (totalMinutes <= 0) {
+        event.preventDefault(); // Stop form submission
+        alert("Please enter a duration greater than 0 minutes.");
+        durationHoursInput.focus();
+      } else {
+        // Set the hidden input value to the total minutes
+        hiddenDurationInput.value = totalMinutes;
+        // Form will now submit with a valid integer for duration_minutes
+      }
+    });
+  }
+
+  // Handle filter badge clear buttons
+  const filterClearButtons = document.querySelectorAll("[data-clear]");
+  filterClearButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const paramName = this.getAttribute("data-clear");
+
+      // Create a URL with the parameter removed
+      const url = new URL(window.location);
+
+      // Set the parameter to its default value
+      if (paramName === "type") {
+        url.searchParams.set("type", "all");
+      } else if (paramName === "dateRange") {
+        url.searchParams.set("dateRange", "week");
+      }
+
+      // Navigate to the modified URL
+      window.location.href = url.toString();
+    });
+  });
+
+  // Handle the "Clear Filters" button
+  const clearFiltersBtn = document.getElementById("clear-filters-btn");
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", function () {
+      // Redirect to the base activity page without query params
+      window.location.href = "/activity";
+    });
+  }
+
   // Notification Dropdown
   const notificationIcon = document.getElementById("notification-icon");
   const notificationDropdown = document.getElementById("notification-dropdown");
@@ -185,9 +269,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Close dropdown when clicking outside
   document.addEventListener("click", function (event) {
     // Check if dropdown is visible and the click is outside the dropdown and icon
-    if (!notificationDropdown.classList.contains("hidden") &&
+    if (
+      !notificationDropdown.classList.contains("hidden") &&
       !notificationDropdown.contains(event.target) &&
-      event.target !== notificationIcon) {
+      event.target !== notificationIcon
+    ) {
       notificationDropdown.classList.add("hidden");
     }
   });

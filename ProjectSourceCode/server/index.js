@@ -4,10 +4,13 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
 const FileStore = require('session-file-store')(session);
+const Handlebars = require('handlebars');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const db = require('./db.js');
 const fs = require("fs");
+const NodeCache = require('node-cache');
+const avatarCache = new NodeCache({ stdTTL: 86400 }); // cache avatars for 24h
 
 const { formatInTimeZone } = require('date-fns-tz');
 const { getStatsForRange } = require("./utils/stat-utils.js");
@@ -34,9 +37,18 @@ const hbs = handlebars.create({
   layoutsDir: path.join(__dirname, "../views/layouts"),
   partialsDir: path.join(__dirname, "../views/partials"),
   helpers: {
-        eq: function (a, b) {
-            return a === b;
-        },
+    eq: function (a, b) {
+      return a === b;
+    },
+    ne: function (a, b) {
+      return a !== b;
+    },
+    now: function() {
+        return new Date();
+    },
+    formatMonth: function(date) {
+    return date.toLocaleString('default', { month: 'long' });
+    },
     formatDate: function (date) {
       return new Date(date).toLocaleDateString();
     },
@@ -61,23 +73,82 @@ const hbs = handlebars.create({
       return count === 1 ? singular : plural;
     },
     gt: function (a, b) {
-        return a > b;
+      return a > b;
     },
     lt: function (a, b) {
-        return a < b;
+      return a < b;
     },
     subtract: function (a, b) {
-        return a - b;
+      return a - b;
     },
     divide: function (a, b) {
-        return a / b;
+      return a / b;
     },
     multiply: function (a, b) {
-        return a * b;
+      return a * b;
     },
     lookup: function (obj, key) {
-        return obj[key];
-    }
+      return obj[key];
+    },
+    floor: function (num) {
+        return Math.floor(num);
+    },
+    getActivityIcon: function (activityName) {
+      let svgIcon = "";
+      // Use lowercase for case-insensitive matching
+      switch (activityName.toLowerCase()) {
+        case "running":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-run"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 17l5 1l.75 -1.5" /><path d="M15 21l0 -4l-4 -3l1 -6" /><path d="M7 12l0 -3l5 -1l3 3l3 1" /></svg>`;
+          break;
+        case "walking":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-walk"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 21l3 -4" /><path d="M16 21l-2 -4l-3 -3l1 -6" /><path d="M6 12l2 -3l4 -1l3 3l3 1" /></svg>`;
+          break;
+        case "cycling":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-bike"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M19 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 19l0 -4l-3 -3l5 -4l2 3l3 0" /><path d="M17 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>`;
+          break;
+        case "swimming":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-swimming"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M6 11l4 -2l3.5 3l-1.5 2" /><path d="M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25" /></svg>`;
+          break;
+        case "hiking":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trekking"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 21l2 -4" /><path d="M13 21v-4l-3 -3l1 -6l3 4l3 2" /><path d="M10 14l-1.827 -1.218a2 2 0 0 1 -.831 -2.15l.28 -1.117a2 2 0 0 1 1.939 -1.515h1.439l4 1l3 -2" /><path d="M17 12v9" /><path d="M16 20h2" /></svg>`;
+          break;
+        case "skiing/snowboarding":
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-ski-jumping"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11 3a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M17 17.5l-5 -4.5v-6l5 4" /><path d="M7 17.5l5 -4" /><path d="M15.103 21.58l6.762 -14.502a2 2 0 0 0 -.968 -2.657" /><path d="M8.897 21.58l-6.762 -14.503a2 2 0 0 1 .968 -2.657" /><path d="M7 11l5 -4" /></svg>`;
+          break;
+        default:
+          // Default icon if no match is found
+          svgIcon = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`; // Example placeholder
+      }
+      // Return the SVG icon as a safe string
+      return new Handlebars.SafeString(svgIcon);
+    },
+    timeAgo: function(dateStr, timeStr) {
+        // Create a date from the activity date and time
+        const date = new Date(dateStr);
+        if (timeStr) {
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          date.setHours(hours, minutes);
+        }
+        
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+        const diffWeek = Math.floor(diffDay / 7);
+        const diffMonth = Math.floor(diffDay / 30);
+        const diffYear = Math.floor(diffDay / 365);
+        
+        // Return appropriate time format
+        if (diffSec < 60) return `${diffSec}s`;
+        if (diffMin < 60) return `${diffMin}m`;
+        if (diffHour < 24) return `${diffHour}h`;
+        if (diffDay < 7) return `${diffDay}d`;
+        if (diffWeek < 4) return `${diffWeek}w`;
+        if (diffMonth < 12) return `${diffMonth}mo`;
+        return `${diffYear}y`;
+      },
   },
 });
 
@@ -108,6 +179,33 @@ app.use(
 
 app.use(express.static(path.join(__dirname, '..')));
 app.use('/images', express.static(path.join(__dirname, '../extra_resources/images')));
+
+// Avatar proxy and cache
+app.get('/avatar/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+    // Serve from cache if available
+    if (avatarCache.has(username)) {
+      const buffer = avatarCache.get(username);
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.type('image/png').send(buffer);
+      return;
+    }
+    // Fetch from upstream
+    const upstreamUrl = `https://avatar.iran.liara.run/username?username=${encodeURIComponent(username)}`;
+    const response = await fetch(upstreamUrl);
+    if (!response.ok) return res.sendStatus(response.status);
+    const buffer = await response.arrayBuffer();
+    const buf = Buffer.from(buffer);
+    // Cache and send
+    avatarCache.set(username, buf);
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.type('image/png').send(buf);
+  } catch (err) {
+    console.error('Avatar proxy error:', err);
+    res.sendStatus(500);
+  }
+});
 
 //Authentication Middleware
 const auth = (req, res, next) => {
@@ -289,81 +387,276 @@ app.post('/delete-account', auth, async (req, res) => {
     }
 });
 
-app.get('/home',auth, async (req, res) => {
-    try{
-        const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
-        const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
-        const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
-
-        // Fetch user's unread notifications
-        const notifications = await db.any(
-            `SELECT * FROM notifications 
-            WHERE user_id = $1 AND is_read = FALSE 
-            ORDER BY created_at DESC LIMIT 10`,
-            [req.session.user.user_id]
-        );
-
-        if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
-            //render w/o the weather data
-            return res.render('pages/home', {user: req.session.user, notifications, hasNotifications: notifications.length > 0});
-        } else{
-            //render with the weather data
-            res.render('pages/home', {
-                user: req.session.user, 
-                weather: req.session.weather.weather,
-                airQuality: req.session.weather.airQuality,
-                notifications,
-                hasNotifications: notifications.length > 0
-            });
-        }
-    } catch (err){
-        console.error(err);
-        res.render("pages/login");
-    }
-});
-
-app.get('/activity', auth, async (req, res) => {
-    try {
+app.get('/home', auth, async (req, res) => {
+  try {
       const userId = req.session.user.user_id;
       
+      // 1. Get weather data (already in your code)
+      const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+      const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
+      const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate;
+      let weather = null;
+      let airQuality = null;
+      
+      if (req.session.weather && timeSinceLastWeatherUpdate <= weatherTimeLimit) {
+          weather = req.session.weather.weather;
+          airQuality = req.session.weather.airQuality;
+      }
+
+      // 2. Get character data
+      let characterName = 'Unnamed Pal';
+      let characterImage = '../../extra_resources/character_assets/basemonster.svg';
+      
+      const characterData = await db.oneOrNone(
+          'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+          [userId]
+      );
+      
+      if (characterData) {
+        characterName = characterData.character_name;
+        
+        // Determine character image path based on customizations
+        let imagePath = '../../extra_resources/character_assets/';
+        
+        if (!characterData.hat_choice || characterData.hat_choice === 'none') {
+            // No hat selected
+            if (!characterData.color_choice || characterData.color_choice === 'default') {
+                // No color selected either, use base monster
+                characterImage = imagePath + 'basemonster.svg'; // Fixed extension to .svg
+            } else {
+                // Color selected but no hat
+                characterImage = imagePath + `basemonster_${characterData.color_choice}.svg`;
+            }
+        } else {
+            // Hat selected
+            if (!characterData.color_choice || characterData.color_choice === 'default') {
+                // Hat selected but no color, use default color with hat
+                characterImage = imagePath + `monster_default_${characterData.hat_choice}.svg`;
+            } else {
+                // Both hat and color selected
+                characterImage = imagePath + `monster_${characterData.color_choice}_${characterData.hat_choice}.svg`;
+            }
+        }
+    }
+
+      // 3. Get activity stats and recent activities
       const activities = await db.any(
-        `SELECT wl.*, at.activity_name 
-        FROM activity_logs wl
-        JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
-        WHERE wl.user_id = $1
-        ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC`,
-        [userId]
+          `SELECT wl.*, at.activity_name 
+          FROM activity_logs wl
+          JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
+          WHERE wl.user_id = $1
+          ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC`,
+          [userId]
+      );
+      
+      // Get monthly stats
+      const { startDate, endDate } = require('./utils/date-utils').getDateRange("month");
+      const stats = require('./utils/stat-utils').getStatsForRange(activities, startDate, endDate);
+
+      // 4. Get achievements
+      const achievementsData = await db.any(
+          `SELECT a.id, a.name, a.description, a.criteria_type, a.criteria_value, 
+              CASE WHEN ua.id IS NOT NULL THEN true ELSE false END as unlocked
+          FROM achievements a
+          LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = $1
+          ORDER BY a.criteria_value ASC`,
+          [userId]
+      );
+      
+      // Format achievements with progress information
+      const achievements = achievementsData.map(achievement => {
+          const result = {
+              id: achievement.id,
+              name: achievement.name,
+              description: achievement.description,
+              unlocked: achievement.unlocked
+          };
+          
+          // Add progress for non-unlocked achievements
+          if (!achievement.unlocked && achievement.criteria_type === 'ACTIVITY_COUNT') {
+              // Get the current count
+              const current = req.session.user.activities_completed_count || 0;
+              const target = achievement.criteria_value;
+              
+              result.progress = Math.min(Math.round((current / target) * 100), 99); // Cap at 99% until unlocked
+              result.current = current;
+              result.target = target;
+          }
+          
+          return result;
+      });
+
+      // 5. Get notifications
+      const notifications = await db.any(
+          `SELECT * FROM notifications 
+          WHERE user_id = $1 AND is_read = FALSE 
+          ORDER BY created_at DESC LIMIT 10`,
+          [userId]
       );
 
-      // Fetch user's unread notifications
-      const notifications = await db.any(
-        `SELECT * FROM notifications 
-         WHERE user_id = $1 AND is_read = FALSE 
-         ORDER BY created_at DESC LIMIT 10`,
-        [userId]
-        );
-
-      // Can pass a string to getDateRange to get different ranges
-      // For example: "week", "month", "year"
-      const { startDate, endDate } = getDateRange("week");
-      const stats = getStatsForRange(activities, startDate, endDate);
+      // 6. Get friend activities (if available)
+      let friendActivities = [];
       
-      res.render('pages/activity', { 
-        activities: activities,
-        user: req.session.user, 
-        stats:  stats,
-        notifications: notifications,
-        hasNotifications: notifications.length > 0
+      // Get the list of friend IDs where the friendship is accepted
+      const friends = await db.any(`
+          SELECT friend_id AS id FROM friends 
+          WHERE user_id = $1 AND status = 'accepted'
+          UNION
+          SELECT user_id AS id FROM friends 
+          WHERE friend_id = $1 AND status = 'accepted'
+      `, [userId]);
+
+      if (friends.length > 0) {
+          // Extract friend IDs from result
+          const friendIds = friends.map(friend => friend.id);
+          
+        // Fetch recent activities from friends
+        const rawFriendActivities = await db.any(`
+            SELECT al.activity_id, al.user_id, u.username, u.display_name, u.profile_photo_path,
+                al.activity_type_id, at.activity_name, al.duration_minutes, al.distance_mi,
+                al.activity_date, al.activity_time, -- Select activity_date and activity_time
+                al.created_at -- Keep created_at just in case, or for sorting
+            FROM activity_logs al
+            JOIN users u ON al.user_id = u.user_id
+            JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+            WHERE al.user_id IN ($1:csv)
+            ORDER BY al.activity_date DESC, al.activity_time DESC
+            LIMIT 5
+        `, [friendIds]);
+
+        // Format friend activities
+        friendActivities = rawFriendActivities.map(activity => {
+            const now = new Date();
+            // Combine activity_date and activity_time into a single Date object
+            const activityDateTimeString = `${activity.activity_date.toISOString().split('T')[0]}T${activity.activity_time}`;
+            const activityTime = new Date(activityDateTimeString); 
+            
+            const timeDiff = Math.floor((now - activityTime) / (1000 * 60)); // minutes
+
+            let timeAgo;
+            if (timeDiff < 1) { // Handle cases less than a minute
+                timeAgo = 'just now';
+            } else if (timeDiff < 60) {
+                timeAgo = `${timeDiff} minute${timeDiff !== 1 ? 's' : ''} ago`;
+            } else if (timeDiff < 1440) { // less than a day
+                const hours = Math.floor(timeDiff / 60);
+                timeAgo = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            } else {
+                const days = Math.floor(timeDiff / 1440);
+                timeAgo = `${days} day${days !== 1 ? 's' : ''} ago`;
+            }
+
+            return {
+                activity_id: activity.activity_id,
+                username: activity.username,
+                display_name: activity.display_name || activity.username,
+                profile_photo_path: activity.profile_photo_path || `/avatar/${activity.username}`,
+                activity_description: `completed a ${activity.distance_mi ? activity.distance_mi + ' mile ' : ''}${activity.activity_name.toLowerCase()}!`, // Added check for distance
+                time_ago: timeAgo
+            };
+        });
+      }
+
+      // Render the dashboard with all the data
+      res.render('pages/home', {
+          user: req.session.user,
+          characterName,
+          characterImage,
+          stats,
+          weather,
+          airQuality,
+          achievements,
+          notifications,
+          hasNotifications: notifications.length > 0,
+          friendActivities
       });
-    } catch (err) {
-      console.error('Error fetching activities:', err);
-      res.render('pages/activity', { 
-        activities: [],
-        error: 'Error loading activities. Please try again.',
-        user: req.session.user
+  } catch (err) {
+      console.error('Error loading dashboard:', err);
+      res.render('pages/home', {
+          user: req.session.user,
+          error: 'Error loading dashboard data. Please try again.'
       });
+  }
+});
+
+app.get("/activity", auth, async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
+
+    // Get filter parameters
+    const activityType = req.query.type || "all";
+    const dateRangeParam = req.query.dateRange || "week";
+
+    // Get date range object from utility function
+    const { startDate, endDate, startDateObj, endDateObj } =
+      getDateRange(dateRangeParam);
+
+    // Build query with filters
+    let query = `
+      SELECT al.*, at.activity_name 
+      FROM activity_logs al
+      JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+      WHERE al.user_id = $1
+    `;
+
+    const queryParams = [userId];
+
+    // Filter by activity type if specified
+    if (activityType !== "all") {
+      query += ` AND at.activity_name ILIKE $2`;
+      queryParams.push(`%${activityType}%`);
     }
-  });
+
+    // Add date range filter based on selection - fix the error by checking if startDateObj exists
+    if (dateRangeParam !== "all" && startDateObj) {
+      query += ` AND al.activity_date >= $${queryParams.length + 1}`;
+      queryParams.push(startDateObj.toISOString().split("T")[0]);
+    }
+
+    // Add ordering
+    query += ` ORDER BY al.activity_date DESC, al.activity_time DESC`;
+
+    // Execute query
+    const activities = await db.any(query, queryParams);
+
+    // Use the getStatsForRange utility function to calculate stats
+    const stats = getStatsForRange(activities, startDate, endDate);
+
+    // Flag if any filter is active
+    const filterActive = activityType !== "all" || dateRangeParam !== "week";
+
+    // Render the page with all necessary data
+    res.render("pages/activity", {
+      user: req.session.user,
+      stats: stats,
+      filter: {
+        type: activityType,
+        dateRange: dateRangeParam,
+        active: filterActive,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching activities:", error);
+    res.render("pages/activity", {
+      user: req.session.user,
+      stats: {
+        activities: [],
+        startDate: "Jan 1",
+        endDate: "Dec 31",
+        activityCount: 0,
+        totalDistance: "0.00",
+        totalDuration: 0,
+        currentStreak: 0,
+      },
+      filter: {
+        type: "all",
+        dateRange: "week",
+        active: false,
+      },
+      error: "Failed to load activities. Please try again.",
+    });
+  }
+});
 
 app.get("/settings/:tab?",auth, async (req, res) => {
     try{
@@ -849,7 +1142,6 @@ app.get('/social/recent', auth, async (req, res) => {
     try {
         const { user_id } = req.session.user;
         const tab = 'recent';
-        
 
         // Fetch the user from the database
         const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
@@ -870,21 +1162,41 @@ app.get('/social/recent', auth, async (req, res) => {
         let achievements = [];
 
         if (friends.length > 0) {
-            // Fetch recent activities from friends
+            // Fetch recent activities from friends including character customizations
             activities = await db.any(`
-                SELECT al.activity_id, al.user_id, u.username, u.profile_photo_path, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
+                SELECT al.activity_id, al.user_id, u.username, u.display_name, u.profile_photo_path,
+                       c.hat_choice, c.color_choice,
+                       at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
                 FROM activity_logs al
                 JOIN users u ON al.user_id = u.user_id
+                LEFT JOIN character_customizations c ON u.user_id = c.user_id
                 JOIN activity_types at ON al.activity_type_id = at.activity_type_id
                 WHERE al.user_id IN ($1:csv)
-                ORDER BY al.created_at DESC
-                LIMIT 5
+                ORDER BY al.activity_date DESC, al.activity_time DESC
+                LIMIT 10
             `, [friendIds]);
+
+            // Add character image path based on customization
+            activities = activities.map(activity => {
+                const imagePath = '/extra_resources/character_assets/';
+                let characterImage;
+                if (!activity.hat_choice || activity.hat_choice === 'none') {
+                    characterImage = activity.color_choice && activity.color_choice !== 'default'
+                        ? `${imagePath}basemonster_${activity.color_choice}.svg`
+                        : `${imagePath}basemonster.svg`;
+                } else {
+                    characterImage = activity.color_choice && activity.color_choice !== 'default'
+                        ? `${imagePath}monster_${activity.color_choice}_${activity.hat_choice}.svg`
+                        : `${imagePath}monster_default_${activity.hat_choice}.svg`;
+                }
+                return {...activity, characterImage};
+            });
 
             achievements = await db.any(`
                 SELECT 
                     ua.user_id,
                     u.username,
+                    u.display_name,
                     u.profile_photo_path,
                     a.name AS achievement_name,
                     a.description,
@@ -896,7 +1208,7 @@ app.get('/social/recent', auth, async (req, res) => {
                 WHERE ua.user_id IN ($1:csv)
                 ORDER BY ua.unlocked_at DESC
                 LIMIT 5;
-        `, [friendIds]);
+            `, [friendIds]);
         }
 
         // Fetch user's unread notifications
