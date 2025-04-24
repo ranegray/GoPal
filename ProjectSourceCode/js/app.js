@@ -173,6 +173,37 @@ document.addEventListener("DOMContentLoaded", function () {
     cancelButton.addEventListener("click", closeModal);
   }
 
+  const durationHoursInput = document.getElementById("activity-duration-hours");
+  const durationMinutesInput = document.getElementById("activity-duration-minutes");
+  const hiddenDurationInput = document.getElementById("activity-duration");
+
+  if (activityForm && durationHoursInput && durationMinutesInput && hiddenDurationInput) {
+    activityForm.addEventListener("submit", function (event) {
+      // Get hours and minutes, treating empty strings as 0
+      const hours = durationHoursInput.value.trim() === "" ? 0 : parseInt(durationHoursInput.value, 10);
+      const minutes = durationMinutesInput.value.trim() === "" ? 0 : parseInt(durationMinutesInput.value, 10);
+      
+      // Check if parsing resulted in NaN (invalid input)
+      if (isNaN(hours) || isNaN(minutes)) {
+        event.preventDefault();
+        alert("Please enter valid numbers for duration hours and minutes.");
+        return;
+      }
+      
+      const totalMinutes = hours * 60 + minutes;
+
+      if (totalMinutes <= 0) {
+        event.preventDefault(); // Stop form submission
+        alert("Please enter a duration greater than 0 minutes.");
+        durationHoursInput.focus();
+      } else {
+        // Set the hidden input value to the total minutes
+        hiddenDurationInput.value = totalMinutes;
+        // Form will now submit with a valid integer for duration_minutes
+      }
+    });
+  }
+
   // Notification Dropdown
   const notificationIcon = document.getElementById("notification-icon");
   const notificationDropdown = document.getElementById("notification-dropdown");
