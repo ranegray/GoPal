@@ -17,7 +17,55 @@
       {{> achievement-card}}
     </div>
 
-    {{>add-activity-modal}}
+    <!-- Activity filters -->
+    <div class="bg-white rounded-lg p-4 mb-6 shadow-sm">
+      <form id="activity-filter-form" action="/activity" method="GET"
+        class="flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <div class="w-full sm:w-auto">
+          <label for="activity-type" class="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
+          <select id="activity-type" name="type"
+            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 w-full">
+            <option value="all" {{#if (eq filter.type "all")}}selected{{/if}}>All Activities</option>
+            <option value="run" {{#if (eq filter.type "run")}}selected{{/if}}>Running</option>
+            <option value="walk" {{#if (eq filter.type "walk")}}selected{{/if}}>Walking</option>
+            <option value="cycle" {{#if (eq filter.type "cycle")}}selected{{/if}}>Cycling</option>
+            <option value="swim" {{#if (eq filter.type "swim")}}selected{{/if}}>Swimming</option>
+          </select>
+        </div>
+
+        <div class="w-full sm:w-auto">
+          <label for="date-range" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+          <select id="date-range" name="dateRange"
+            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 w-full">
+            <option value="week" {{#if (eq filter.dateRange "week")}}selected{{/if}}>This Week</option>
+            <option value="month" {{#if (eq filter.dateRange "month")}}selected{{/if}}>This Month</option>
+            <option value="quarter" {{#if (eq filter.dateRange "quarter")}}selected{{/if}}>Last 3 Months</option>
+            <option value="year" {{#if (eq filter.dateRange "year")}}selected{{/if}}>This Year</option>
+          </select>
+        </div>
+
+        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+          <button type="submit"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filter
+          </button>
+
+          <button type="button" id="add-activity-button"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Activity
+          </button>
+        </div>
+      </form>
+    </div>
     <!-- Stats summary -->
     <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
       <p class="uppercase font-semibold text-lg text-gray-700 mb-4 text-center">
@@ -63,55 +111,6 @@
       </div>
     </div>
 
-    <!-- Activity filters -->
-    <div class="bg-white rounded-lg p-4 mb-6 shadow-sm">
-      <form id="activity-filter-form" action="/activity" method="GET"
-        class="flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div class="w-full sm:w-auto">
-          <label for="activity-type" class="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
-          <select id="activity-type" name="type"
-            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 w-full">
-            <option value="all" {{#if (eq filter.type "all")}}selected{{/if}}>All Activities</option>
-            <option value="run" {{#if (eq filter.type "run")}}selected{{/if}}>Running</option>
-            <option value="walk" {{#if (eq filter.type "walk")}}selected{{/if}}>Walking</option>
-            <option value="cycle" {{#if (eq filter.type "cycle")}}selected{{/if}}>Cycling</option>
-            <option value="swim" {{#if (eq filter.type "swim")}}selected{{/if}}>Swimming</option>
-          </select>
-        </div>
-
-        <div class="w-full sm:w-auto">
-          <label for="date-range" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-          <select id="date-range" name="dateRange"
-            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 w-full">
-            <option value="week" {{#if (eq filter.dateRange "week")}}selected{{/if}}>This Week</option>
-            <option value="month" {{#if (eq filter.dateRange "month")}}selected{{/if}}>This Month</option>
-            <option value="quarter" {{#if (eq filter.dateRange "quarter")}}selected{{/if}}>Last 3 Months</option>
-            <option value="year" {{#if (eq filter.dateRange "year")}}selected{{/if}}>This Year</option>
-          </select>
-        </div>
-
-        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-          <button type="submit"
-            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-            Filter
-          </button>
-
-          <button type="button" id="add-activity-btn"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Add Activity
-          </button>
-        </div>
-      </form>
-    </div>
 
     <!-- Activity List -->
     <div id="activities-list" class="bg-white rounded-lg p-4 shadow-sm">
@@ -169,5 +168,8 @@
       </div>
       {{/if}}
     </div>
+
+    {{> add-activity-modal}}
+    {{> edit-activity-modal}}
   </main>
 </div>
