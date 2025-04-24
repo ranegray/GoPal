@@ -392,7 +392,27 @@ app.get("/settings/:tab?",auth, async (req, res) => {
             [req.session.user.user_id]
         );
 
-        res.render("pages/settings", { activeTab: tab, user: user, notifications, hasNotifications: notifications.length > 0});
+        // Fetching alert settings.
+        // app.get('/settings/:tab?', …)
+        const alertSettings = await db.oneOrNone(
+            `SELECT
+            aqiOn    AS "aqiOn",
+            windOn   AS "windOn",
+            tempOn   AS "tempOn",
+            aqiLevel AS "aqiLevel",
+            windSpeed AS "windSpeed",
+            hotTemp  AS "hotTemp",
+            coldTemp AS "coldTemp"
+            FROM alert_settings
+            WHERE user_id = $1`,
+            [req.session.user.user_id]
+        );
+
+        console.log('GET /settings/alert-settings →', alertSettings); // REMEMBER TO REMOVE
+
+  
+
+        res.render("pages/settings", { activeTab: tab, user: user, notifications, hasNotifications: notifications.length > 0, alertSettings: alertSettings });
     } catch(err) {
         console.error(err);
         res.render("pages/settings", { activeTab: 'account', user: req.session.user });
@@ -1247,6 +1267,65 @@ try {
     res.send('<div class="p-4 text-red-500">Error loading profile. Please try again.</div>');
 }
 });
+
+app.post('/settings/alert-settings', auth, async (req, res) => {
+    try {
+
+        console.log('POST /settings/alert-settings body:', req.body);
+
+      const userId = req.session.user.user_id;
+  
+      // correctly interpret the checkbox strings
+      const aqiBool   = req.body.aqiOn   === 'true';
+      const windBool  = req.body.windOn  === 'true';
+      const tempBool  = req.body.tempOn  === 'true';
+  
+      // only parse numbers if the corresponding alert is on
+      const aqiValue   = aqiBool  ? parseInt(req.body.aqiLevel, 10) : null;
+      const windValue  = windBool ? parseInt(req.body.windSpeed, 10) : null;
+      const hotValue   = tempBool ? parseInt(req.body.hotTemp, 10)   : null;
+      const coldValue  = tempBool ? parseInt(req.body.coldTemp, 10)  : null;
+  
+      await db.none(
+        `INSERT INTO alert_settings
+           (user_id, aqiOn, windOn, tempOn, aqiLevel, windSpeed, hotTemp, coldTemp)
+         VALUES
+           ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (user_id) DO UPDATE
+           SET aqiOn     = EXCLUDED.aqiOn,
+               windOn    = EXCLUDED.windOn,
+               tempOn    = EXCLUDED.tempOn,
+               aqiLevel  = EXCLUDED.aqiLevel,
+               windSpeed = EXCLUDED.windSpeed,
+               hotTemp   = EXCLUDED.hotTemp,
+               coldTemp  = EXCLUDED.coldTemp`,
+        [ userId, aqiBool, windBool, tempBool, aqiValue, windValue, hotValue, coldValue ]
+      );
+  
+      // Post-Redirect-Get: bounce back to GET so it picks up the new row
+      return res.redirect('/settings/alert-settings');
+    } catch (error) {
+      console.error('Error updating alert settings:', error);
+      // on error, re-render the form with whatever the user submitted
+      return res
+        .status(500)
+        .render('pages/settings', {
+          activeTab: 'alert-settings',
+          user: req.session.user,
+          alertSettings: {
+            aqiOn:   req.body.aqiOn === 'true',
+            windOn:  req.body.windOn === 'true',
+            tempOn:  req.body.tempOn === 'true',
+            aqiLevel:  req.body.aqiLevel,
+            windSpeed: req.body.windSpeed,
+            hotTemp:   req.body.hotTemp,
+            coldTemp:  req.body.coldTemp
+          },
+          message: [{ text: 'Failed to update alert settings. Please ensure all toggled alerts are filled out.', error: true }]
+        });
+    }
+  });
+  
 
 //Ensure App is Listening For Requests
 // Start the server and store the instance
