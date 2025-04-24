@@ -86,6 +86,9 @@ const hbs = handlebars.create({
     lookup: function (obj, key) {
       return obj[key];
     },
+    floor: function (num) {
+        return Math.floor(num);
+    },
     getActivityIcon: function (activityName) {
       let svgIcon = "";
       // Use lowercase for case-insensitive matching
