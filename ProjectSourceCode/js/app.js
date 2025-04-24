@@ -212,6 +212,120 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error marking notifications as read:", error)
       );
   });
+
+  // Activity menu dropdown functionality
+  const menuButtons = document.querySelectorAll('.activity-menu-button');
+  
+  if (menuButtons.length > 0) {
+    // Toggle dropdown when menu button is clicked
+    menuButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent event from bubbling up
+        
+        const activityId = this.getAttribute('data-activity-id');
+        const menuElement = document.getElementById(`menu-${activityId}`);
+        
+        // Close all other open menus first
+        document.querySelectorAll('.activity-menu').forEach(menu => {
+          if (menu.id !== `menu-${activityId}`) {
+            menu.classList.add('hidden');
+          }
+        });
+        
+        // Toggle this menu
+        menuElement.classList.toggle('hidden');
+      });
+    });
+    
+    // Close dropdown when clicking anywhere else on the page
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.activity-menu').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    });
+    
+    // Prevent clicks inside dropdown from closing it
+    document.querySelectorAll('.activity-menu').forEach(menu => {
+      menu.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    });
+  }
+
+  // Edit Activity Modal
+  const editActivityModal = document.getElementById("edit-activity-modal");
+  const editActivityForm = document.getElementById("edit-activity-form");
+  const editCloseModalButton = document.getElementById("edit-close-modal-button");
+  const editCancelButton = document.getElementById("edit-cancel-button");
+  const editActivityButtons = document.querySelectorAll(".edit-activity-button");
+
+  // Open edit activity modal when an edit button is clicked
+  if (editActivityButtons.length > 0) {
+    editActivityButtons.forEach(button => {
+      button.addEventListener("click", function() {
+        // Get activity data from data attributes
+        const activityId = this.getAttribute("data-activity-id");
+        const activityTypeId = this.getAttribute("data-activity-type-id");
+        const activityName = this.getAttribute("data-activity-name");
+        const activityDuration = this.getAttribute("data-activity-duration");
+        const activityDistance = this.getAttribute("data-activity-distance");
+        const activityDate = this.getAttribute("data-activity-date");
+        const activityTime = this.getAttribute("data-activity-time");
+        const activityNotes = this.getAttribute("data-activity-notes");
+
+        // Set values in the edit form
+        document.getElementById("edit-activity-id").value = activityId;
+        
+        // Find and select the appropriate option in the dropdown
+        const typeSelect = document.getElementById("edit-activity-type");
+        for (let i = 0; i < typeSelect.options.length; i++) {
+          if (typeSelect.options[i].text === activityName) {
+            typeSelect.selectedIndex = i;
+            break;
+          }
+        }
+        
+        document.getElementById("edit-activity-duration").value = activityDuration;
+        document.getElementById("edit-activity-distance").value = activityDistance;
+        
+        // Format date for input (yyyy-MM-dd)
+        if (activityDate) {
+          const date = new Date(activityDate);
+          const formattedDate = date.toISOString().split('T')[0];
+          document.getElementById("edit-activity-date").value = formattedDate;
+        }
+        
+        // Set time if available
+        if (activityTime) {
+          document.getElementById("edit-activity-time").value = activityTime;
+        }
+        
+        document.getElementById("edit-activity-notes").value = activityNotes || '';
+        
+        // Set the form action to the correct endpoint
+        editActivityForm.action = `/api/activities/${activityId}`;
+        
+        // Show the modal
+        editActivityModal.classList.remove("hidden");
+        editActivityModal.classList.add("flex");
+      });
+    });
+  }
+
+  // Close edit activity modal functions
+  function closeEditModal() {
+    editActivityModal.classList.add("hidden");
+    editActivityModal.classList.remove("flex");
+    editActivityForm.reset();
+  }
+
+  if (editCloseModalButton) {
+    editCloseModalButton.addEventListener("click", closeEditModal);
+  }
+
+  if (editCancelButton) {
+    editCancelButton.addEventListener("click", closeEditModal);
+  }
 });
 
 // CHARACTER WORK:
@@ -231,26 +345,53 @@ window.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("searchMessage"); // Clear it after displaying
   }
 });
+
 // Separate DOMContentLoaded listener for Journal Modal logic
 document.addEventListener("DOMContentLoaded", function () {
   // --- Journal Modal Elements ---
   const journalModal = document.getElementById("journal-modal");
   const journalForm = document.getElementById("journal-form");
-  const journalCloseModalButton = document.getElementById("journal-close-modal-button");
-  const journalCancelButton = document.getElementById("journal-cancel-button"); 
+  const journalCloseModalButton = document.getElementById( "journal-close-modal-button" );
+  const journalCancelButton = document.getElementById("journal-cancel-button");
   const journalAddButton = document.getElementById("journal-add-button");
+  const journalEntryTextarea = document.getElementById('journal-entry'); 
 
-  if (journalAddButton) {
-    journalAddButton.addEventListener("click", function () {
+  // --- Textarea Auto-Resizing Logic ---
+  const autoResizeTextarea = () => {
+    if (journalEntryTextarea) {
+      journalEntryTextarea.style.height = 'auto'; 
+      journalEntryTextarea.style.height = (journalEntryTextarea.scrollHeight) + 'px'; 
+    }
+  };
+
+  // Add input listener to the textarea for dynamic resizing while typing
+  if (journalEntryTextarea) {
+    journalEntryTextarea.addEventListener('input', autoResizeTextarea);
+  } 
+  else {
+     console.error("Textarea with ID 'journal-entry' not found for resizing.");
+  }
+
+  // --- Modal Open/Close Logic ---
+  function openModal() {
+    if (journalModal) {
       journalModal.classList.remove("hidden");
       journalModal.classList.add("flex");
-    });
+      autoResizeTextarea(); 
+    }
   }
 
   function closeModal() {
-    journalModal.classList.add("hidden");
-    journalModal.classList.remove("flex");
-    journalForm.reset();
+    if (journalModal && journalForm) {
+      journalModal.classList.add("hidden");
+      journalModal.classList.remove("flex");
+      journalForm.reset(); 
+      autoResizeTextarea(); 
+    }
+  }
+
+  if (journalAddButton) {
+    journalAddButton.addEventListener("click", openModal);
   }
 
   if (journalCloseModalButton) {
@@ -260,7 +401,61 @@ document.addEventListener("DOMContentLoaded", function () {
   if (journalCancelButton) {
     journalCancelButton.addEventListener("click", closeModal);
   }
-}); 
+});
+
+//Character Animation work:
+document.addEventListener('DOMContentLoaded', () => {
+  const animations = ['float-animation', 'wiggle-animation', 'shimmy-animation', 'heartbeat-animation'];
+  const img = document.querySelector('.character-card img');
+  
+  if (img) {
+    // Function to apply a random animation
+    function applyRandomAnimation() {
+      // Remove all animation classes
+      img.classList.remove(...animations);
+      
+      // Pick a random animation
+      const random = animations[Math.floor(Math.random() * animations.length)];
+      
+      // Add the chosen animation class
+      img.classList.add(random);
+    }
+
+    // Call the function immediately to apply the first animation
+    applyRandomAnimation();
+
+    // Set an interval to cycle through animations every 3 seconds
+    setInterval(applyRandomAnimation, 3000); // Adjust 3000 to change the time interval
+
+    // Add a click event listener to the character image for the spin animation
+    img.addEventListener('click', function() {
+      // Remove any previous random animation classes
+      img.classList.remove(...animations);
+      
+      // Remove the spin-once animation to reset it
+      img.classList.remove('spin-once-animation');
+      
+      // Trigger the spin-once animation
+      img.classList.add('spin-once-animation');
+      
+      // After the spin animation ends, restart the random animations
+      img.addEventListener('animationend', function handleSpinEnd(event) {
+        if (event.animationName === 'spin-once') {
+          // Once the spin animation ends, remove the spin class
+          img.classList.remove('spin-once-animation');
+          
+          // Resume random animation
+          applyRandomAnimation();
+          
+          // Remove the event listener so it doesn't trigger again
+          img.removeEventListener('animationend', handleSpinEnd);
+        }
+      });
+    });
+  }
+});
+
+
 
 // Friend Profile Modal
 document.addEventListener('DOMContentLoaded', function() {

@@ -1,13 +1,11 @@
 const express = require('express');
 const handlebars = require('express-handlebars');
-const Handlebars = require('handlebars');
 const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
 const FileStore = require('session-file-store')(session);
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const { errors } = require('pg-promise');
 const db = require('./db.js');
 const fs = require("fs");
 
@@ -16,6 +14,7 @@ const { getStatsForRange } = require("./utils/stat-utils.js");
 const { getDateRange } = require("./utils/date-utils.js");
 const { checkAndAwardAchievements } = require("./utils/achievement-utils.js");
 const { createAchievementNotifications } = require("./utils/notification-utils.js");
+const { getCharacterInfo, updateCharacter, awardXp } = require("./utils/character-utils.js");
 
 const app = express();
 
@@ -61,6 +60,24 @@ const hbs = handlebars.create({
     pluralize: function (count, singular, plural) {
       return count === 1 ? singular : plural;
     },
+    gt: function (a, b) {
+        return a > b;
+    },
+    lt: function (a, b) {
+        return a < b;
+    },
+    subtract: function (a, b) {
+        return a - b;
+    },
+    divide: function (a, b) {
+        return a / b;
+    },
+    multiply: function (a, b) {
+        return a * b;
+    },
+    lookup: function (obj, key) {
+        return obj[key];
+    }
   },
 });
 
@@ -99,6 +116,74 @@ const auth = (req, res, next) => {
     }
     next();
 };
+
+//START CHARACTER MIDDLEWARE
+/// First, define the character middleware as a separate function
+const characterMiddleware = async (req, res, next) => {
+    try {
+      // Check if user is authenticated
+      if (!req.session || !req.session.user || !req.session.user.user_id) {
+        // If not authenticated, skip character processing and continue
+        return next();
+      }
+      
+      const userId = req.session.user.user_id;
+      
+      // Get character information using your existing utility function
+      const characterInfo = await getCharacterInfo(userId);
+      
+      // Determine the character image path based on customizations
+      let imagePath = '../../extra_resources/character_assets/';
+      let characterImage;
+      const character = characterInfo.character;
+      
+      if (!character.hat_choice || character.hat_choice === 'none') {
+        // No hat selected
+        if (character.color_choice === 'default') {
+          // No color selected either, use base monster
+          characterImage = imagePath + 'basemonster.svg';
+        } else {
+          // Color selected but no hat
+          characterImage = imagePath + `basemonster_${character.color_choice}.svg`;
+        }
+      } else {
+        // Hat selected
+        if (character.color_choice === 'default') {
+          // Hat selected but no color, use default color with hat
+          characterImage = imagePath + `monster_default_${character.hat_choice}.svg`;
+        } else {
+          // Both hat and color selected
+          characterImage = imagePath + `monster_${character.color_choice}_${character.hat_choice}.svg`;
+        }
+      }
+      
+      // Make character data available to all views
+      res.locals.character = character;
+      res.locals.characterName = character.character_name;
+      res.locals.characterImage = characterImage;
+      res.locals.hatChoice = character.hat_choice || 'none';
+      res.locals.colorChoice = character.color_choice || 'default';
+      res.locals.evolutionStage = characterInfo.evolutionStage;
+      res.locals.nextLevel = characterInfo.nextLevel;
+      res.locals.xpToNextLevel = characterInfo.xpToNextLevel;
+    } catch (err) {
+      console.error('Error loading character data in middleware:', err);
+      // Set defaults in case of error
+      res.locals.characterName = "Your Pal";
+      res.locals.characterImage = "../../extra_resources/character_assets/basemonster.svg";
+      res.locals.hatChoice = 'none';
+      res.locals.colorChoice = 'default';
+    }
+  
+    // Continue to the next middleware/route handler
+    next();
+  };
+  
+  // Then apply the middleware globally, but without the auth dependency
+  app.use(characterMiddleware);
+
+//END CHARACTER MIDDLEWARE
+
 
 app.get('/login', (req, res) => {
     res.render('pages/login');
@@ -204,20 +289,36 @@ app.post('/delete-account', auth, async (req, res) => {
     }
 });
 
-app.get('/home',auth, (req, res) => {
-    const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
-    const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
-    const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
-    if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
-        //render w/o the weather data
-        return res.render('pages/home', {user: req.session.user});
-    } else{
-        //render with the weather data
-        res.render('pages/home', {
-            user: req.session.user, 
-            weather: req.session.weather.weather,
-            airQuality: req.session.weather.airQuality
-        });
+app.get('/home',auth, async (req, res) => {
+    try{
+        const weatherTimeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const lastWeatherUpdate = req.session.weather?.timestamp || 0; 
+        const timeSinceLastWeatherUpdate = Date.now() - lastWeatherUpdate; 
+
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [req.session.user.user_id]
+        );
+
+        if (!req.session.weather || timeSinceLastWeatherUpdate > weatherTimeLimit) { 
+            //render w/o the weather data
+            return res.render('pages/home', {user: req.session.user, notifications, hasNotifications: notifications.length > 0});
+        } else{
+            //render with the weather data
+            res.render('pages/home', {
+                user: req.session.user, 
+                weather: req.session.weather.weather,
+                airQuality: req.session.weather.airQuality,
+                notifications,
+                hasNotifications: notifications.length > 0
+            });
+        }
+    } catch (err){
+        console.error(err);
+        res.render("pages/login");
     }
 });
 
@@ -281,6 +382,16 @@ app.get("/settings/:tab?",auth, async (req, res) => {
         {
             user.birthday = user.birthday.toISOString().split("T")[0];
         }
+
+
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [req.session.user.user_id]
+        );
+
         // Fetching alert settings.
         // app.get('/settings/:tab?', …)
         const alertSettings = await db.oneOrNone(
@@ -301,7 +412,7 @@ app.get("/settings/:tab?",auth, async (req, res) => {
 
   
 
-        res.render("pages/settings", { activeTab: tab, user: user , alertSettings: alertSettings });
+        res.render("pages/settings", { activeTab: tab, user: user, notifications, hasNotifications: notifications.length > 0, alertSettings: alertSettings });
     } catch(err) {
         console.error(err);
         res.render("pages/settings", { activeTab: 'account', user: req.session.user });
@@ -320,11 +431,22 @@ app.get("/journal",auth, async (req, res) => {
         
         const journalStats = require('./utils/stat-utils.js').getJournalStats(journals);
 
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [userId]
+        );
+
         res.render("pages/journal", {
             user: req.session.user, 
             journals: journals,
-            journalStats: journalStats
+            journalStats: journalStats,
+            notifications,
+            hasNotifications: notifications.length > 0
         });
+
     } catch(err) {
         console.error(err);
         res.render("pages/journal", {user: req.session.user });
@@ -464,6 +586,8 @@ app.post('/api/activities', auth, async (req, res) => {
         if (!activityType) {
             return res.status(400).redirect('/activity?error=Invalid activity type');
         }
+
+        awardXp(userId, 10,  "You are the GOAT");
         
         const activityTypeId = activityType.activity_type_id;
         
@@ -541,12 +665,77 @@ app.post('/api/journal', auth, async (req, res) => {
   });
 
 
-
 // Delete an activity
+app.post('/api/journal/:id', auth, async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;
+        const entryId = req.params.id;
+        
+        // Ensure the journal entry belongs to the user
+        const journalEntry = await db.oneOrNone(
+        'SELECT * FROM journal_logs WHERE entry_id = $1 AND user_id = $2',
+        [entryId, userId]
+        );
+        
+        if (!journalEntry) {
+        return res.status(404).redirect('/journal?error=Journal entry not found');
+        }
+        
+        await db.none('DELETE FROM journal_logs WHERE entry_id = $1', [entryId]);
+        
+        // Redirect back to activities page
+        res.redirect('/journal?success=Journal entry deleted');
+    } catch (err) {
+        console.error('Error deleting journal entry:', err);
+        res.redirect('/journal?error=Error deleting journal entry');
+    }
+  });
+
+// Delete a journal entry
 app.post('/api/activities/:id', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
       const activityId = req.params.id;
+      
+      // Check if this is a delete request
+      if (req.body._method === 'DELETE') {
+        // Ensure the activity belongs to the user
+        const activity = await db.oneOrNone(
+          'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+          [activityId, userId]
+        );
+        
+        if (!activity) {
+          return res.status(404).redirect('/activity?error=Activity not found');
+        }
+        
+        await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
+        
+        // Redirect back to activities page
+        return res.redirect('/activity?success=Activity deleted');
+      } 
+      
+      // Otherwise, handle as an update request
+      const { 
+        'activity-type': activityTypeName, 
+        'activity-duration': durationMinutes, 
+        'activity-distance': distanceMi, 
+        'activity-date': activityDate,
+        'activity-time': activityTime,
+        'activity-notes': notes 
+      } = req.body;
+      
+      // Get activity type ID from name
+      const activityType = await db.oneOrNone(
+        'SELECT activity_type_id FROM activity_types WHERE activity_name ILIKE $1', 
+        [activityTypeName]
+      );
+      
+      if (!activityType) {
+        return res.status(400).redirect('/activity?error=Invalid activity type');
+      }
+      
+      const activityTypeId = activityType.activity_type_id;
       
       // Ensure the activity belongs to the user
       const activity = await db.oneOrNone(
@@ -558,15 +747,26 @@ app.post('/api/activities/:id', auth, async (req, res) => {
         return res.status(404).redirect('/activity?error=Activity not found');
       }
       
-      await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
+      // Update the activity
+      await db.none(
+        `UPDATE activity_logs 
+         SET activity_type_id = $1, 
+             activity_date = $2, 
+             activity_time = $3, 
+             duration_minutes = $4, 
+             distance_mi = $5, 
+             notes = $6
+         WHERE activity_id = $7 AND user_id = $8`,
+        [activityTypeId, activityDate, activityTime, durationMinutes, distanceMi, notes, activityId, userId]
+      );
       
       // Redirect back to activities page
-      res.redirect('/activity?success=Activity deleted');
+      return res.redirect('/activity?success=Activity updated');
     } catch (err) {
-      console.error('Error deleting activity:', err);
-      res.redirect('/activity?error=Error deleting activity');
+      console.error('Error handling activity request:', err);
+      res.redirect('/activity?error=Error processing your request');
     }
-  });
+    });
 
 // Add endpoints to fetch notifications
 app.get('/api/notifications', auth, async (req, res) => {
@@ -699,7 +899,15 @@ app.get('/social/recent', auth, async (req, res) => {
         `, [friendIds]);
         }
 
-        res.render("pages/social", { activeTab: tab, user, activities, achievements});
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
+
+        res.render("pages/social", { activeTab: tab, user, activities, achievements, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error('Error fetching friend activities:', err);
         return res.status(500).json({ error: 'Failed to fetch friend activities' });
@@ -745,7 +953,15 @@ app.get("/social/friends", auth, async (req, res) => {
             ORDER BY sort_order, username;
         `, [user_id]);
 
-        res.render("pages/social", { activeTab: tab, user, friends });
+        // Fetch user's unread notifications
+        const notifications = await db.any(
+            `SELECT * FROM notifications 
+            WHERE user_id = $1 AND is_read = FALSE 
+            ORDER BY created_at DESC LIMIT 10`,
+            [user_id]
+        );
+
+        res.render("pages/social", { activeTab: tab, user, friends, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error("Error fetching user or friends data:", err);
         res.render("pages/social", { activeTab: 'account', user: req.session.user });
@@ -825,7 +1041,37 @@ app.post("/decline-friend/:friendId", auth, async (req, res) => {
         res.status(500).json({ message: "Failed to decline friend request." });
     }
 });
-
+app.post('/comment/:activityId', auth, async (req, res) => {
+    try {
+      const { user_id, username } = req.session.user;  // who is commenting
+      const { activityId } = req.params;
+      const { comment } = req.body;  // comment text sent from client
+  
+      // Find the activity to know who posted it
+      const activity = await db.one(`
+        SELECT al.user_id AS owner_id, at.activity_name
+        FROM activity_logs al
+        JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+        WHERE al.activity_id = $1
+      `, [activityId]);
+  
+      // Insert into notifications
+      await db.none(`
+        INSERT INTO notifications (user_id, type, reference_id, title, message)
+        VALUES ($1, 'comment', $2, $3, $4)
+      `, [
+        activity.owner_id,         // send to the original poster
+        activityId,                // link to the activity
+        `New comment on ${activity.activity_name}`,  // title
+        `${username} commented: "${comment}"`        // message
+      ]);
+  
+      res.json({ success: true });
+    } catch (err) {
+      console.error('Error sending notification:', err);
+      res.status(500).json({ success: false });
+    }
+  });
 // CHARACTER WORK
 // Route to get character customization data
 app.get('/api/character', auth, async (req, res) => {
@@ -902,68 +1148,34 @@ app.get('/api/character', auth, async (req, res) => {
     }
   });
   
-  // Update the pal route to fetch character data from the database
   app.get('/pal', auth, async (req, res) => {
     try {
       const userId = req.session.user.user_id;
       
-      // Query the database for the user's character
-      const result = await db.oneOrNone(
-        'SELECT character_name, hat_choice, color_choice FROM character_customizations WHERE user_id = $1',
+      // Get user's unread notifications
+      const notifications = await db.any(
+        `SELECT * FROM notifications 
+         WHERE user_id = $1 AND is_read = FALSE 
+         ORDER BY created_at DESC LIMIT 10`,
         [userId]
       );
       
-      let characterData = {
-        characterName: 'Unnamed Pal',
-        hatChoice: 'none',
-        colorChoice: 'default'
-      };
+      // Character data is already in res.locals, no need to fetch it again
       
-      if (result) {
-        characterData = {
-          characterName: result.character_name,
-          hatChoice: result.hat_choice || 'none',
-          colorChoice: result.color_choice || 'default'
-        };
-      }
-      
-      // Determine the character image path based on customizations
-      // TODO: Work on a way to connect this imagePath to characterCustomization imagePath
-      let imagePath = '../../extra_resources/character_assets/';
-      let characterImage;
-      if (characterData.hatChoice === 'none') {
-        // No hat selected
-        if (characterData.colorChoice === 'default') {
-          // No color selected either, use base monster
-          characterImage = imagePath + 'basemonster.jpeg';
-        } else {
-          // Color selected but no hat
-          characterImage = imagePath + `basemonster_${characterData.colorChoice}.jpeg`;
-        }
-      } else {
-        // Hat selected
-        if (characterData.colorChoice === 'default') {
-          // Hat selected but no color, use default color with hat
-          characterImage = imagePath + `monster_default_${characterData.hatChoice}.jpeg`;
-        } else {
-          // Both hat and color selected
-          characterImage = imagePath + `monster_${characterData.colorChoice}_${characterData.hatChoice}.jpeg`;
-        }
-      }
-      
-      // Render the pal page with the character data
       res.render('pages/pal', {
         user: req.session.user,
-        characterName: characterData.characterName,
-        characterImage: characterImage,
-        hatChoice: characterData.hatChoice,
-        colorChoice: characterData.colorChoice
+        notifications: notifications,
+        hasNotifications: notifications.length > 0,
+        error: req.query.error,
+        success: req.query.success
+        // No need to pass character data - it's already in res.locals
       });
     } catch (error) {
       console.error('Error rendering pal page:', error);
       res.status(500).send('Internal server error');
     }
   });
+  //END CHARACTER WORK
 
   
 // fetch OpenWeatherMap data:
@@ -1116,4 +1328,12 @@ app.post('/settings/alert-settings', auth, async (req, res) => {
   
 
 //Ensure App is Listening For Requests
-module.exports = app.listen(3000);
+// Start the server and store the instance
+const server = app.listen(3000, () => {
+    console.log("Database connection successful"); // Your existing log
+    console.log("Server listening on port 3000"); // Optional log
+  });
+  
+  // Export both the app and the server instance
+module.exports = { app, server };
+  // --- End of changes ---
