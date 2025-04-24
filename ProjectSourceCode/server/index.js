@@ -625,10 +625,20 @@ app.get("/activity", auth, async (req, res) => {
     // Flag if any filter is active
     const filterActive = activityType !== "all" || dateRangeParam !== "week";
 
+    // Get user's unread notifications
+    const notifications = await db.any(
+      `SELECT * FROM notifications 
+       WHERE user_id = $1 AND is_read = FALSE 
+       ORDER BY created_at DESC LIMIT 10`,
+      [userId]
+    );
+
     // Render the page with all necessary data
     res.render("pages/activity", {
       user: req.session.user,
       stats: stats,
+      notifications,
+      hasNotifications: notifications.length > 0,
       filter: {
         type: activityType,
         dateRange: dateRangeParam,

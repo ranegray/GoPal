@@ -49,7 +49,7 @@
                 <div>
                   <p class="text-gray-600 text-sm mb-1">Level Progress</p>
                   <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: 45%"></div>
+                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{multiply (divide character.xp nextLevel.min_xp) 100}}%"></div>
                   </div>
                 </div>
               </div>
