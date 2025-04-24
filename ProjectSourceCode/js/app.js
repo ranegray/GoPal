@@ -345,26 +345,53 @@ window.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("searchMessage"); // Clear it after displaying
   }
 });
+
 // Separate DOMContentLoaded listener for Journal Modal logic
 document.addEventListener("DOMContentLoaded", function () {
   // --- Journal Modal Elements ---
   const journalModal = document.getElementById("journal-modal");
   const journalForm = document.getElementById("journal-form");
-  const journalCloseModalButton = document.getElementById("journal-close-modal-button");
-  const journalCancelButton = document.getElementById("journal-cancel-button"); 
+  const journalCloseModalButton = document.getElementById( "journal-close-modal-button" );
+  const journalCancelButton = document.getElementById("journal-cancel-button");
   const journalAddButton = document.getElementById("journal-add-button");
+  const journalEntryTextarea = document.getElementById('journal-entry'); 
 
-  if (journalAddButton) {
-    journalAddButton.addEventListener("click", function () {
+  // --- Textarea Auto-Resizing Logic ---
+  const autoResizeTextarea = () => {
+    if (journalEntryTextarea) {
+      journalEntryTextarea.style.height = 'auto'; 
+      journalEntryTextarea.style.height = (journalEntryTextarea.scrollHeight) + 'px'; 
+    }
+  };
+
+  // Add input listener to the textarea for dynamic resizing while typing
+  if (journalEntryTextarea) {
+    journalEntryTextarea.addEventListener('input', autoResizeTextarea);
+  } 
+  else {
+     console.error("Textarea with ID 'journal-entry' not found for resizing.");
+  }
+
+  // --- Modal Open/Close Logic ---
+  function openModal() {
+    if (journalModal) {
       journalModal.classList.remove("hidden");
       journalModal.classList.add("flex");
-    });
+      autoResizeTextarea(); 
+    }
   }
 
   function closeModal() {
-    journalModal.classList.add("hidden");
-    journalModal.classList.remove("flex");
-    journalForm.reset();
+    if (journalModal && journalForm) {
+      journalModal.classList.add("hidden");
+      journalModal.classList.remove("flex");
+      journalForm.reset(); 
+      autoResizeTextarea(); 
+    }
+  }
+
+  if (journalAddButton) {
+    journalAddButton.addEventListener("click", openModal);
   }
 
   if (journalCloseModalButton) {
@@ -374,7 +401,60 @@ document.addEventListener("DOMContentLoaded", function () {
   if (journalCancelButton) {
     journalCancelButton.addEventListener("click", closeModal);
   }
-}); 
+});
+
+//Character Animation work:
+document.addEventListener('DOMContentLoaded', () => {
+  const animations = ['float-animation', 'wiggle-animation', 'shimmy-animation', 'heartbeat-animation'];
+  const img = document.querySelector('.character-card img');
+  
+  if (img) {
+    // Function to apply a random animation
+    function applyRandomAnimation() {
+      // Remove all animation classes
+      img.classList.remove(...animations);
+      
+      // Pick a random animation
+      const random = animations[Math.floor(Math.random() * animations.length)];
+      
+      // Add the chosen animation class
+      img.classList.add(random);
+    }
+
+    // Call the function immediately to apply the first animation
+    applyRandomAnimation();
+
+    // Set an interval to cycle through animations every 3 seconds
+    setInterval(applyRandomAnimation, 3000); // Adjust 3000 to change the time interval
+
+    // Add a click event listener to the character image for the spin animation
+    img.addEventListener('click', function() {
+      // Remove any previous random animation classes
+      img.classList.remove(...animations);
+      
+      // Remove the spin-once animation to reset it
+      img.classList.remove('spin-once-animation');
+      
+      // Trigger the spin-once animation
+      img.classList.add('spin-once-animation');
+      
+      // After the spin animation ends, restart the random animations
+      img.addEventListener('animationend', function handleSpinEnd(event) {
+        if (event.animationName === 'spin-once') {
+          // Once the spin animation ends, remove the spin class
+          img.classList.remove('spin-once-animation');
+          
+          // Resume random animation
+          applyRandomAnimation();
+          
+          // Remove the event listener so it doesn't trigger again
+          img.removeEventListener('animationend', handleSpinEnd);
+        }
+      });
+    });
+  }
+});
+
 
 
 // Friend Profile Modal

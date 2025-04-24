@@ -8,16 +8,38 @@
   <!-- Main content area -->
   <main class="flex-1 overflow-y-auto">
     <div class="container mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold text-center mb-8">Your Pal</h1>
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Your Pal</h1>
+        {{>notification}}
+      </div>
       
       <!-- View Mode (Initially Visible) -->
       <div id="view-mode" class="flex flex-col items-center">
-        <!-- Character Card -->
-        <div class="mb-6">
-          {{> character-card 
-            characterName=characterName 
-            characterImage=characterImage
-          }}
+        <!-- Character Info Section - Side by Side Layout -->
+        <div class="w-full flex flex-col md:flex-row gap-6 mb-8">
+          <!-- Character Card - Left Side -->
+          <div class="md:w-1/3 flex justify-center">
+            {{> character-card 
+              characterName=characterName 
+              characterImage=characterImage
+            }}
+          </div>
+          
+          <!-- Evolution Section - Right Side -->
+          <div class="md:w-2/3">
+            <div class="bg-white rounded-lg shadow-lg p-6 h-full">
+              <h2 class="text-2xl font-semibold mb-4">Evolution Progress</h2>
+              {{> pal-evolution 
+                evolutionLevel=evolutionLevel
+                evolutionProgress=evolutionProgress
+                evolutionName=evolutionName
+                evolutionDescription=evolutionDescription
+                nextEvolutionName=nextEvolutionName
+                nextEvolutionRequirements=nextEvolutionRequirements
+                unlockedAbilities=unlockedAbilities
+              }}
+            </div>
+          </div>
         </div>
         
         <!-- Edit Button -->
@@ -30,7 +52,7 @@
         </button>
       </div>
       
-      <!-- Edit Mode (Initially Hidden) -->
+      <!-- Edit Mode (Initially Hidden) - Kept the same -->
       <div id="edit-mode" class="hidden">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-semibold">Customize Your Pal</h2>
@@ -66,33 +88,31 @@
               </div>
               
               <!-- Hat Selection -->
-              <!-- TODO: REFACTOR USING HBS loop-->
-              <!--TODO: Make path to image folder a variable-->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Choose a Hat</label>
-                <div class="grid grid-cols-6 gap-2">
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="none">
-                    <img src="../../extra_resources/character_assets/basemonster.jpeg" alt="Hat 6" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/basemonster.svg" alt="Hat 6" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">None</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="propeller">
-                    <img src="../../extra_resources/character_assets/propellerhat.jpeg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/propellerhat.svg" alt="Hat 1" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Propeller</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="party">
-                    <img src="../../extra_resources/character_assets/partyhat.jpeg" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/partyhat.svg" alt="Hat 2" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Party</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="crown">
-                    <img src="../../extra_resources/character_assets/crown.jpeg" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/crown.svg" alt="Hat 3" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Crown</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="tophat">
-                    <img src="../../extra_resources/character_assets/tophat.jpeg" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/tophat.svg" alt="Hat 4" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Top Hat</span>
                   </button>
                   <button type="button" class="hat-option border-2 border-gray-300 hover:border-blue-500 rounded-lg p-2 text-center" data-hat="beanie">
-                    <img src="../../extra_resources/character_assets/beanie.jpeg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
+                    <img src="../../extra_resources/character_assets/beanie.svg" alt="Hat 5" class="w-full h-12 object-contain mx-auto">
                     <span class="text-xs mt-1 block">Beanie</span>
                   </button>
                 </div>
