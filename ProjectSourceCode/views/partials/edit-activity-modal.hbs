@@ -1,0 +1,54 @@
+{{!-- views/partials/edit-activity-modal.hbs --}}
+<div class="z-50 fixed inset-0 items-center justify-center bg-black/50 hidden" id="edit-activity-modal">
+    <form action="/api/activities/edit" method="POST" id="edit-activity-form"
+        class="bg-white rounded-lg shadow-lg p-6 w-1/2 max-w-128 mx-auto mt-20">
+        <div class="flex justify-between mb-4">
+            <h2 class="text-2xl font-bold mb-4">Edit Activity</h2>
+            <svg xmlns="http://www.w3.org/2000/svg" id="edit-close-modal-button" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="cursor-pointer icon icon-tabler icons-tabler-outline icon-tabler-x">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M18 6l-12 12" />
+                <path d="M6 6l12 12" />
+            </svg>
+        </div>
+        
+        <!-- Hidden field for activity ID -->
+        <input type="hidden" id="edit-activity-id" name="activity-id">
+        
+        <label for="edit-activity-type">Sport</label>
+        <select id="edit-activity-type" name="activity-type" class="w-full p-2 border border-gray-300 rounded mb-4">
+            {{!-- Same options as add modal --}}
+            <option value="Running">Running</option>
+            <option value="Cycling">Cycling</option>
+            <option value="Swimming">Swimming</option>
+            <option value="Hiking">Hiking</option>
+            <option value="Walking">Walking</option>
+            <option value="Skiing/Snowboarding">Skiing/Snowboarding</option>
+        </select>
+        
+        <label for="edit-activity-duration">Duration (minutes)</label>
+        <input type="number" id="edit-activity-duration" name="activity-duration"
+            class="w-full p-2 border border-gray-300 rounded mb-4" required>
+            
+        <label for="edit-activity-distance">Distance (miles)</label>
+        <input type="number" id="edit-activity-distance" name="activity-distance" step="0.01"
+            class="w-full p-2 border border-gray-300 rounded mb-4" required>
+            
+        <label for="edit-activity-date">Date</label>
+        <input type="date" id="edit-activity-date" name="activity-date"
+            class="w-full p-2 border border-gray-300 rounded mb-4">
+            
+        <label for="edit-activity-time">Time</label>
+        <input type="time" id="edit-activity-time" name="activity-time"
+            class="w-full p-2 border border-gray-300 rounded mb-4">
+            
+        <label for="edit-activity-notes">Notes</label>
+        <textarea id="edit-activity-notes" name="activity-notes"
+            class="w-full p-2 border border-gray-300 rounded mb-4"></textarea>
+            
+        <button type="submit" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">Save Changes</button>
+        <button type="button" id="edit-cancel-button"
+            class="bg-gray-300 text-black px-4 py-2 rounded ml-2 cursor-pointer">Cancel</button>
+    </form>
+</div>
