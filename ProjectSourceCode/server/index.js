@@ -1192,6 +1192,39 @@ app.get('/social/recent', auth, async (req, res) => {
                 return {...activity, characterImage};
             });
 
+            // Fetch comments for all activities
+            const activityIds = activities.map(a => a.activity_id);
+            if (activityIds.length > 0) {
+                const comments = await db.any(`
+                    SELECT ac.*, u.username as commenter_username, u.display_name as commenter_name, 
+                           u.profile_photo_path as commenter_photo
+                    FROM activity_comments ac
+                    JOIN users u ON ac.user_id = u.user_id
+                    WHERE ac.activity_id IN ($1:csv)
+                    ORDER BY ac.created_at ASC
+                `, [activityIds]);
+
+                // Group comments by activity_id
+                const commentsByActivity = {};
+                comments.forEach(comment => {
+                    if (!commentsByActivity[comment.activity_id]) {
+                        commentsByActivity[comment.activity_id] = [];
+                    }
+                    commentsByActivity[comment.activity_id].push(comment);
+                });
+
+                // Attach comments to corresponding activities
+                activities = activities.map(activity => {
+                    return {
+                        ...activity,
+                        comments: commentsByActivity[activity.activity_id] || []
+                    };
+                });
+            } else {
+                // Ensure every activity has an empty comments array
+                activities = activities.map(activity => ({...activity, comments: []}));
+            }
+
             achievements = await db.any(`
                 SELECT 
                     ua.user_id,
@@ -1366,6 +1399,12 @@ app.post('/comment/:activityId', auth, async (req, res) => {
         JOIN activity_types at ON al.activity_type_id = at.activity_type_id
         WHERE al.activity_id = $1
       `, [activityId]);
+      
+      // Insert the comment into the activity_comments table
+      await db.none(`
+        INSERT INTO activity_comments (activity_id, user_id, comment_text)
+        VALUES ($1, $2, $3)
+      `, [activityId, user_id, comment]);
   
       // Insert into notifications
       await db.none(`

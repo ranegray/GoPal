@@ -177,3 +177,19 @@ SET aqiOn = EXCLUDED.aqiOn,
   windSpeed = EXCLUDED.windSpeed,
   hotTemp = EXCLUDED.hotTemp,
   coldTemp = EXCLUDED.coldTemp;
+
+-- Create table for storing activity comments
+
+CREATE TABLE IF NOT EXISTS activity_comments (
+    comment_id SERIAL PRIMARY KEY,
+    activity_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    comment_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (activity_id) REFERENCES activity_logs(activity_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Add index for faster comment retrieval by activity
+CREATE INDEX IF NOT EXISTS idx_activity_comments_activity_id ON activity_comments(activity_id);
