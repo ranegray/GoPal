@@ -153,12 +153,27 @@ VALUES
 
 -- ALERT SETTINGS
 CREATE TABLE IF NOT EXISTS alert_settings (
-  user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE UNIQUE,
   aqiOn BOOLEAN DEFAULT TRUE,
-  windON BOOLEAN DEFAULT TRUE,
+  windOn BOOLEAN DEFAULT TRUE,
   tempOn BOOLEAN DEFAULT TRUE,
   aqiLevel INTEGER DEFAULT 3,
-  windSpeed INTEGER DEFAULT 22,
+  windSpeed INTEGER DEFAULT 40,
   hotTemp INTEGER DEFAULT 95,
   coldTemp INTEGER DEFAULT 10
 );
+
+-- Insert default alert settings for all users
+-- Lowkey this doesn't really do anything but I'm leaving it in case 
+INSERT INTO alert_settings (user_id, aqiOn, windOn, tempOn, aqiLevel, windSpeed, hotTemp, coldTemp)
+SELECT user_id, TRUE, TRUE, TRUE, 3, 40, 95, 10
+FROM users
+ON CONFLICT (user_id) DO UPDATE 
+SET aqiOn = EXCLUDED.aqiOn,
+  windOn = EXCLUDED.windOn,
+  tempOn = EXCLUDED.tempOn,
+  aqiLevel = EXCLUDED.aqiLevel,
+  windSpeed = EXCLUDED.windSpeed,
+  hotTemp = EXCLUDED.hotTemp,
+  coldTemp = EXCLUDED.coldTemp;
