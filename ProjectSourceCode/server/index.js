@@ -4,6 +4,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
 const FileStore = require('session-file-store')(session);
+const Handlebars = require('handlebars');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const db = require('./db.js');
