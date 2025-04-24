@@ -413,31 +413,31 @@ app.get('/home', auth, async (req, res) => {
       );
       
       if (characterData) {
-          characterName = characterData.character_name;
-          
-          // Determine character image path based on customizations
-          let imagePath = '../../extra_resources/character_assets/';
-          
-          if (characterData.hat_choice === 'none' || characterData.hat_choice === '') {
-              // No hat selected
-              if (characterData.color_choice === 'default') {
-                  // No color selected either, use base monster
-                  characterImage = imagePath + 'basemonster.jpeg';
-              } else {
-                  // Color selected but no hat
-                  characterImage = imagePath + `basemonster_${characterData.color_choice}.svg`;
-              }
-          } else {
-              // Hat selected
-              if (characterData.color_choice === 'default') {
-                  // Hat selected but no color, use default color with hat
-                  characterImage = imagePath + `monster_default_${characterData.hat_choice}.svg`;
-              } else {
-                  // Both hat and color selected
-                  characterImage = imagePath + `monster_${characterData.color_choice}_${characterData.hat_choice}.svg`;
-              }
-          }
-      }
+        characterName = characterData.character_name;
+        
+        // Determine character image path based on customizations
+        let imagePath = '../../extra_resources/character_assets/';
+        
+        if (!characterData.hat_choice || characterData.hat_choice === 'none') {
+            // No hat selected
+            if (!characterData.color_choice || characterData.color_choice === 'default') {
+                // No color selected either, use base monster
+                characterImage = imagePath + 'basemonster.svg'; // Fixed extension to .svg
+            } else {
+                // Color selected but no hat
+                characterImage = imagePath + `basemonster_${characterData.color_choice}.svg`;
+            }
+        } else {
+            // Hat selected
+            if (!characterData.color_choice || characterData.color_choice === 'default') {
+                // Hat selected but no color, use default color with hat
+                characterImage = imagePath + `monster_default_${characterData.hat_choice}.svg`;
+            } else {
+                // Both hat and color selected
+                characterImage = imagePath + `monster_${characterData.color_choice}_${characterData.hat_choice}.svg`;
+            }
+        }
+    }
 
       // 3. Get activity stats and recent activities
       const activities = await db.any(
