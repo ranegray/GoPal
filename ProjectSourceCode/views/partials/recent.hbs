@@ -7,33 +7,53 @@
     <h2 class="text-xl font-semibold mb-4">Friends Activity</h2>
     <div class="space-y-4">
       {{#each activities}}
-      <div class="flex justify-between items-center p-3 bg-gray-100 rounded-md">
-
-        <!-- LEFT: User + Notes + Duration -->
-        <div class="text-base">
-
+      <div class="flex flex-col p-3 shadow-md rounded-md">
+        <div class="text-lg">
+          {{!-- profile photo, username, time since post section --}}
           <div class="flex items-center gap-3">
-            <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "/images/default.png" {{/if}}
+            <img
+              src="{{#if profile_photo_path}}{{profile_photo_path}}{{else}}https://avatar.iran.liara.run/username?username={{username}}{{/if}}"
               class="w-10 h-10 object-cover rounded-full">
-            <p><strong>{{display_name}}</strong> - {{activity_name}}</p>
+            <p><strong>{{display_name}}</strong><span class="text-gray-600 text-sm pl-2">@{{username}} ⋅
+                {{timeAgo activity_date activity_time}}</span></p>
           </div>
-
-          {{#if notes}}<p class="text-sm mt-1 ml-12">{{notes}}</p>{{/if}}
-          <p class="mt-1 ml-12">{{#if distance_mi}}{{distance_mi}} miles •
-            {{/if}}{{#if duration_minutes}}{{duration_minutes}} minute(s){{/if}}</p>
-
+          {{!-- activity data section --}}
+          <div class="flex gap-3 mt-4 ml-2">
+            <p>{{getActivityIcon activity_name}}</p>
+            <div class="flex flex-col gap-2">
+              <p class="font-semibold">{{notes}}</p>
+              <div class="flex items-center gap-3">
+                <div>
+                  <p class="mb-1 text-sm text-gray-600">Distance</p>
+                  <p>{{distance_mi}} {{pluralize distance_mi "mile" "miles"}}</p>
+                </div>
+                <div class="bg-gray-300 w-[1px] py-5"></div>
+                <div>
+                  <p class="mb-1 text-sm text-gray-600">Duration</p>
+                  <p>{{formatDuration duration_minutes}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- RIGHT: Time + Button -->
-        <div class="flex items-center gap-3 text-sm text-gray-600">
-          <span>{{formatDate activity_date}} at {{formatTime activity_time}}</span>
-          <button onclick="commentOnActivity({{activity_id}})" class="bg-blue-300 p-2 rounded-full hover:bg-blue-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        <div class="flex gap-4 mt-2">
+          <button onclick="commentOnActivity({{activity_id}})" class="p-1 w-fit rounded-full hover:bg-blue-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               class="icon icon-tabler icons-tabler-outline icon-tabler-message-circle">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
               <path
                 d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" />
+            </svg>
+          </button>
+          <button onclick="toggleLike(this, {{activity_id}})" data-activity-id="{{activity_id}}"
+            class="like-button p-1 w-fit rounded-full hover:bg-red-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-heart">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
             </svg>
           </button>
         </div>
@@ -49,7 +69,8 @@
     <div class="space-y-3">
       {{#each achievements}}
       <div class="flex items-center gap-3">
-        <img src={{#if profile_photo_path}} {{profile_photo_path}}{{else}} "/images/default.png" {{/if}}
+        <img
+          src="{{#if profile_photo_path}}{{profile_photo_path}}{{else}}https://avatar.iran.liara.run/username?username={{username}}{{/if}}"
           class="w-10 h-10 object-cover rounded-full">
         <p><strong>{{display_name}}</strong> - {{achievement_name}}</p>
       </div>

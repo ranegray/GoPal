@@ -115,6 +115,33 @@ const hbs = handlebars.create({
       // Return the SVG icon as a safe string
       return new Handlebars.SafeString(svgIcon);
     },
+    timeAgo: function(dateStr, timeStr) {
+        // Create a date from the activity date and time
+        const date = new Date(dateStr);
+        if (timeStr) {
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          date.setHours(hours, minutes);
+        }
+        
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+        const diffWeek = Math.floor(diffDay / 7);
+        const diffMonth = Math.floor(diffDay / 30);
+        const diffYear = Math.floor(diffDay / 365);
+        
+        // Return appropriate time format
+        if (diffSec < 60) return `${diffSec}s`;
+        if (diffMin < 60) return `${diffMin}m`;
+        if (diffHour < 24) return `${diffHour}h`;
+        if (diffDay < 7) return `${diffDay}d`;
+        if (diffWeek < 4) return `${diffWeek}w`;
+        if (diffMonth < 12) return `${diffMonth}mo`;
+        return `${diffYear}y`;
+      },
   },
 });
 
@@ -1034,6 +1061,8 @@ app.get('/social/recent', auth, async (req, res) => {
             ORDER BY created_at DESC LIMIT 10`,
             [user_id]
         );
+
+        console.log(activities);
 
         res.render("pages/social", { activeTab: tab, user, activities, achievements, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {

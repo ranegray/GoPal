@@ -67,3 +67,72 @@ async function submitComment() {
     alert("Error sending comment.");
   }
 }
+
+// Initialize liked activities from local storage when page loads
+document.addEventListener('DOMContentLoaded', () => {
+  initializeLikedButtons();
+});
+
+/**
+ * Initialize like buttons based on localStorage data
+ */
+function initializeLikedButtons() {
+  // Get the saved likes from localStorage
+  const likedActivities = getLikedActivities();
+  
+  // Find all like buttons on the page
+  const likeButtons = document.querySelectorAll('.like-button');
+  
+  // Update each button's appearance based on localStorage data
+  likeButtons.forEach(button => {
+    const activityId = button.dataset.activityId;
+    if (likedActivities.includes(activityId)) {
+      const heartIcon = button.querySelector('svg');
+      if (heartIcon) {
+        heartIcon.setAttribute('fill', 'red');
+      }
+    }
+  });
+}
+
+/**
+ * Toggle like status for an activity and save to localStorage
+ * @param {HTMLElement} button - The like button element
+ * @param {string} activityId - ID of the activity to like/unlike
+ */
+function toggleLike(button, activityId) {
+  // Get the heart icon SVG
+  const heartIcon = button.querySelector('svg');
+  if (!heartIcon) return;
+  
+  // Get current liked activities
+  const likedActivities = getLikedActivities();
+  
+  // Check if this activity is already liked
+  const isLiked = heartIcon.getAttribute('fill') === 'red';
+  
+  if (isLiked) {
+    // Unlike: Remove from localStorage and change heart color
+    const index = likedActivities.indexOf(activityId.toString());
+    if (index > -1) {
+      likedActivities.splice(index, 1);
+    }
+    heartIcon.setAttribute('fill', 'none');
+  } else {
+    // Like: Add to localStorage and change heart color
+    likedActivities.push(activityId.toString());
+    heartIcon.setAttribute('fill', 'red');
+  }
+  
+  // Save updated likes to localStorage
+  localStorage.setItem('likedActivities', JSON.stringify(likedActivities));
+}
+
+/**
+ * Get the array of liked activity IDs from localStorage
+ * @returns {string[]} Array of activity IDs that the user has liked
+ */
+function getLikedActivities() {
+  const savedLikes = localStorage.getItem('likedActivities');
+  return savedLikes ? JSON.parse(savedLikes) : [];
+}
