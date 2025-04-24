@@ -486,7 +486,7 @@ app.get('/home', auth, async (req, res) => {
             JOIN users u ON al.user_id = u.user_id
             JOIN activity_types at ON al.activity_type_id = at.activity_type_id
             WHERE al.user_id IN ($1:csv)
-            ORDER BY al.created_at DESC -- Or order by activity_date/time if preferred
+            ORDER BY al.activity_date DESC, al.activity_time DESC
             LIMIT 5
         `, [friendIds]);
 
