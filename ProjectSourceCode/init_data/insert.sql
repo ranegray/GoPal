@@ -287,3 +287,28 @@ VALUES
   (19, 20, 'accepted', NOW() - INTERVAL '14 days'), -- Sophia and Thomas are friends
   (21, 22, 'accepted', NOW() - INTERVAL '3 days'), -- Ursula and Victor are friends
   (23, 24, 'accepted', NOW() - INTERVAL '9 days'); -- Wendy and Xavier are friends
+
+-- Insert comments on activities to make the social feed look lively
+INSERT INTO activity_comments (activity_id, user_id, comment_text, created_at)
+VALUES
+  -- Comments on Alice's activities
+  (1, 2, 'Looking strong, Alice! That morning run looks amazing! 🏃‍♀️', NOW() - INTERVAL '1 day'),
+  (1, 3, 'Your consistency is so inspiring. Any tips for a beginner?', NOW() - INTERVAL '12 hours'),
+  (1, 5, 'Love that route by the lake! We should run together sometime!', NOW() - INTERVAL '6 hours'),
+  (3, 2, 'That lake view is breathtaking! Is this the north shore trail?', NOW() - INTERVAL '18 hours'),
+  
+  -- Comments on Bob's activities
+  (14, 1, 'Marathon training looking solid, Bob! Keep crushing it! 💪', NOW() - INTERVAL '20 hours'),
+  (14, 5, 'Those hill repeats are paying off! Your pace is impressive!', NOW() - INTERVAL '10 hours'),
+  (16, 3, 'This is the trail you told me about? Looks challenging but fun!', NOW() - INTERVAL '2 days'),
+  
+  -- Comments on Charlie's activities
+  (28, 1, 'Great job on your consistency, Charlie! The hardest part is starting!', NOW() - INTERVAL '3 days'),
+  (30, 2, 'Way to go on your first bike ride! The first mile is the hardest.', NOW() - INTERVAL '2 days'),
+  (30, 5, 'Love seeing your progress! Have you tried the riverside path yet?', NOW() - INTERVAL '1 day'),
+  
+  -- Comments on Emma's activities
+  (41, 1, 'Your mindfulness walks have inspired me to try it! So peaceful.', NOW() - INTERVAL '3 days'),
+  (41, 2, 'That sunrise view is incredible! Is this the hilltop path?', NOW() - INTERVAL '2 days'),
+  (43, 3, 'I need to try meditation with my walks too! You always look so zen!', NOW() - INTERVAL '15 hours'),
+  (45, 1, 'How early do you have to go to catch that perfect morning light?', NOW() - INTERVAL '8 hours');

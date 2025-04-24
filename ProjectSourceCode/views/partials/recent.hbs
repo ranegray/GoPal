@@ -38,6 +38,7 @@
           </div>
         </div>
 
+
         <div class="flex gap-4 mt-2">
           <button onclick="commentOnActivity({{activity_id}})" class="p-1 w-fit rounded-full hover:bg-blue-300">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -58,6 +59,25 @@
             </svg>
           </button>
         </div>
+        {{!-- Add comments section --}}
+        {{#if comments.length}}
+        <div class="mt-3 pl-12 border-t pt-2">
+          <p class="text-sm text-gray-600 mb-2">{{comments.length}} {{pluralize comments.length "comment" "comments"}}
+          </p>
+          <div class="flex flex-col gap-2 space-y-2 max-h-40 overflow-y-auto">
+            {{#each comments}}
+            <div class="flex items-start gap-2">
+              <img src="{{#if commenter_photo}}{{commenter_photo}}{{else}}/avatar/{{commenter_username}}{{/if}}"
+                class="w-6 h-6 rounded-full mt-1">
+              <div class="bg-gray-100 rounded-lg p-2 text-sm flex-1 overflow-wrap-break-word">
+                <p class="font-medium">{{commenter_name}}</p>
+                <p>{{comment_text}}</p>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
 
       </div>
       {{/each}}
