@@ -111,7 +111,7 @@ const hbs = handlebars.create({
           svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trekking"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 21l2 -4" /><path d="M13 21v-4l-3 -3l1 -6l3 4l3 2" /><path d="M10 14l-1.827 -1.218a2 2 0 0 1 -.831 -2.15l.28 -1.117a2 2 0 0 1 1.939 -1.515h1.439l4 1l3 -2" /><path d="M17 12v9" /><path d="M16 20h2" /></svg>`;
           break;
         case "skiing/snowboarding":
-          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-ski-jumping"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11 3a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M17 17.5l-5 -4.5v-6l5 4" /><path d="M7 17.5l5 -4.5" /><path d="M15.103 21.58l6.762 -14.502a2 2 0 0 0 -.968 -2.657" /><path d="M8.897 21.58l-6.762 -14.503a2 2 0 0 1 .968 -2.657" /><path d="M7 11l5 -4" /></svg>`;
+          svgIcon = `<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-ski-jumping"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11 3a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M17 17.5l-5 -4.5v-6l5 4" /><path d="M7 17.5l5 -4" /><path d="M15.103 21.58l6.762 -14.502a2 2 0 0 0 -.968 -2.657" /><path d="M8.897 21.58l-6.762 -14.503a2 2 0 0 1 .968 -2.657" /><path d="M7 11l5 -4" /></svg>`;
           break;
         default:
           // Default icon if no match is found
@@ -1033,7 +1033,6 @@ app.get('/social/recent', auth, async (req, res) => {
     try {
         const { user_id } = req.session.user;
         const tab = 'recent';
-        
 
         // Fetch the user from the database
         const user = await db.one('SELECT * FROM users WHERE user_id = $1;', [user_id]);
@@ -1054,18 +1053,35 @@ app.get('/social/recent', auth, async (req, res) => {
         let achievements = [];
 
         if (friends.length > 0) {
-            // Fetch recent activities from friends
-            // Fetch recent activities from friends
+            // Fetch recent activities from friends including character customizations
             activities = await db.any(`
-                SELECT al.activity_id, al.user_id, u.username, u.display_name, u.profile_photo_path, al.activity_type_id, at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes,
-                       al.created_at 
+                SELECT al.activity_id, al.user_id, u.username, u.display_name, u.profile_photo_path,
+                       c.hat_choice, c.color_choice,
+                       at.activity_name, al.activity_date, al.activity_time, al.duration_minutes, al.distance_mi, al.notes
                 FROM activity_logs al
                 JOIN users u ON al.user_id = u.user_id
+                LEFT JOIN character_customizations c ON u.user_id = c.user_id
                 JOIN activity_types at ON al.activity_type_id = at.activity_type_id
                 WHERE al.user_id IN ($1:csv)
                 ORDER BY al.activity_date DESC, al.activity_time DESC
                 LIMIT 10
             `, [friendIds]);
+
+            // Add character image path based on customization
+            activities = activities.map(activity => {
+                const imagePath = '/extra_resources/character_assets/';
+                let characterImage;
+                if (!activity.hat_choice || activity.hat_choice === 'none') {
+                    characterImage = activity.color_choice && activity.color_choice !== 'default'
+                        ? `${imagePath}basemonster_${activity.color_choice}.svg`
+                        : `${imagePath}basemonster.svg`;
+                } else {
+                    characterImage = activity.color_choice && activity.color_choice !== 'default'
+                        ? `${imagePath}monster_${activity.color_choice}_${activity.hat_choice}.svg`
+                        : `${imagePath}monster_default_${activity.hat_choice}.svg`;
+                }
+                return {...activity, characterImage};
+            });
 
             achievements = await db.any(`
                 SELECT 
@@ -1083,7 +1099,7 @@ app.get('/social/recent', auth, async (req, res) => {
                 WHERE ua.user_id IN ($1:csv)
                 ORDER BY ua.unlocked_at DESC
                 LIMIT 5;
-        `, [friendIds]);
+            `, [friendIds]);
         }
 
         // Fetch user's unread notifications
