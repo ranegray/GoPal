@@ -41,6 +41,9 @@ const hbs = handlebars.create({
     eq: function (a, b) {
       return a === b;
     },
+    ne: function (a, b) {
+      return a !== b;
+    },
     now: function() {
         return new Date();
     },
@@ -548,7 +551,7 @@ app.get('/home', auth, async (req, res) => {
                 activity_id: activity.activity_id,
                 username: activity.username,
                 display_name: activity.display_name || activity.username,
-                profile_photo_path: activity.profile_photo_path || `https://avatar.iran.liara.run/username?username=${activity.username}`,
+                profile_photo_path: activity.profile_photo_path || `/avatar/${activity.username}`,
                 activity_description: `completed a ${activity.distance_mi ? activity.distance_mi + ' mile ' : ''}${activity.activity_name.toLowerCase()}!`, // Added check for distance
                 time_ago: timeAgo
             };
@@ -577,48 +580,84 @@ app.get('/home', auth, async (req, res) => {
   }
 });
 
-app.get('/activity', auth, async (req, res) => {
-    try {
-      const userId = req.session.user.user_id;
-      
-      const activities = await db.any(
-        `SELECT wl.*, at.activity_name 
-        FROM activity_logs wl
-        JOIN activity_types at ON wl.activity_type_id = at.activity_type_id
-        WHERE wl.user_id = $1
-        ORDER BY wl.activity_date DESC, wl.activity_time DESC, wl.created_at DESC`,
-        [userId]
-      );
+app.get("/activity", auth, async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
 
-      // Fetch user's unread notifications
-      const notifications = await db.any(
-        `SELECT * FROM notifications 
-         WHERE user_id = $1 AND is_read = FALSE 
-         ORDER BY created_at DESC LIMIT 10`,
-        [userId]
-        );
+    // Get filter parameters
+    const activityType = req.query.type || "all";
+    const dateRangeParam = req.query.dateRange || "week";
 
-      // Can pass a string to getDateRange to get different ranges
-      // For example: "week", "month", "year"
-      const { startDate, endDate } = getDateRange("week");
-      const stats = getStatsForRange(activities, startDate, endDate);
-      
-      res.render('pages/activity', { 
-        activities: activities,
-        user: req.session.user, 
-        stats:  stats,
-        notifications: notifications,
-        hasNotifications: notifications.length > 0
-      });
-    } catch (err) {
-      console.error('Error fetching activities:', err);
-      res.render('pages/activity', { 
-        activities: [],
-        error: 'Error loading activities. Please try again.',
-        user: req.session.user
-      });
+    // Get date range object from utility function
+    const { startDate, endDate, startDateObj, endDateObj } =
+      getDateRange(dateRangeParam);
+
+    // Build query with filters
+    let query = `
+      SELECT al.*, at.activity_name 
+      FROM activity_logs al
+      JOIN activity_types at ON al.activity_type_id = at.activity_type_id
+      WHERE al.user_id = $1
+    `;
+
+    const queryParams = [userId];
+
+    // Filter by activity type if specified
+    if (activityType !== "all") {
+      query += ` AND at.activity_name ILIKE $2`;
+      queryParams.push(`%${activityType}%`);
     }
-  });
+
+    // Add date range filter based on selection - fix the error by checking if startDateObj exists
+    if (dateRangeParam !== "all" && startDateObj) {
+      query += ` AND al.activity_date >= $${queryParams.length + 1}`;
+      queryParams.push(startDateObj.toISOString().split("T")[0]);
+    }
+
+    // Add ordering
+    query += ` ORDER BY al.activity_date DESC, al.activity_time DESC`;
+
+    // Execute query
+    const activities = await db.any(query, queryParams);
+
+    // Use the getStatsForRange utility function to calculate stats
+    const stats = getStatsForRange(activities, startDate, endDate);
+
+    // Flag if any filter is active
+    const filterActive = activityType !== "all" || dateRangeParam !== "week";
+
+    // Render the page with all necessary data
+    res.render("pages/activity", {
+      user: req.session.user,
+      stats: stats,
+      filter: {
+        type: activityType,
+        dateRange: dateRangeParam,
+        active: filterActive,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching activities:", error);
+    res.render("pages/activity", {
+      user: req.session.user,
+      stats: {
+        activities: [],
+        startDate: "Jan 1",
+        endDate: "Dec 31",
+        activityCount: 0,
+        totalDistance: "0.00",
+        totalDuration: 0,
+        currentStreak: 0,
+      },
+      filter: {
+        type: "all",
+        dateRange: "week",
+        active: false,
+      },
+      error: "Failed to load activities. Please try again.",
+    });
+  }
+});
 
 app.get("/settings/:tab?",auth, async (req, res) => {
     try{

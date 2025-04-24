@@ -1,56 +1,35 @@
-function calculateCurrentConsecutiveStreak(activityData) {
-  if (!activityData || activityData.length === 0) {
-    return 0; // No data, no streak
+function calculateStreak(activities) {
+  if (!activities || activities.length === 0) {
+    return 0;
   }
-
-  // 1. Create a Set of unique activity dates (as 'YYYY-MM-DD' strings in UTC)
-  const activityDateStrings = new Set();
-  activityData.forEach(activity => {
-    try {
-      const d = new Date(activity.activity_date);
-      // Check if the date is valid before proceeding
-      if (!isNaN(d.getTime())) {
-         // Normalize to a UTC date string 'YYYY-MM-DD'
-         // This avoids issues with timezones and daylight saving time shifts when comparing days
-         const year = d.getUTCFullYear();
-         const month = String(d.getUTCMonth() + 1).padStart(2, '0'); // months are 0-indexed
-         const day = String(d.getUTCDate()).padStart(2, '0');
-         activityDateStrings.add(`${year}-${month}-${day}`);
-      } else {
-        console.warn("Invalid date encountered in activityData:", activity.activity_date);
-      }
-    } catch (e) {
-       console.error("Error parsing date:", activity.activity_date, e);
-    }
+  
+  // Get unique dates from activities
+  const uniqueDates = new Set();
+  activities.forEach(activity => {
+    // Handle both Date objects and string dates
+    const dateStr = typeof activity.activity_date === 'string' 
+      ? activity.activity_date.split('T')[0] 
+      : activity.activity_date.toISOString().split('T')[0];
+    uniqueDates.add(dateStr);
   });
-
-  if (activityDateStrings.size === 0) {
-      return 0; // No valid dates found
-  }
-
-  // 2. Start checking from today (using UTC date)
-  let streak = 0;
+  
+  // For simplicity, count consecutive days starting from today
   const today = new Date();
-  // Use a temporary date object, starting at the beginning of today UTC
-  let currentDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-
-  // 3. Loop backwards day by day
-  while (true) {
-    const year = currentDate.getUTCFullYear();
-    const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(currentDate.getUTCDate()).padStart(2, '0');
-    const currentDateString = `${year}-${month}-${day}`;
-
-    if (activityDateStrings.has(currentDateString)) {
-      // Found an activity on this day, increment streak
+  let streak = 0;
+  
+  for (let i = 0; i < 30; i++) { // Check up to 30 days back
+    const checkDate = new Date(today);
+    checkDate.setDate(today.getDate() - i);
+    const checkDateStr = checkDate.toISOString().split('T')[0];
+    
+    if (uniqueDates.has(checkDateStr)) {
       streak++;
-      // Move to the previous day (UTC handles month/year changes)
-      currentDate.setUTCDate(currentDate.getUTCDate() - 1);
-    } else {
-      // No activity on this day, streak broken
+    } else if (streak > 0) {
+      // Break on first missing day after streak starts
       break;
     }
   }
+  
   return streak;
 }
 
@@ -74,7 +53,7 @@ function getStatsForRange(activityData, startDate, endDate) {
   );
 
   // Calculate current streak
-  const currentStreak = calculateCurrentConsecutiveStreak(activityData);
+  const currentStreak = calculateStreak(activityData);
 
   return {
     startDate: new Date(startDate).toLocaleDateString(),
@@ -112,6 +91,7 @@ function getJournalStats(journalData) {
 }
 
 module.exports = {
+  calculateStreak,
   getStatsForRange,
   getJournalStats,
 };
