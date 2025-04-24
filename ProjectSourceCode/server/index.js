@@ -1110,8 +1110,6 @@ app.get('/social/recent', auth, async (req, res) => {
             [user_id]
         );
 
-        console.log(activities);
-
         res.render("pages/social", { activeTab: tab, user, activities, achievements, notifications, hasNotifications: notifications.length > 0});
     } catch (err) {
         console.error('Error fetching friend activities:', err);
