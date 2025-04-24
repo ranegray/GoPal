@@ -298,6 +298,120 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error marking notifications as read:", error)
       );
   });
+
+  // Activity menu dropdown functionality
+  const menuButtons = document.querySelectorAll('.activity-menu-button');
+  
+  if (menuButtons.length > 0) {
+    // Toggle dropdown when menu button is clicked
+    menuButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent event from bubbling up
+        
+        const activityId = this.getAttribute('data-activity-id');
+        const menuElement = document.getElementById(`menu-${activityId}`);
+        
+        // Close all other open menus first
+        document.querySelectorAll('.activity-menu').forEach(menu => {
+          if (menu.id !== `menu-${activityId}`) {
+            menu.classList.add('hidden');
+          }
+        });
+        
+        // Toggle this menu
+        menuElement.classList.toggle('hidden');
+      });
+    });
+    
+    // Close dropdown when clicking anywhere else on the page
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.activity-menu').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    });
+    
+    // Prevent clicks inside dropdown from closing it
+    document.querySelectorAll('.activity-menu').forEach(menu => {
+      menu.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    });
+  }
+
+  // Edit Activity Modal
+  const editActivityModal = document.getElementById("edit-activity-modal");
+  const editActivityForm = document.getElementById("edit-activity-form");
+  const editCloseModalButton = document.getElementById("edit-close-modal-button");
+  const editCancelButton = document.getElementById("edit-cancel-button");
+  const editActivityButtons = document.querySelectorAll(".edit-activity-button");
+
+  // Open edit activity modal when an edit button is clicked
+  if (editActivityButtons.length > 0) {
+    editActivityButtons.forEach(button => {
+      button.addEventListener("click", function() {
+        // Get activity data from data attributes
+        const activityId = this.getAttribute("data-activity-id");
+        const activityTypeId = this.getAttribute("data-activity-type-id");
+        const activityName = this.getAttribute("data-activity-name");
+        const activityDuration = this.getAttribute("data-activity-duration");
+        const activityDistance = this.getAttribute("data-activity-distance");
+        const activityDate = this.getAttribute("data-activity-date");
+        const activityTime = this.getAttribute("data-activity-time");
+        const activityNotes = this.getAttribute("data-activity-notes");
+
+        // Set values in the edit form
+        document.getElementById("edit-activity-id").value = activityId;
+        
+        // Find and select the appropriate option in the dropdown
+        const typeSelect = document.getElementById("edit-activity-type");
+        for (let i = 0; i < typeSelect.options.length; i++) {
+          if (typeSelect.options[i].text === activityName) {
+            typeSelect.selectedIndex = i;
+            break;
+          }
+        }
+        
+        document.getElementById("edit-activity-duration").value = activityDuration;
+        document.getElementById("edit-activity-distance").value = activityDistance;
+        
+        // Format date for input (yyyy-MM-dd)
+        if (activityDate) {
+          const date = new Date(activityDate);
+          const formattedDate = date.toISOString().split('T')[0];
+          document.getElementById("edit-activity-date").value = formattedDate;
+        }
+        
+        // Set time if available
+        if (activityTime) {
+          document.getElementById("edit-activity-time").value = activityTime;
+        }
+        
+        document.getElementById("edit-activity-notes").value = activityNotes || '';
+        
+        // Set the form action to the correct endpoint
+        editActivityForm.action = `/api/activities/${activityId}`;
+        
+        // Show the modal
+        editActivityModal.classList.remove("hidden");
+        editActivityModal.classList.add("flex");
+      });
+    });
+  }
+
+  // Close edit activity modal functions
+  function closeEditModal() {
+    editActivityModal.classList.add("hidden");
+    editActivityModal.classList.remove("flex");
+    editActivityForm.reset();
+  }
+
+  if (editCloseModalButton) {
+    editCloseModalButton.addEventListener("click", closeEditModal);
+  }
+
+  if (editCancelButton) {
+    editCancelButton.addEventListener("click", closeEditModal);
+  }
 });
 
 // CHARACTER WORK:
@@ -426,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 // Friend Profile Modal

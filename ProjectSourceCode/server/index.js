@@ -1,13 +1,11 @@
 const express = require('express');
 const handlebars = require('express-handlebars');
-const Handlebars = require('handlebars');
 const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session'); 
 const FileStore = require('session-file-store')(session);
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const { errors } = require('pg-promise');
 const db = require('./db.js');
 const fs = require("fs");
 const NodeCache = require('node-cache');
@@ -968,26 +966,77 @@ app.post('/api/journal/:id', auth, async (req, res) => {
 // Delete a journal entry
 app.post('/api/activities/:id', auth, async (req, res) => {
     try {
-        const userId = req.session.user.user_id;
-        const activityId = req.params.id;
-        
+      const userId = req.session.user.user_id;
+      const activityId = req.params.id;
+      
+      // Check if this is a delete request
+      if (req.body._method === 'DELETE') {
         // Ensure the activity belongs to the user
         const activity = await db.oneOrNone(
-        'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
-        [activityId, userId]
+          'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+          [activityId, userId]
         );
         
         if (!activity) {
-        return res.status(404).redirect('/activity?error=Activity not found');
+          return res.status(404).redirect('/activity?error=Activity not found');
         }
         
         await db.none('DELETE FROM activity_logs WHERE activity_id = $1', [activityId]);
         
         // Redirect back to activities page
-        res.redirect('/activity?success=Activity deleted');
+        return res.redirect('/activity?success=Activity deleted');
+      } 
+      
+      // Otherwise, handle as an update request
+      const { 
+        'activity-type': activityTypeName, 
+        'activity-duration': durationMinutes, 
+        'activity-distance': distanceMi, 
+        'activity-date': activityDate,
+        'activity-time': activityTime,
+        'activity-notes': notes 
+      } = req.body;
+      
+      // Get activity type ID from name
+      const activityType = await db.oneOrNone(
+        'SELECT activity_type_id FROM activity_types WHERE activity_name ILIKE $1', 
+        [activityTypeName]
+      );
+      
+      if (!activityType) {
+        return res.status(400).redirect('/activity?error=Invalid activity type');
+      }
+      
+      const activityTypeId = activityType.activity_type_id;
+      
+      // Ensure the activity belongs to the user
+      const activity = await db.oneOrNone(
+        'SELECT * FROM activity_logs WHERE activity_id = $1 AND user_id = $2',
+        [activityId, userId]
+      );
+      
+      if (!activity) {
+        return res.status(404).redirect('/activity?error=Activity not found');
+      }
+      
+      // Update the activity
+      await db.none(
+        `UPDATE activity_logs 
+         SET activity_type_id = $1, 
+             activity_date = $2, 
+             activity_time = $3, 
+             duration_minutes = $4, 
+             distance_mi = $5, 
+             notes = $6
+         WHERE activity_id = $7 AND user_id = $8`,
+        [activityTypeId, activityDate, activityTime, durationMinutes, distanceMi, notes, activityId, userId]
+      );
+      
+      // Redirect back to activities page
+      return res.redirect('/activity?success=Activity updated');
     } catch (err) {
-        console.error('Error deleting activity:', err);
-        res.redirect('/activity?error=Error deleting activity');
+      console.error('Error handling activity request:', err);
+      res.redirect('/activity?error=Error processing your request');
     }
     });
 
