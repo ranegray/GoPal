@@ -84,3 +84,7 @@ Open your browser and navigate to:
 - `/init_data`: Database initialization scripts
     - `create.sql`: Schema definition
     - `insert.sql`: Sample data
+
+## Link to Deployed App
+
+https://gopal.beatcloud.net/
